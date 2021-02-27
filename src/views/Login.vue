@@ -1,7 +1,8 @@
 <template>
   <div class="login">
-    <h1>Login</h1>
-    <div id="firebaseui-auth-container"></div>
+    <div class="flex h-screen m-auto">
+      <div id="firebaseui-auth-container" class="flex m-auto"></div>
+    </div>
   </div>
 </template>
 
