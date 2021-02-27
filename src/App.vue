@@ -1,10 +1,23 @@
 <template>
   <div id="nav">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+    <router-link :to="{ name: 'Home' }">Home</router-link> |
+    <router-link :to="{ name: 'Login' }" v-if="!user">Login</router-link>
   </div>
-  <router-view/>
+  <router-view />
 </template>
+
+<script>
+import { mapState } from 'vuex';
+
+export default {
+  computed: mapState({
+    user: 'user'
+  }),
+  created() {
+    console.log("App Created");
+  },
+};
+</script>
 
 <style>
 #app {

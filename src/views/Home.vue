@@ -1,18 +1,34 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <h1>Gringo's Waitlist</h1>
+    <div v-if="user">
+      <div class="user">
+        {{ user.displayName }}
+        <button @click="logout">Logout</button>
+      </div>
+
+      <Order />
+    </div>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import { mapState } from "vuex";
+
+import firebase from "firebase/app";
+
+import Order from "@/components/Order.vue";
 
 export default {
-  name: 'Home',
-  components: {
-    HelloWorld
-  }
-}
+  name: "Home",
+  components: { Order },
+  computed: mapState({
+    user: "user",
+  }),
+  methods: {
+    logout() {
+      firebase.auth().signOut();
+    },
+  },
+};
 </script>
