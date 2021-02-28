@@ -112,6 +112,8 @@ firebase.auth().onAuthStateChanged((user) => {
   store.dispatch("fetchUser", user);
 
   if (user) {
+    // TODO: Remove on Prod
+    console.log(user);
     store.dispatch("fetchOrder");
   }
 });

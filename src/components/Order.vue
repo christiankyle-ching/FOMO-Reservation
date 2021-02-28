@@ -7,10 +7,10 @@
       <div
         v-for="product in products"
         :key="product.id"
-        class="grid grid-cols-3 p-3"
+        class="grid grid-cols-1 md:grid-cols-3 p-5"
       >
-        <div class="col-span-2">IMAGE</div>
-        <div class="col-span-1">
+        <div class="col-span-1 md:col-span-2">IMAGE</div>
+        <div class="col-span-1 text-center md:text-keft">
           <label :for="product.id" class="block pb-3">{{ product.name }}</label>
           <div class="quantity">
             <button @click.prevent="decrement(product.id)" class="px-2 py-1">

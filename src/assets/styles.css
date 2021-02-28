@@ -23,7 +23,7 @@
   }
 
   .button {
-    @apply px-3 py-2 rounded-lg;
+    @apply px-3 py-2 rounded-lg transition-colors;
   }
 
   .button-primary {
@@ -32,6 +32,10 @@
 
   .button-secondary {
     @apply hover:text-white bg-transparent hover:bg-yellow-600 border-2 border-yellow-600;
+  }
+
+  .button-danger {
+    @apply text-white bg-red-600 hover:bg-red-700 
   }
 
   .card {

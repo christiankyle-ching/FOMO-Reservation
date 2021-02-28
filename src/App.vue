@@ -6,8 +6,8 @@
       </h3>
 
       <div class="ml-auto my-auto">
-        <button v-if="user" class="block button  button-primary" @click="logout">Logout</button>
-        <router-link v-else :to="{ name: 'Login' }" class="block button"
+        <button v-if="user" class="block button button-primary" @click="logout">Logout</button>
+        <router-link v-else :to="{ name: 'Login' }" class="block button button-primary "
           >Login</router-link
         >
       </div>

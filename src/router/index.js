@@ -3,8 +3,11 @@ import { createRouter, createWebHistory } from "vue-router";
 import "@/firebase";
 import "firebase/auth";
 
+import { nextTick } from "vue";
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
+
+const SITE_TITLE = "Gringo's";
 
 const routes = [
   {
@@ -12,6 +15,7 @@ const routes = [
     name: "Home",
     component: Home,
     meta: {
+      title: "Home",
       authRequired: true,
     },
   },
@@ -19,12 +23,23 @@ const routes = [
     path: "/login",
     name: "Login",
     component: Login,
+    meta: {
+      title: "Login",
+    },
   },
 ];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.afterEach((to, from) => {
+  nextTick(() => {
+    document.title = to.meta.title
+      ? `${to.meta.title} - ${SITE_TITLE}`
+      : SITE_TITLE;
+  });
 });
 
 // router.beforeEach((to, from, next) => {
