@@ -13,6 +13,7 @@ const store = createStore({
   state: {
     user: firebase.auth().currentUser,
     products: [],
+    formProducts: [],
     order: {},
   },
   mutations: {
@@ -23,6 +24,10 @@ const store = createStore({
     SET_PRODUCTS(state, value) {
       console.log("SET_PRODUCTS");
       state.products = value;
+    },
+    SET_FORM_PRODUCTS(state, value) {
+      console.log("SET_FORM_PRODUCTS");
+      state.formProducts = value;
     },
     SET_ORDER(state, value) {
       console.log("SET_ORDER");
@@ -55,6 +60,38 @@ const store = createStore({
       });
 
       commit("SET_PRODUCTS", cacheProducts);
+
+      // FIXME: Find another way to copy this value
+      commit("SET_FORM_PRODUCTS", JSON.parse(JSON.stringify(cacheProducts)));
+    },
+
+    // Product Form
+    async updateProducts({ dispatch, state }) {
+      const savedProducts = await dbProducts.get();
+      const newProducts = state.formProducts.filter((p) => !p.id);
+
+      savedProducts.forEach((product) => {
+        const dbProd = dbProducts.doc(product.id);
+        const formProd = state.formProducts.find((p) => p.id == product.id);
+
+        // If product still in form
+        if (formProd !== undefined) {
+          formProd.price = parseInt(formProd.price);
+          dbProd.set(formProd);
+        } else {
+          // Else delete
+          dbProd.delete();
+        }
+      });
+
+      // Add New Products
+      newProducts.forEach((p) => {
+        p.price = parseInt(p.price);
+        dbProducts.add(p);
+      });
+
+      // Fetch Updated Products
+      dispatch("fetchProducts");
     },
 
     // Order
@@ -67,7 +104,7 @@ const store = createStore({
         return dispatch("resetOrder");
       }
 
-      commit("SET_ORDER", order.data());
+      dispatch("updateOrderWithProducts", order.data());
     },
 
     async saveOrder({ commit, state, dispatch }) {
@@ -90,12 +127,29 @@ const store = createStore({
       commit("SET_ORDER", blankOrder);
     },
 
+    async updateOrderWithProducts({ state, commit }, fetchedOrder) {
+      const availableProductsIDs = state.products.map((p) => p.id);
+
+      availableProductsIDs.forEach((id) => {
+        const isProductInOrder = fetchedOrder[id] !== undefined;
+
+        if (!isProductInOrder) {
+          // Add the New Product to User Order
+          fetchedOrder[id] = 0;
+        }
+      });
+
+      // TODO: Discuss whether to remove unavailable products? Might increase reads.
+
+      commit("SET_ORDER", fetchedOrder);
+    },
+
     // Helper Functions
-    parseOrderToInt({ commit, state }) {
+    parseOrderToInt({ state }) {
       console.log("parseOrderToInt");
 
       Object.keys(state.order).forEach((key) => {
-        state.order[key] = parseInt(state.order[key])
+        state.order[key] = parseInt(state.order[key]);
       });
     },
   },

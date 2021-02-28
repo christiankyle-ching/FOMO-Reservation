@@ -1,5 +1,5 @@
 <template>
-  <div class="order m-10 card">
+  <div class="order card">
     <h3 class="text-center">Prepare Your Next Order!</h3>
 
     <!-- Order Quantities -->
@@ -9,7 +9,11 @@
         :key="product.id"
         class="grid grid-cols-1 md:grid-cols-3 p-5"
       >
-        <div class="col-span-1 md:col-span-2">IMAGE</div>
+        <div class="col-span-1 md:col-span-2">
+          <!-- TODO: Use individual images or 1 image for menu? -->
+          IMAGE
+        </div>
+        
         <div class="col-span-1 text-center md:text-keft">
           <label :for="product.id" class="block pb-3">{{ product.name }}</label>
           <div class="quantity">
@@ -32,12 +36,12 @@
       </div>
 
       <div class="m-3">
-        <button type="submit" class="block w-full button button-primary">
+        <button type="submit" class="button button-block button-primary">
           Save Order
         </button>
         <button
           @click="resetOrder"
-          class="block w-full button button-secondary mt-3"
+          class="button button-block button-secondary mt-3"
         >
           Reset
         </button>

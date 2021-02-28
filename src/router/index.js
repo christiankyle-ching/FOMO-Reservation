@@ -6,6 +6,7 @@ import "firebase/auth";
 import { nextTick } from "vue";
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
+import Admin from "@/views/Admin.vue";
 
 const SITE_TITLE = "Gringo's";
 
@@ -27,6 +28,14 @@ const routes = [
       title: "Login",
     },
   },
+  {
+    path: "/admin",
+    name: "Admin",
+    component: Admin,
+    meta: {
+      title: "Admin",
+    },
+  },
 ];
 
 const router = createRouter({
@@ -41,19 +50,5 @@ router.afterEach((to, from) => {
       : SITE_TITLE;
   });
 });
-
-// router.beforeEach((to, from, next) => {
-//   console.log("BeforeEach");
-//   if (to.matched.some((record) => record.meta.authRequired)) {
-//     console.log("Route AuthRequired");
-//     if (!store.state.user) {
-//       next({ name: "Login" });
-//     } else {
-//       next();
-//     }
-//   } else {
-//     next();
-//   }
-// });
 
 export default router;

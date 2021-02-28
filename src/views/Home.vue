@@ -1,8 +1,8 @@
 <template>
-  <div class="home pt-10">
-    <h1 class="text-center">Gringo's Waitlist</h1>
+  <div class="home container">
+    <h1 class="text-center py-10">Gringo's Waitlist</h1>
     <div v-if="user">
-      <Order class="mt-5"/>
+      <Order class="m-5"/>
     </div>
   </div>
 </template>
