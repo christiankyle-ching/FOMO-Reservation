@@ -3,7 +3,7 @@
     <h3 class="text-center">Prepare Your Next Order!</h3>
 
     <!-- Order Quantities -->
-    <form @submit.prevent="saveOrder">
+    <form v-if="order.orders" @submit.prevent="saveOrder">
       <div
         v-for="product in products"
         :key="product.id"
@@ -14,7 +14,7 @@
           IMAGE
         </div>
         
-        <div class="col-span-1 text-center md:text-keft">
+        <div class="col-span-1 text-center md:text-left">
           <label :for="product.id" class="block pb-3">{{ product.name }}</label>
           <div class="quantity">
             <button @click.prevent="decrement(product.id)" class="px-2 py-1">
@@ -25,7 +25,7 @@
               type="number"
               min="0"
               placeholder="0"
-              :value="order[product.id]"
+              :value="order.orders[product.id]"
               class="w-6 text-center"
             />
             <button @click.prevent="increment(product.id)" class="px-2 py-1">
@@ -59,15 +59,15 @@ export default {
     products: "products",
     order: "order",
     totalQuantity: (state) =>
-      Object.values(state.order).reduce((acc, cur) => acc + cur),
+      Object.values(state.order.orders).reduce((acc, cur) => acc + cur),
   }),
   methods: {
     increment(pid) {
       // TODO: Get Max Quantity in Database
-      if (this.totalQuantity < 8) this.order[pid]++;
+      if (this.totalQuantity < 8) this.order.orders[pid]++;
     },
     decrement(pid) {
-      if (this.order[pid] > 0) this.order[pid]--;
+      if (this.order.orders[pid] > 0) this.order.orders[pid]--;
     },
     ...mapActions({
       resetOrder: "resetOrder",

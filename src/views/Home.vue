@@ -5,7 +5,7 @@
 
       <Reserve />
       
-      <!-- <Order v-if="order" class="m-5"/> -->
+      <Order v-if="order" class="m-5"/>
     </div>
   </div>
 </template>
@@ -27,7 +27,6 @@ export default {
     ...mapState({
       user: "user",
       order: "order",
-      
     }),
   },
   methods: {},
