@@ -72,9 +72,8 @@ const store = createStore({
 
       const cacheProducts = [];
 
-      const products = await state.dbProducts
-        .orderBy("created_at", "asc")
-        .get();
+      const products = await state.dbProducts.orderBy("name", "asc").get();
+
       products.forEach((product) => {
         const data = product.data();
 
@@ -178,6 +177,8 @@ const store = createStore({
     },
 
     async updateOrderWithProducts({ state, commit }, fetchedOrder) {
+      console.log("updateOrderWithProducts");
+
       const availableProductsIDs = state.products.map((p) => p.id);
 
       availableProductsIDs.forEach((id) => {
@@ -185,6 +186,7 @@ const store = createStore({
 
         if (!isProductInOrder) {
           // Add the New Product to User Order
+          console.log("ADD NEW");
           fetchedOrder[id] = 0;
         }
       });
@@ -203,7 +205,10 @@ const store = createStore({
       state.unsubscribeBatch = state.dbLatestBatch.onSnapshot(async (batch) => {
         if (batch.size >= 1) {
           commit("SET_LATEST_BATCH", batch.docs[0].data());
+        } else {
+          commit("SET_LATEST_BATCH", null);
         }
+        console.log(state.latestBatch);
       });
     },
 
