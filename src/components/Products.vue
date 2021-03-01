@@ -48,7 +48,7 @@
       </button>
     </div>
 
-    <form ref="productForm">
+    <form ref="productForm" @change="onFormChange">
       <div
         v-for="(product, index) in formProducts"
         :key="product.id"
@@ -120,9 +120,9 @@
     </button>
 
     <button
-      @click="updateProducts"
+      @click="save"
       class="button icon-button button-primary button-block mt-3"
-      :disabled="!isEditing"
+      :disabled="disableSave"
     >
       Save
       <svg
@@ -140,14 +140,21 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { nextTick } from "vue";
+import { mapState } from "vuex";
 
 export default {
   name: "Products",
   data() {
     return {
       isEditing: false,
+      disableSave: true,
     };
+  },
+  watch: {
+    isEditing: function (value) {
+      this.disableSave = !value;
+    },
   },
   computed: {
     ...mapState({
@@ -156,10 +163,12 @@ export default {
   },
   methods: {
     add() {
-      this.formProducts.push({ name: "", price: "" });
+      this.$store.dispatch("addFormProduct")
+      this.onFormChange();
     },
     remove(index) {
-      this.formProducts.splice(index, 1);
+      this.$store.dispatch("removeFormProduct", index)
+      this.onFormChange();
     },
     startEditing() {
       this.isEditing = true;
@@ -172,9 +181,18 @@ export default {
         this.$store.dispatch("fetchProducts");
       }
     },
-    ...mapActions({
-      updateProducts: "updateProducts",
-    }),
+    save() {
+      this.$store.dispatch("updateProducts");
+      this.isEditing = false;
+    },
+    onFormChange() {
+      nextTick(() => {
+        const isFormValid =
+          this.$refs.productForm.querySelectorAll("input:required:invalid")
+            .length <= 0;
+        this.disableSave = !isFormValid;
+      });
+    },
   },
 };
 </script>

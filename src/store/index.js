@@ -1,4 +1,4 @@
-import { createStore, storeKey } from "vuex";
+import { createStore } from "vuex";
 
 // Firebase
 import "@/firebase";
@@ -6,15 +6,28 @@ import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
 
-const dbProducts = firebase.firestore().collection("products");
-const dbOrder = firebase.firestore().collection("order");
+const _user = firebase.auth().currentUser;
 
 const store = createStore({
   state: {
-    user: firebase.auth().currentUser,
+    user: _user,
     products: [],
     formProducts: [],
     order: {},
+    latestBatch: null,
+
+    // Firebase References
+    // null: References that depend on other state
+    dbProducts: firebase.firestore().collection("products"),
+    dbOrder: null,
+    dbLatestBatch: firebase
+      .firestore()
+      .collection("batch")
+      .where("is_active", "==", true)
+      .orderBy("created_at", "desc")
+      .limit(1),
+    latestBatch: null,
+    unsubscribeBatch: null,
   },
   mutations: {
     SET_USER(state, value) {
@@ -29,10 +42,20 @@ const store = createStore({
       console.log("SET_FORM_PRODUCTS");
       state.formProducts = value;
     },
+    DB_SET_ORDER(state, value) {
+      console.log("DB_SET_ORDER");
+
+      state.dbOrder = value;
+    },
     SET_ORDER(state, value) {
       console.log("SET_ORDER");
 
       state.order = value;
+    },
+    SET_LATEST_BATCH(state, value) {
+      console.log("SET_LATEST_BATCH");
+
+      state.latestBatch = value;
     },
   },
   actions: {
@@ -44,12 +67,14 @@ const store = createStore({
     },
 
     // Products
-    async fetchProducts({ commit }) {
+    async fetchProducts({ commit, state }) {
       console.log("fetchProducts");
 
       const cacheProducts = [];
 
-      const products = await dbProducts.get();
+      const products = await state.dbProducts
+        .orderBy("created_at", "asc")
+        .get();
       products.forEach((product) => {
         const data = product.data();
 
@@ -62,22 +87,27 @@ const store = createStore({
       commit("SET_PRODUCTS", cacheProducts);
 
       // FIXME: Find another way to copy this value
-      commit("SET_FORM_PRODUCTS", JSON.parse(JSON.stringify(cacheProducts)));
+      const cloneProducts = JSON.parse(JSON.stringify(cacheProducts));
+      commit("SET_FORM_PRODUCTS", cloneProducts);
     },
 
     // Product Form
     async updateProducts({ dispatch, state }) {
-      const savedProducts = await dbProducts.get();
+      const savedProducts = await state.dbProducts.get();
       const newProducts = state.formProducts.filter((p) => !p.id);
 
       savedProducts.forEach((product) => {
-        const dbProd = dbProducts.doc(product.id);
+        const dbProd = state.dbProducts.doc(product.id);
         const formProd = state.formProducts.find((p) => p.id == product.id);
 
-        // If product still in form
+        // If product still in form, just update
         if (formProd !== undefined) {
           formProd.price = parseInt(formProd.price);
-          dbProd.set(formProd);
+
+          // FIXME: Other solution to not get the created_at updated?
+          delete formProd.created_at;
+          formProd.last_updated = firebase.firestore.FieldValue.serverTimestamp();
+          dbProd.update(formProd);
         } else {
           // Else delete
           dbProd.delete();
@@ -87,18 +117,38 @@ const store = createStore({
       // Add New Products
       newProducts.forEach((p) => {
         p.price = parseInt(p.price);
-        dbProducts.add(p);
+        state.dbProducts.add(p);
+
+        console.log("Added: ", p);
       });
 
       // Fetch Updated Products
       dispatch("fetchProducts");
     },
 
+    addFormProduct({ state }) {
+      const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+      const newProduct = {
+        name: "",
+        price: "",
+        created_at: timestamp,
+        last_updated: timestamp,
+      };
+      state.formProducts.push(newProduct);
+    },
+
+    removeFormProduct({ state }, index) {
+      state.formProducts.splice(index, 1);
+    },
+
     // Order
     async fetchOrder({ commit, state, dispatch }) {
       console.log("fetchOrder");
 
-      const order = await dbOrder.doc(state.user.uid).get();
+      const order = await state.dbOrder.get();
+
+      console.log("Order Exists? ", order.exists);
+      console.log("Order ID: ", order.id);
 
       if (!order.exists) {
         return dispatch("resetOrder");
@@ -113,7 +163,7 @@ const store = createStore({
       dispatch("parseOrderToInt");
 
       // TODO: Don't set in database if no change is done
-      await dbOrder.doc(state.user.uid).set(state.order);
+      await state.dbOrder.set(state.order);
       commit("SET_ORDER", state.order);
     },
 
@@ -123,7 +173,7 @@ const store = createStore({
       const blankOrder = {};
       state.products.forEach((product) => (blankOrder[product.id] = 0));
 
-      dbOrder.doc(state.user.uid).set(blankOrder);
+      state.dbOrder.set(blankOrder);
       commit("SET_ORDER", blankOrder);
     },
 
@@ -144,6 +194,19 @@ const store = createStore({
       commit("SET_ORDER", fetchedOrder);
     },
 
+    // Reserve
+    async reserve() {
+      console.log("reserve");
+    },
+
+    observeBatchChanges({ state, commit }) {
+      state.unsubscribeBatch = state.dbLatestBatch.onSnapshot(async (batch) => {
+        if (batch.size >= 1) {
+          commit("SET_LATEST_BATCH", batch.docs[0].data());
+        }
+      });
+    },
+
     // Helper Functions
     parseOrderToInt({ state }) {
       console.log("parseOrderToInt");
@@ -152,12 +215,19 @@ const store = createStore({
         state.order[key] = parseInt(state.order[key]);
       });
     },
+
+    detachObservers({ state }) {
+      if (state.unsubscribeBatch) state.unsubscribeBatch();
+    },
   },
   modules: {},
 });
 
 // Init Values
 store.dispatch("fetchProducts");
+
+// Listen for Batch Changes for Reservation
+store.dispatch("observeBatchChanges");
 
 // User Observer
 firebase.auth().onAuthStateChanged((user) => {
@@ -167,8 +237,19 @@ firebase.auth().onAuthStateChanged((user) => {
 
   if (user) {
     // TODO: Remove on Prod
-    console.log(user);
+    console.log("User UID: ", user.uid);
+
+    store.commit(
+      "DB_SET_ORDER",
+      firebase
+        .firestore()
+        .collection("order")
+        .doc(user.uid)
+    );
     store.dispatch("fetchOrder");
+  } else {
+    store.commit("DB_SET_ORDER", null);
+    store.commit("SET_ORDER", null);
   }
 });
 
