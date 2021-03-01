@@ -7,6 +7,7 @@ import { nextTick } from "vue";
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
 import Admin from "@/views/Admin.vue";
+import Batch from "@/views/Batch.vue";
 
 const SITE_TITLE = "Gringo's";
 
@@ -34,6 +35,14 @@ const routes = [
     component: Admin,
     meta: {
       title: "Admin",
+    },
+  },
+  {
+    path: "/batch/:id",
+    name: "Batch",
+    component: Batch,
+    meta: {
+      title: "Batch",
     },
   },
 ];

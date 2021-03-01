@@ -1,12 +1,11 @@
 <template>
   <div class="products card">
-    <div class="flex relative justify-center items-center">
-      <h2 class="text-center">Food Menu</h2>
-
+    <!-- Header -->
+    <div>
       <button
         @click="startEditing"
         v-if="!isEditing"
-        class="text-gray-700 p-2 absolute right-0"
+        class="text-gray-700 float-right"
       >
         <!-- Edit Icon -->
         <svg
@@ -14,7 +13,7 @@
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          class="icon-sm"
+          class="icon-md text-grey-600"
         >
           <path
             stroke-linecap="round"
@@ -28,7 +27,7 @@
       <button
         @click="cancelEditing"
         v-else
-        class="text-gray-700 p-2 absolute right-0"
+        class="text-gray-700 float-right"
       >
         <!-- Cancel Icon -->
         <svg
@@ -46,6 +45,10 @@
           />
         </svg>
       </button>
+
+      <h2 class="text-center">Food Menu</h2>
+
+      
     </div>
 
     <form ref="productForm" @change="onFormChange">
@@ -163,11 +166,11 @@ export default {
   },
   methods: {
     add() {
-      this.$store.dispatch("addFormProduct")
+      this.$store.dispatch("addFormProduct");
       this.onFormChange();
     },
     remove(index) {
-      this.$store.dispatch("removeFormProduct", index)
+      this.$store.dispatch("removeFormProduct", index);
       this.onFormChange();
     },
     startEditing() {

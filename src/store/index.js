@@ -7,25 +7,34 @@ import "firebase/auth";
 import "firebase/firestore";
 import { Order, OrderProduct } from "@/models/Order";
 import { Product } from "@/models/Product";
+import { Batch } from "@/models/Batch";
 
 const _user = firebase.auth().currentUser;
 
 const store = createStore({
   state: {
-    user: _user,
+    // Shared
     products: [],
-    formProducts: [],
+
+    // Customer
+    user: _user,
+
     order: {},
     blankOrderItem: null,
     latestBatch: null,
 
+    // Admin
+    formProducts: [],
+    batches: [],
+
     // Firebase References
     // null: References that depend on other state
     dbProducts: firebase.firestore().collection("products"),
+    dbBatches: firebase.firestore().collection("batches"),
     dbOrder: null,
     dbLatestBatch: firebase
       .firestore()
-      .collection("batch")
+      .collection("batches")
       .where("is_active", "==", true)
       .orderBy("created_at", "desc")
       .limit(1),
@@ -64,6 +73,11 @@ const store = createStore({
       console.log("SET_LATEST_BATCH");
 
       state.latestBatch = value;
+    },
+    SET_BATCHES(state, value) {
+      console.log("SET_BATCHES");
+
+      state.batches = value;
     },
   },
   actions: {
@@ -112,7 +126,6 @@ const store = createStore({
       savedProducts.forEach((product) => {
         const dbProd = state.dbProducts.doc(product.id);
         const formProd = state.formProducts.find((p) => p.id == product.id);
-        console.log(formProd);
 
         // If product still in form, just update
         if (formProd !== undefined) {
@@ -144,12 +157,7 @@ const store = createStore({
 
     addFormProduct({ state }) {
       const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-      const newProduct = {
-        name: "",
-        price: "",
-        created_at: timestamp,
-        last_updated: timestamp,
-      };
+      const newProduct = new Product(null, "", "", timestamp, timestamp);
       state.formProducts.push(newProduct);
     },
 
@@ -178,8 +186,6 @@ const store = createStore({
 
     async updateOrderWithProducts({ state, commit }, fetchedOrder) {
       console.log("updateOrderWithProducts");
-
-      console.log(fetchedOrder);
 
       const availableProductsIDs = state.products.map((p) => p.id);
 
@@ -216,10 +222,50 @@ const store = createStore({
       );
 
       const blankOrder = new Order(state.user.uid, orders);
-      console.log(blankOrder.firestoreDoc);
 
       state.dbOrder.set(blankOrder.firestoreDoc);
       commit("SET_ORDER", blankOrder);
+    },
+
+    // Batches
+    async fetchBatches({ state, commit }) {
+      console.log("fetchBatches");
+
+      const cacheBatches = [];
+
+      const batches = await state.dbBatches.orderBy("created_at", "desc").get();
+
+      batches.forEach((batch) => {
+        const data = batch.data();
+
+        cacheBatches.push(
+          new Batch(
+            batch.id,
+            data.name,
+            data.created_at,
+            data.is_active,
+            data.reserved_users
+          )
+        );
+      });
+
+      commit("SET_BATCHES", cacheBatches);
+
+      // FIXME: Might find another way to copy this value
+      // const cloneProducts = JSON.parse(JSON.stringify(cacheProducts));
+      // commit("SET_FORM_PRODUCTS", cloneProducts);
+    },
+
+    async saveBatch({ state, commit }, batch) {
+      console.log("Save Batch: ", batch);
+
+      const isAdding = !batch.id;
+
+      if (isAdding) {
+        state.dbBatches.add(batch.firestoreDoc)
+      } else {
+        state.dbBatches.doc(batch.id).update(batch.firestoreDoc)
+      }
     },
 
     // Reserve
@@ -255,9 +301,6 @@ firebase.auth().onAuthStateChanged((user) => {
   store.dispatch("fetchUser", user);
 
   if (user) {
-    // TODO: Remove on Prod
-    console.log("User UID: ", user.uid);
-
     store.dispatch("fetchProducts");
     store.commit(
       "DB_SET_ORDER",
@@ -267,6 +310,12 @@ firebase.auth().onAuthStateChanged((user) => {
         .doc(user.uid)
     );
     store.dispatch("fetchOrder");
+
+    // TODO: Conditional data fetch based on privileges
+    const isAdmin = true;
+    if (isAdmin) {
+      store.dispatch("fetchBatches");
+    }
   } else {
     store.commit("DB_SET_ORDER", null);
     store.commit("SET_ORDER", null);

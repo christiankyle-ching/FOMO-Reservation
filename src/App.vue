@@ -5,7 +5,9 @@
         <router-link :to="{ name: 'Home' }">Gringo</router-link>
       </h3>
 
-      <div class="ml-auto my-auto">
+      <div class="ml-auto my-auto flex items-center">
+        <router-link :to="{ name: 'Admin' }" class="nav-link mr-5">Admin</router-link>
+
         <button v-if="user" class="block button button-primary" @click="logout">
           Logout
         </button>
@@ -36,9 +38,6 @@ export default {
   },
   created() {
     console.log("App Created");
-  },
-  unmounted() {
-    this.$store.dispatch("detachObservers");
   },
 };
 </script>

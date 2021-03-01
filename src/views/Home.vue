@@ -2,10 +2,9 @@
   <div class="home container">
     <h1 class="text-center py-10">Gringo's Waitlist</h1>
     <div v-if="user">
-
       <Reserve />
-      
-      <Order v-if="order" class="m-5"/>
+
+      <!-- <Order v-if="order" class="m-5"/> -->
     </div>
   </div>
 </template>
@@ -30,5 +29,11 @@ export default {
     }),
   },
   methods: {},
+  mounted() {
+    this.$store.dispatch("observeBatchChanges");
+  },
+  unmounted() {
+    this.$store.dispatch("detachObservers");
+  },
 };
 </script>

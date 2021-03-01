@@ -51,7 +51,27 @@
   }
 
   .card {
-    @apply shadow-2xl rounded-3xl border-2 p-5;
+    @apply shadow-xl rounded-3xl border-2 p-5;
+  }
+
+  .checkbox {
+    @apply mt-3 mb-2;
+  }
+
+  .checkbox .checkmark {
+    @apply flex w-7 h-7 ring-2 ring-gray-300 rounded-md hover:bg-gray-200 transition-shadow mr-3;
+  }
+
+  .checkbox .checkmark svg {
+    @apply opacity-0 icon-md transition-opacity m-auto text-white;
+  }
+
+  .checkbox input:checked ~ .checkmark {
+    @apply bg-yellow-400 ring-0;
+  }
+
+  .checkbox input:checked ~ .checkmark svg {
+    opacity: 1;
   }
 
   form label,
@@ -64,7 +84,7 @@
   }
 
   form input {
-    @apply p-1 w-full rounded-md shadow-sm border-2 focus:outline-none;
+    @apply p-1 mt-1 w-full rounded-md shadow-sm border-2 focus:outline-none;
   }
 
   form input:required:invalid {
@@ -77,6 +97,10 @@
 
   .icon-sm {
     @apply h-4 w-4;
+  }
+
+  .icon-md {
+    @apply h-6 w-6;
   }
 
   .order .quantity {
