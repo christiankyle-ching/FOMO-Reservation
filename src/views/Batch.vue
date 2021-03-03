@@ -13,7 +13,7 @@
       </p>
 
       <form @submit.prevent="save">
-        <label for="">Title</label>
+        <label>Title</label>
         <input v-model="batch.name" type="text" required />
 
         <label class="checkbox flex items-center cursor-pointer select-none">
@@ -45,7 +45,6 @@
         >
           Cancel
         </button>
-        <button @click="log">LOG</button>
       </form>
     </div>
   </div>
@@ -65,7 +64,7 @@ export default {
   methods: {
     log() {
       // TODO: Remove on Prod
-    //   console.log(this.batch);
+      // console.log(this.batch);
     },
     save() {
       this.$store.dispatch("saveBatch", this.batch);
@@ -78,17 +77,18 @@ export default {
     );
 
     if (existingBatch !== undefined) {
-      const batchCopy = new Batch(
-        existingBatch.id,
-        existingBatch.name,
-        null,
-        existingBatch.is_active,
-        null,
-      );
+      console.log("Batch Clone: ", existingBatch.clone());
+      // const batchCopy = new Batch(
+      //   existingBatch.id,
+      //   existingBatch.name,
+      //   null,
+      //   existingBatch.is_active,
+      //   null,
+      // );
       this.batch = batchCopy;
       this.isEditing = true;
     } else {
-      this.batch = new Batch(null, "", null, false, []);
+      this.batch = new Batch(null, "", null, false, [], );
     }
   },
 };

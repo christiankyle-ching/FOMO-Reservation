@@ -1,46 +1,71 @@
 import firebase from "@/firebase";
 import "firebase/firestore";
+import { localeDateTimeOpts } from "../utils";
+
+const BATCH_STATUS = Object.freeze({
+  OPEN: "open",
+  CLOSED: "closed",
+  PENDING: "pending",
+});
 
 class Batch {
-  constructor(id, name, created_at, is_active, reserved_users) {
+  constructor(
+    id,
+    name,
+    created_at,
+    closed_at,
+    locked_at,
+    order_limit,
+    orders,
+    isDone
+  ) {
     this.id = id;
     this.name = name;
-    this.created_at = created_at || firebase.firestore.Timestamp.now();
-    this.is_active = is_active;
-    this.reserved_users = reserved_users;
+    this.created_at = created_at;
+    this.closed_at = closed_at;
+    this.locked_at = locked_at;
+    this.order_limit = order_limit;
+    this.orders = orders;
+    this.isDone = isDone;
   }
 
-  get dateString() {
-    const dateOptions = {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour12: "true",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    };
-    return this.created_at.toDate().toLocaleString("en-US", dateOptions);
+  get createdAtString() {
+    return this.created_at.toDate().toLocaleString("en-US", localeDateTimeOpts);
+  }
+
+  get closedAtString() {
+    return this.closed_at.toDate().toLocaleString("en-US", localeDateTimeOpts);
   }
 
   get firestoreDoc() {
     const firestoreObj = {};
 
-    Object.assign(firestoreObj, this.id && { id: this.id });
-    Object.assign(firestoreObj, this.name && { id: this.name });
+    Object.assign(firestoreObj, this.name && { name: this.name });
     Object.assign(
       firestoreObj,
       this.created_at && { created_at: this.created_at }
     );
-    Object.assign(firestoreObj, this.is_active && { id: this.is_active });
     Object.assign(
       firestoreObj,
-      this.reserved_users && { id: this.reserved_users }
+      this.closed_at && { closed_at: this.closed_at }
     );
+    Object.assign(
+      firestoreObj,
+      this.locked_at && { locked_at: this.locked_at }
+    );
+    Object.assign(
+      firestoreObj,
+      this.order_limit && { order_limit: this.order_limit }
+    );
+    Object.assign(firestoreObj, this.orders && { orders: this.orders });
+    Object.assign(firestoreObj, this.isDone && { isDone: this.isDone });
 
     return firestoreObj;
   }
+
+  clone() {
+    return {};
+  }
 }
 
-export { Batch };
+export { Batch, BATCH_STATUS };

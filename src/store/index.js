@@ -5,9 +5,9 @@ import "@/firebase";
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
-import { Order, OrderProduct } from "@/models/Order";
+import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
-import { Batch } from "@/models/Batch";
+import { Batch, BATCH_STATUS } from "@/models/Batch";
 
 const _user = firebase.auth().currentUser;
 
@@ -15,31 +15,49 @@ const store = createStore({
   state: {
     // Shared
     products: [],
+    status: {},
+    openBatch: null,
+    unsubscribeBatch: null,
 
     // Customer
     user: _user,
-
-    order: {},
-    blankOrderItem: null,
-    latestBatch: null,
+    order: null,
+    orderAllowed: null,
+    orderDone: null,
+    reservationExists: null,
 
     // Admin
     formProducts: [],
+    latestBatch: null,
     batches: [],
+    formNewBatch: {
+      name: "",
+      order_limit: 1,
+    },
+    pendingOrders: [],
+    unsubscribe_PendingOrders: null,
 
     // Firebase References
     // null: References that depend on other state
     dbProducts: firebase.firestore().collection("products"),
     dbBatches: firebase.firestore().collection("batches"),
     dbOrder: null,
+    dbOpenBatch: firebase
+      .firestore()
+      .collection("PUBLIC_READ")
+      .doc("open_batch"),
+    dbStatus: firebase
+      .firestore()
+      .collection("PUBLIC_READ")
+      .doc("status"),
+    dbReservation: null,
+    dbReservations: firebase.firestore().collection("PUBLIC_RESERVATIONS"),
+    dbPendingOrders: firebase.firestore().collection("PUBLIC_ORDERS"),
     dbLatestBatch: firebase
       .firestore()
       .collection("batches")
-      .where("is_active", "==", true)
-      .orderBy("created_at", "desc")
+      .orderBy("closed_at", "desc")
       .limit(1),
-    latestBatch: null,
-    unsubscribeBatch: null,
   },
   mutations: {
     SET_USER(state, value) {
@@ -54,6 +72,7 @@ const store = createStore({
       console.log("SET_FORM_PRODUCTS");
       state.formProducts = value;
     },
+
     DB_SET_ORDER(state, value) {
       console.log("DB_SET_ORDER");
 
@@ -64,20 +83,56 @@ const store = createStore({
 
       state.order = value;
     },
-    SET_BLANKORDER(state, value) {
-      console.log("SET_BLANKORDER");
+    DB_SET_RESERVATION(state, value) {
+      console.log("DB_SET_RESERVATION");
 
-      state.blankOrder = value;
+      state.dbReservation = value;
+    },
+    DB_SET_RESERVATIONS(state, value) {
+      console.log("DB_SET_RESERVATIONS");
+
+      state.dbReservation = value;
+    },
+
+    SET_OPEN_BATCH(state, value) {
+      console.log("SET_OPEN_BATCH");
+
+      state.openBatch = value;
+    },
+    SET_BATCHES(state, value) {
+      console.log("SET_BATCHES");
+
+      state.batches = value;
     },
     SET_LATEST_BATCH(state, value) {
       console.log("SET_LATEST_BATCH");
 
       state.latestBatch = value;
     },
-    SET_BATCHES(state, value) {
-      console.log("SET_BATCHES");
+    SET_PENDING_ORDERS(state, value) {
+      console.log("SET_PENDING_ORDERS");
 
-      state.batches = value;
+      state.pendingOrders = value;
+    },
+    SET_RESERVATION_EXISTS(state, value) {
+      console.log("SET_RESERVATION_EXISTS");
+
+      state.reservationExists = value;
+    },
+    SET_FORM_NEWBATCH(state, value) {
+      console.log("SET_FORM_NEWBATCH");
+
+      state.formNewBatch = value;
+    },
+    SET_STATUS(state, value) {
+      console.log("SET_STATUS");
+
+      state.status = value;
+    },
+    SET_STATUS_BATCH(state, value) {
+      console.log("SET_STATUS_BATCH");
+
+      state.status.batch = value;
     },
   },
   actions: {
@@ -89,7 +144,7 @@ const store = createStore({
     },
 
     // Products
-    async fetchProducts({ commit, state }) {
+    async fetchProducts({ commit, state, dispatch }) {
       console.log("fetchProducts");
 
       const cacheProducts = [];
@@ -116,6 +171,32 @@ const store = createStore({
       // FIXME: Might be irrelevant since I fetch products even on discard?
       const cloneProducts = JSON.parse(JSON.stringify(cacheProducts));
       commit("SET_FORM_PRODUCTS", cloneProducts);
+
+      // Set Order Form Object for Customer
+      const orderProducts = {};
+      // Set orderProducts based on current available items
+      state.products.forEach((product) => (orderProducts[product.id] = 0));
+
+      const user = state.user;
+      const order = new Order(
+        user.uid,
+        user.displayName,
+        user.email,
+        user.phoneNumber,
+        orderProducts
+      );
+
+      commit("SET_ORDER", order);
+      dispatch("getOrderStatus");
+    },
+
+    async getOrderStatus({ state, commit }, order) {
+      // Only Allow Submitting of Order if
+      // a) User exists in PUBLIC_ORDERS, and
+      // b) User does not finalize order yet
+      const pendingOrder = await state.dbOrder.get();
+      state.orderAllowed = pendingOrder.exists && !pendingOrder.data().order;
+      state.orderDone = pendingOrder.exists && pendingOrder.data().order;
     },
 
     // Product Form
@@ -166,65 +247,16 @@ const store = createStore({
     },
 
     // Order
-    async fetchOrder({ commit, state, dispatch }) {
-      console.log("fetchOrder");
-
-      const order = await state.dbOrder.get();
-
-      if (!order.exists) {
-        return dispatch("resetOrder");
-      }
-
-      const ordersData = order.data();
-      const userOrder = new Order(state.user.uid, null);
-      Object.keys(ordersData).forEach((key) => {
-        userOrder.addOrder(new OrderProduct(key, ordersData[key]));
-      });
-
-      dispatch("updateOrderWithProducts", userOrder);
-    },
-
-    async updateOrderWithProducts({ state, commit }, fetchedOrder) {
-      console.log("updateOrderWithProducts");
-
-      const availableProductsIDs = state.products.map((p) => p.id);
-
-      availableProductsIDs.forEach((id) => {
-        const isProductInOrder = fetchedOrder.orders[id] !== undefined;
-
-        if (!isProductInOrder) {
-          // Add the New Product to User Order
-          fetchedOrder.addOrder(new OrderProduct(id, 0));
-        }
-      });
-
-      // TODO: Discuss whether to remove unavailable products? Might increase reads.
-
-      commit("SET_ORDER", fetchedOrder);
-    },
-
-    async saveOrder({ commit, state, dispatch }) {
+    async saveOrder({ state, dispatch }) {
       console.log("saveOrder");
 
-      // TODO: Don't set in database if no change is done
+      const orderDoc = {
+        ...state.order.firestoreDoc,
+        ...state.order.getOrderProductsDoc(state.products),
+      };
 
-      await state.dbOrder.set(state.order.firestoreDoc);
-      commit("SET_ORDER", state.order);
-    },
-
-    async resetOrder({ commit, state }) {
-      console.log("resetOrder");
-
-      const orders = [];
-
-      state.products.forEach((product) =>
-        orders.push(new OrderProduct(product.id, 0))
-      );
-
-      const blankOrder = new Order(state.user.uid, orders);
-
-      state.dbOrder.set(blankOrder.firestoreDoc);
-      commit("SET_ORDER", blankOrder);
+      state.dbOrder.set(orderDoc);
+      dispatch("getOrderStatus");
     },
 
     // Batches
@@ -232,89 +264,189 @@ const store = createStore({
       console.log("fetchBatches");
 
       const cacheBatches = [];
-
       const batches = await state.dbBatches.orderBy("created_at", "desc").get();
-
       batches.forEach((batch) => {
         const data = batch.data();
-
         cacheBatches.push(
           new Batch(
             batch.id,
             data.name,
             data.created_at,
-            data.is_active,
-            data.reserved_users
+            data.closed_at,
+            data.locked_at,
+            data.order_limit,
+            data.orders,
+            data.isDone
           )
         );
       });
 
       commit("SET_BATCHES", cacheBatches);
-
-      // FIXME: Might find another way to copy this value
-      // const cloneProducts = JSON.parse(JSON.stringify(cacheProducts));
-      // commit("SET_FORM_PRODUCTS", cloneProducts);
+      commit("SET_LATEST_BATCH", cacheBatches[0]);
     },
 
-    async saveBatch({ state, commit }, batch) {
-      console.log("Save Batch: ", batch);
+    async fetchPendingOrders({ state, commit }) {
+      console.log("fetchPendingOrders");
 
-      const isAdding = !batch.id;
+      state.unsubscribe_PendingOrders = state.dbPendingOrders.onSnapshot(
+        (pendingOrders) => {
+          const cachePendingOrders = [];
+          pendingOrders.forEach((order) => {
+            cachePendingOrders.push({ id: order.id, ...order.data() });
+          });
 
-      if (isAdding) {
-        state.dbBatches.add(batch.firestoreDoc)
-      } else {
-        state.dbBatches.doc(batch.id).update(batch.firestoreDoc)
-      }
+          commit("SET_PENDING_ORDERS", cachePendingOrders);
+        }
+      );
+    },
+
+    async openNewBatch({ state, commit }) {
+      const data = state.formNewBatch;
+
+      // Set open_batch in database
+      state.dbOpenBatch.set({
+        name: data.name,
+        order_limit: data.order_limit,
+        created_at: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Update Status
+      dispatch("status_updateBatch", BATCH_STATUS.OPEN);
+
+      // Reset Form
+      data.name = "";
+      data.order_limit = 0;
+    },
+
+    async closeCurrentBatch({ state, dispatch }) {
+      console.log("closeCurrentBatch");
+
+      const curBatch = state.openBatch;
+
+      // Get All Reserved Users based on Limit
+      const reservations = await state.dbReservations
+        .orderBy("datetime", "asc")
+        .limit(curBatch.order_limit)
+        .get();
+
+      // Set Reserved Users for Pending Orders
+      reservations.forEach(async (r) => {
+        await state.dbPendingOrders.doc(r.id).set({});
+      });
+
+      // Save Open Batch to Batches
+      const closedBatch = new Batch(
+        null,
+        curBatch.name,
+        curBatch.created_at,
+        firebase.firestore.FieldValue.serverTimestamp(),
+        null,
+        curBatch.order_limit,
+        null,
+        false
+      );
+
+      const closedBatchRef = await state.dbBatches.add(
+        closedBatch.firestoreDoc
+      );
+
+      // Update Batch Status
+      dispatch("status_updateBatch", BATCH_STATUS.CLOSED);
+
+      // Remove Open Batch
+      await state.dbOpenBatch.delete();
+
+      // Clear Unaccepted Reservations
+      (await state.dbReservations.get()).forEach(
+        async (r) => await state.dbReservations.doc(r.id).delete()
+      );
+    },
+
+    async finishBatch({ state }, id) {
+      console.log("finishBatch");
+    },
+
+    async status_updateBatch({ commit, state }, status) {
+      // Set Status in Database
+      state.dbStatus.update({ batch: status });
+
+      commit("SET_STATUS_BATCH", status);
     },
 
     // Reserve
-    async reserve() {
+    async reserve({ state }) {
       console.log("reserve");
+
+      const reservation = await state.dbReservation.get();
+
+      if (!reservation.exists) {
+        state.dbReservation.set({
+          datetime: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
     },
 
-    observeBatchChanges({ state, commit }) {
-      state.unsubscribeBatch = state.dbLatestBatch.onSnapshot(async (batch) => {
-        if (batch.size >= 1) {
-          commit("SET_LATEST_BATCH", batch.docs[0].data());
+    async observeOpenBatch({ state, commit }) {
+      console.log("Listen: open_batch");
+
+      // Get Status
+      const status = (await state.dbStatus.get()).data();
+      commit("SET_STATUS", status);
+
+      state.unsubscribeBatch = state.dbOpenBatch.onSnapshot(async (batch) => {
+        if (batch.exists) {
+          commit("SET_OPEN_BATCH", batch.data());
+
+          const reservationExists = (await state.dbReservation.get()).exists;
+          // Update if Reservation is allowed
+          commit("SET_RESERVATION_EXISTS", reservationExists);
         } else {
-          commit("SET_LATEST_BATCH", null);
+          commit("SET_OPEN_BATCH", null);
+          commit("SET_RESERVATION_EXISTS", null);
         }
       });
     },
 
     // Helper Functions
     detachObservers({ state }) {
+      console.log("Detach: open_batch");
       if (state.unsubscribeBatch) state.unsubscribeBatch();
     },
   },
   modules: {},
 });
 
-// Listen for Batch Changes for Reservation
-store.dispatch("observeBatchChanges");
-
 // User Observer
 firebase.auth().onAuthStateChanged((user) => {
   console.log("AuthChanged");
 
   store.dispatch("fetchUser", user);
+  console.log(user);
 
   if (user) {
     store.dispatch("fetchProducts");
+
+    // References with User Dependencies
     store.commit(
       "DB_SET_ORDER",
       firebase
         .firestore()
-        .collection("order")
+        .collection("PUBLIC_ORDERS")
         .doc(user.uid)
     );
-    store.dispatch("fetchOrder");
+    store.commit(
+      "DB_SET_RESERVATION",
+      firebase
+        .firestore()
+        .collection("PUBLIC_RESERVATIONS")
+        .doc(user.uid)
+    );
 
     // TODO: Conditional data fetch based on privileges
     const isAdmin = true;
     if (isAdmin) {
       store.dispatch("fetchBatches");
+      store.dispatch("fetchPendingOrders");
     }
   } else {
     store.commit("DB_SET_ORDER", null);

@@ -1,19 +1,21 @@
 <template>
   <div class="admin container">
-    <h1 class="text-center py-10">Manage Gringo</h1>
+    <h1 class="text-center py-10">Manage FOMO</h1>
 
-    <Batches class="m-5"/>
-    <Products class="m-5"/>
+    <OpenBatch class="m-5"/>
+    <!-- <Batches class="m-5" /> -->
+    <Products class="m-5" />
   </div>
 </template>
 
 <script>
-import Products from '@/components/Products.vue';
-import Batches from '@/components/Batches.vue';
+import Products from "@/components/Products.vue";
+import Batches from "@/components/Batches.vue";
+import OpenBatch from "@/components/OpenBatch";
 
 export default {
   name: "Admin",
-  components: { Products, Batches },
+  components: { Products, Batches, OpenBatch },
 };
 </script>
 

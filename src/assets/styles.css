@@ -4,22 +4,22 @@
 
 @layer base {
   h1 {
-    @apply text-4xl;
+    @apply text-4xl font-medium;
   }
   h2 {
-    @apply text-3xl;
+    @apply text-3xl font-medium;
   }
   h3 {
-    @apply text-2xl;
+    @apply text-2xl font-semibold;
   }
   h4 {
-    @apply text-xl;
+    @apply text-xl font-semibold;
   }
   h5 {
-    @apply text-lg;
+    @apply text-lg font-bold;
   }
   h6 {
-    @apply text-base;
+    @apply text-base font-bold;
   }
 
   .button {
@@ -103,11 +103,15 @@
     @apply h-6 w-6;
   }
 
-  .order .quantity {
-    @apply rounded-lg border-2 border-yellow-500 inline-block;
+  .input__number {
+    @apply mt-1 rounded-lg border-2 border-yellow-500 inline-block;
   }
 
-  .order .quantity input {
-    @apply inline focus:ring-0;
+  .input__number button {
+    @apply p-1 m-0;
+  }
+
+  .input__number input[type="number"] {
+    @apply inline ring-0 focus:ring-0 w-6 text-center;
   }
 }

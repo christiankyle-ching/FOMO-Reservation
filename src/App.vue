@@ -2,11 +2,13 @@
   <div class="navbar shadow-2xl">
     <div class="container mx-auto flex p-3">
       <h3 class="py-1">
-        <router-link :to="{ name: 'Home' }">Gringo</router-link>
+        <router-link :to="{ name: 'Home' }">FOMO</router-link>
       </h3>
 
       <div class="ml-auto my-auto flex items-center">
-        <router-link :to="{ name: 'Admin' }" class="nav-link mr-5">Admin</router-link>
+        <router-link :to="{ name: 'Admin' }" class="nav-link mr-5"
+          >Admin</router-link
+        >
 
         <button v-if="user" class="block button button-primary" @click="logout">
           Logout
@@ -38,6 +40,12 @@ export default {
   },
   created() {
     console.log("App Created");
+    // Listen for Open Batch
+    this.$store.dispatch("observeOpenBatch");
+  },
+  unmounted() {
+    // Detach Listener
+    this.$store.dispatch("detachObservers");
   },
 };
 </script>

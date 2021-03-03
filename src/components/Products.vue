@@ -59,7 +59,7 @@
         class="grid grid-cols-7"
       >
         <div class="col-span-3 p-2">
-          <label :for="product.name">Name</label>
+          <label>Name</label>
           <input
             type="text"
             v-model="product.name"
@@ -69,7 +69,7 @@
         </div>
 
         <div class="col-span-3 p-2">
-          <label :for="product.name">Price</label>
+          <label>Price</label>
           <input
             type="number"
             v-model="product.price"

@@ -9,7 +9,7 @@ import Login from "@/views/Login.vue";
 import Admin from "@/views/Admin.vue";
 import Batch from "@/views/Batch.vue";
 
-const SITE_TITLE = "Gringo's";
+const SITE_TITLE = "FOMO's";
 
 const routes = [
   {
