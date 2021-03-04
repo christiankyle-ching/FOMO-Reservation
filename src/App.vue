@@ -38,15 +38,6 @@ export default {
       firebase.auth().signOut();
     },
   },
-  created() {
-    console.log("App Created");
-    // Listen for Open Batch
-    this.$store.dispatch("observeOpenBatch");
-  },
-  unmounted() {
-    // Detach Listener
-    this.$store.dispatch("detachObservers");
-  },
 };
 </script>
 

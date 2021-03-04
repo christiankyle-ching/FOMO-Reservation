@@ -1,4 +1,3 @@
-import firebase from "@/firebase";
 import "firebase/firestore";
 import { localeDateTimeOpts } from "../utils";
 

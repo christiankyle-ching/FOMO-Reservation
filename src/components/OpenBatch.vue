@@ -3,7 +3,7 @@
     <div class="text-center">
       <h2>Current Batch</h2>
       <p
-        v-if="status.batch"
+        v-if="status"
         class="capitalize italic font-bold"
         :class="{
           'text-green-800': isOpen,
@@ -90,12 +90,45 @@
       </p>
 
       <div class="mt-3">
-        <h5>Submitted Orders:</h5>
-        <div v-for="o in pendingOrders" :key="o.id">
-          <h6>{{ o.name }}</h6>
-          <p>Total Items: {{ o.order.reduce((acc, cur) => acc.qty + cur.qty ) }} items</p>
-          <p>Total Price: {{ (o.order.reduce((acc, cur) => (acc.unit_price * acc.qty) + (cur.unit_price * cur.qty) )).toLocaleString() }} PHP</p>
+        <h5>
+          Submitted Orders: {{ pendingOrders.filter((o) => o.order).length }} of
+          {{ pendingOrders.length }}
+        </h5>
+
+        <!-- Pending Order Item -->
+        <div v-for="o in pendingOrders" :key="o" class="mt-4 mb-2">
+          <div class="mb-1">
+            <h6>{{ o.name }}</h6>
+            <div class="text-sm italic">
+              <p>{{ o.email }}</p>
+              <p>{{ o.phone }}</p>
+            </div>
+          </div>
+
+          <!-- Order Sent Already -->
+          <div v-if="o.order">
+            <p>
+              Total Items:
+              {{ getQty(o.order).toLocaleString() }} items
+            </p>
+            <p>
+              Total Price:
+              {{ getTotalPrice(o.order).toLocaleString() }} PHP
+            </p>
+          </div>
+
+          <!-- <button @click="log">LOG ORDER</button> -->
+
+          <hr class="mx-2 mb-2" />
         </div>
+
+        <!-- Finalize Orders -->
+        <button
+          @click="finalizeBatch"
+          class="button button-primary button-block mt-3"
+        >
+          Stop Accepting Orders (Finalize)
+        </button>
       </div>
     </div>
 
@@ -118,28 +151,45 @@ export default {
       latestBatch: "latestBatch",
       pendingOrders: "pendingOrders",
       status: "status",
-      isOpen: (state) => state.status.batch == BATCH_STATUS.OPEN,
-      isPending: (state) => state.status.batch == BATCH_STATUS.PENDING,
-      isClosed: (state) => state.status.batch == BATCH_STATUS.CLOSED,
+      isOpen: (state) => state.status?.batch == BATCH_STATUS.OPEN,
+      isPending: (state) => state.status?.batch == BATCH_STATUS.PENDING,
+      isClosed: (state) => state.status?.batch == BATCH_STATUS.CLOSED,
       openBatchDateString: (state) =>
         state.openBatch.created_at
-          .toDate()
+          ?.toDate()
           .toLocaleString("en-PH", localeDateTimeOpts),
     }),
   },
   methods: {
     log() {
-      console.log(this.pendingOrders);
+      console.log();
+      this.pendingOrders.forEach((o) => console.log(o.order));
     },
     ...mapActions({
       closeCurrentBatch: "closeCurrentBatch",
       openNewBatch: "openNewBatch",
+      finalizeBatch: "finalizeBatch",
     }),
+
+    // For order_limit
     increment() {
       this.formNewBatch.order_limit++;
     },
     decrement() {
       if (this.formNewBatch.order_limit > 0) this.formNewBatch.order_limit--;
+    },
+
+    // Order Items and Total Price
+    getQty(order) {
+      const _qty = order.map((o) => o.qty).reduce((acc, cur) => acc + cur);
+      return _qty;
+    },
+
+    getTotalPrice(order) {
+      const _price = order
+        .map((o) => o.qty * o.unit_price)
+        .reduce((acc, cur) => acc + cur);
+      return _price;
     },
   },
 };

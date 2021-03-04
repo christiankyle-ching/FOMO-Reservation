@@ -23,6 +23,16 @@ class Product {
 
     return firestoreObj;
   }
+
+  clone() {
+    return new Product(
+      this.id,
+      this.name,
+      this.price,
+      this.created_at,
+      this.last_updated
+    );
+  }
 }
 
 export { Product };

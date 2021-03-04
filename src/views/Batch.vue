@@ -64,7 +64,6 @@ export default {
   methods: {
     log() {
       // TODO: Remove on Prod
-      // console.log(this.batch);
     },
     save() {
       this.$store.dispatch("saveBatch", this.batch);

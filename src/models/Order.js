@@ -36,33 +36,6 @@ class Order {
   getOrderProductsDoc(products) {
     return { order: this.parseOrderProducts(products) };
   }
-
-  get orderDoc() {}
 }
 
-class FinalOrder {
-  constructor(username, fb_link, order, products_list) {
-    this.username = username;
-    this.fb_link = fb_link;
-    this.order = [];
-
-    // For Reference Only
-    this.products_list = products_list;
-
-    // Order is Map, Converts to Array
-    this.addOrders(order);
-  }
-
-  addOrders(_order) {
-    Object.keys(_order).forEach((id) => {
-      const productDetails = this.products_list.find((p) => p.id == id);
-      this.order.push({
-        product_name: productDetails.name,
-        price: productDetails.price,
-        qty: _order[id],
-      });
-    });
-  }
-}
-
-export { Order, FinalOrder };
+export { Order };

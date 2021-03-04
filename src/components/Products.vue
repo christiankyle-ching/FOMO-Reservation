@@ -2,33 +2,39 @@
   <div class="products card">
     <!-- Header -->
     <div>
-      <button
-        @click="startEditing"
+      <span
+        class="float-right"
         v-if="!isEditing"
-        class="text-gray-700 float-right"
+        :title="
+          !editAllowed
+            ? 'You cannot edit products when you are currently accepting orders'
+            : null
+        "
       >
-        <!-- Edit Icon -->
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          class="icon-md text-grey-600"
+        <button
+          @click="startEditing"
+          class="text-gray-700"
+          :disabled="!editAllowed"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-          />
-        </svg>
-      </button>
+          <!-- Edit Icon -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="icon-md text-grey-600"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
+          </svg>
+        </button>
+      </span>
 
-      <button
-        @click="cancelEditing"
-        v-else
-        class="text-gray-700 float-right"
-      >
+      <button @click="cancelEditing" v-else class="text-gray-700 float-right">
         <!-- Cancel Icon -->
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -47,8 +53,6 @@
       </button>
 
       <h2 class="text-center">Food Menu</h2>
-
-      
     </div>
 
     <form ref="productForm" @change="onFormChange">
@@ -145,6 +149,7 @@
 <script>
 import { nextTick } from "vue";
 import { mapState } from "vuex";
+import { BATCH_STATUS } from "../models/Batch";
 
 export default {
   name: "Products",
@@ -162,6 +167,9 @@ export default {
   computed: {
     ...mapState({
       formProducts: "formProducts",
+      editAllowed: (state) =>
+        state.status?.batch == BATCH_STATUS.PENDING ||
+        state.status?.batch == BATCH_STATUS.OPEN,
     }),
   },
   methods: {
