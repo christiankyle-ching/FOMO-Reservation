@@ -14,8 +14,8 @@ class Order {
       const product = products.find(p => p.id == id)
 
       _order.push({
-        product_name: product.name,
-        unit_price: product.price,
+        name: product.name,
+        price: product.price,
         qty: this.orderProducts[id],
       });
     });

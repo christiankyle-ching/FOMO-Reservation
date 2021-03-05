@@ -57,12 +57,15 @@ class Batch {
       this.order_limit && { order_limit: this.order_limit }
     );
     Object.assign(firestoreObj, this.orders && { orders: this.orders });
-    Object.assign(firestoreObj, this.isDone && { isDone: this.isDone });
+    Object.assign(firestoreObj, { isDone: this.isDone });
+
+    console.log(firestoreObj);
 
     return firestoreObj;
   }
 
   clone() {
+    // TODO: Implement for editing
     return {};
   }
 }

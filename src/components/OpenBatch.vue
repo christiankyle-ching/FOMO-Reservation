@@ -1,17 +1,11 @@
 <template>
   <div class="open-batch card">
     <div class="text-center">
+      <button @click="log" class="button button-secondary">LOG</button>
+
       <h2>Current Batch</h2>
-      <p
-        v-if="status"
-        class="capitalize italic font-bold"
-        :class="{
-          'text-green-800': isOpen,
-          'text-blue-800': isClosed,
-          'text-red-800': isPending,
-        }"
-      >
-        {{ status.batch }}
+      <p v-if="status" class="capitalize font-medium" :class="statusColorClass">
+        {{ statusMessage }}
       </p>
     </div>
 
@@ -28,11 +22,12 @@
       <div>
         <h4>{{ openBatch.name }}</h4>
         <p class="italic text-sm">{{ openBatchDateString }}</p>
+        <p v-if="counters">Reservations: {{ counters.reservations }}</p>
       </div>
     </div>
 
     <!-- Open New Batch -->
-    <form @submit.prevent="openNewBatch" v-if="!openBatch && isPending">
+    <form @submit.prevent="openNewBatch" v-if="allowOpenNewBatch">
       <label>Name</label>
       <input type="text" v-model="formNewBatch.name" />
 
@@ -82,7 +77,7 @@
     </form>
 
     <!-- Finish Batch -->
-    <div v-if="isClosed && latestBatch">
+    <div v-if="allowFinishBatch">
       <h2>Finalize Batch "{{ latestBatch.name }}"</h2>
       <p>
         If the customers' orders are submitted already, you finalize this batch
@@ -95,29 +90,33 @@
           {{ pendingOrders.length }}
         </h5>
 
+        <div class="flex justify-between">
+          <p>Total Food Items:</p>
+          <strong>{{ batchTotals.qty }}</strong>
+        </div>
+
+        <div class="flex justify-between">
+          <p>Total Amount:</p>
+          <strong>{{ batchTotals.price.toLocaleString() }} PHP</strong>
+        </div>
+
         <!-- Pending Order Item -->
         <div v-for="o in pendingOrders" :key="o" class="mt-4 mb-2">
-          <div class="mb-1">
+          <!-- Order Sent Already -->
+          <div v-if="o.order" class="float-right">
+            <p>
+              {{ getQty(o.order).toLocaleString() }} items <br />
+              {{ getTotalPrice(o.order).toLocaleString() }} PHP
+            </p>
+          </div>
+
+          <div>
             <h6>{{ o.name }}</h6>
             <div class="text-sm italic">
               <p>{{ o.email }}</p>
               <p>{{ o.phone }}</p>
             </div>
           </div>
-
-          <!-- Order Sent Already -->
-          <div v-if="o.order">
-            <p>
-              Total Items:
-              {{ getQty(o.order).toLocaleString() }} items
-            </p>
-            <p>
-              Total Price:
-              {{ getTotalPrice(o.order).toLocaleString() }} PHP
-            </p>
-          </div>
-
-          <!-- <button @click="log">LOG ORDER</button> -->
 
           <hr class="mx-2 mb-2" />
         </div>
@@ -132,46 +131,104 @@
       </div>
     </div>
 
+    <LatestBatch v-if="isReadyToProcess" class="m-5" />
+
     <!-- <button class="button button-secondary" @click="log">LOG</button> -->
   </div>
 </template>
 
 <script>
 import { mapActions, mapState } from "vuex";
-import { localeDateTimeOpts } from "../utils";
+import LatestBatch from "@/components/LatestBatch";
+import { localeDateTimeOpts } from "@/utils";
 import { BATCH_STATUS } from "@/models/Batch";
 
 export default {
   name: "OpenBatch",
+  components: { LatestBatch },
+  data() {
+    return {
+      statusMessage: null,
+      statusColorClass: null,
+
+      batchTotals: {},
+    };
+  },
   computed: {
     ...mapState({
       formNewBatch: "formNewBatch",
-      batches: "batches",
       openBatch: "openBatch",
       latestBatch: "latestBatch",
       pendingOrders: "pendingOrders",
       status: "status",
-      isOpen: (state) => state.status?.batch == BATCH_STATUS.OPEN,
-      isPending: (state) => state.status?.batch == BATCH_STATUS.PENDING,
-      isClosed: (state) => state.status?.batch == BATCH_STATUS.CLOSED,
+      counters: "counters",
       openBatchDateString: (state) =>
         state.openBatch.created_at
           ?.toDate()
           .toLocaleString("en-PH", localeDateTimeOpts),
+
+      // Allow Actions based on Status of Current Batch
+      allowOpenNewBatch: (state) =>
+        !(state.openBatch || false) &&
+        state.status.batch == BATCH_STATUS.PENDING,
+      allowFinishBatch: (state) =>
+        state.latestBatch && state.status.batch == BATCH_STATUS.CLOSED,
+      isReadyToProcess: (state) =>
+        state.status.batch == BATCH_STATUS.PENDING &&
+        state.latestBatch.locked_at,
     }),
   },
-  methods: {
-    log() {
-      console.log();
-      this.pendingOrders.forEach((o) => console.log(o.order));
+  watch: {
+    status: function () {
+      switch (this.status.batch) {
+        case BATCH_STATUS.OPEN:
+          this.statusMessage = "Waiting for reservations...";
+          this.statusColorClass = "text-green-800";
+          break;
+        case BATCH_STATUS.CLOSED:
+          this.statusMessage = "Waiting for orders...";
+          this.statusColorClass = "text-blue-800";
+          break;
+        case BATCH_STATUS.PENDING:
+          this.statusMessage = "Ready for another batch...";
+          this.statusColorClass = "text-red-800";
+          break;
+      }
     },
+    counters: function () {
+      this.getBatchTotals();
+    },
+  },
+  methods: {
+    log() {},
+
     ...mapActions({
-      closeCurrentBatch: "closeCurrentBatch",
       openNewBatch: "openNewBatch",
+      closeCurrentBatch: "closeCurrentBatch",
       finalizeBatch: "finalizeBatch",
     }),
 
-    // For order_limit
+    // Get Overall Totals
+    getBatchTotals() {
+      const fnReducer = (a, c) => a + c;
+
+      if (this.pendingOrders.length <= 0)
+        return (this.batchTotals = { qty: 0, price: 0 });
+
+      const _orders = this.pendingOrders.map((o) => o.order);
+
+      this.batchTotals.qty = _orders
+        .map((order) => order.map((p) => p.qty))
+        .map((qtys) => qtys.reduce(fnReducer))
+        .reduce(fnReducer);
+
+      this.batchTotals.price = _orders
+        .map((order) => order.map((p) => p.qty * p.price))
+        .map((prices) => prices.reduce(fnReducer))
+        .reduce(fnReducer);
+    },
+
+    // Input: For order_limit
     increment() {
       this.formNewBatch.order_limit++;
     },
@@ -179,7 +236,7 @@ export default {
       if (this.formNewBatch.order_limit > 0) this.formNewBatch.order_limit--;
     },
 
-    // Order Items and Total Price
+    // Helper Functions: Order Items and Total Price
     getQty(order) {
       const _qty = order.map((o) => o.qty).reduce((acc, cur) => acc + cur);
       return _qty;
@@ -187,7 +244,7 @@ export default {
 
     getTotalPrice(order) {
       const _price = order
-        .map((o) => o.qty * o.unit_price)
+        .map((o) => o.qty * o.price)
         .reduce((acc, cur) => acc + cur);
       return _price;
     },

@@ -10,12 +10,13 @@ import { Product } from "@/models/Product";
 import { Batch, BATCH_STATUS } from "@/models/Batch";
 
 const _user = firebase.auth().currentUser;
+const _db = firebase.firestore();
 
 const store = createStore({
   state: {
     // Shared
     products: [],
-    status: null,
+    status: {},
     unsubscribeStatus: null,
     openBatch: null,
     unsubscribeBatch: null,
@@ -33,10 +34,12 @@ const store = createStore({
     batches: [],
     formNewBatch: {
       name: "",
-      order_limit: 1,
+      order_limit: 50, // TODO: Set Default: 50
     },
+    counters: null,
+    unsubscribeCounters: null,
     pendingOrders: [],
-    unsubscribe_PendingOrders: null,
+    unsubscribePendingOrders: null,
 
     // Firebase References
     // null: References that depend on other state
@@ -53,6 +56,10 @@ const store = createStore({
       .doc("status"),
     dbReservation: null, // Pending Reservation of Customer
     dbReservations: firebase.firestore().collection("PUBLIC_RESERVATIONS"),
+    dbCounters: firebase
+      .firestore()
+      .collection("PUBLIC_WRITE")
+      .doc("counters"),
     dbPendingOrders: firebase.firestore().collection("PUBLIC_ORDERS"),
     dbLatestBatch: firebase
       .firestore()
@@ -101,6 +108,11 @@ const store = createStore({
 
       state.pendingOrders = value;
     },
+    SET_COUNTERS(state, value) {
+      console.log("SET_PENDING_ORDERS");
+
+      state.counters = value;
+    },
 
     // CUSTOMER
     DB_SET_ORDER(state, value) {
@@ -136,6 +148,8 @@ const store = createStore({
       dispatch("fetchUser", user);
 
       if (user) {
+        console.log("---LOGGED IN---");
+
         dispatch("fetchProducts");
 
         // Customer DB References
@@ -154,17 +168,22 @@ const store = createStore({
             .doc(user.uid)
         );
 
-        // Listeners
-        dispatch("listenOpenBatch");
-        dispatch("listenStatus");
-
         // TODO: Conditional data fetch based on privileges
         const isAdmin = true;
         if (isAdmin) {
           dispatch("fetchBatches");
-          dispatch("fetchPendingOrders");
+          dispatch("listenPendingOrders");
+
+          // Listener for Reservation Count
+          dispatch("listenCounters");
         }
+
+        // Listeners
+        dispatch("listenOpenBatch");
+        dispatch("listenStatus");
       } else {
+        console.log("---LOGGED OUT---");
+
         // Reset values set above when logged in
         commit("DB_SET_ORDER", null);
         commit("DB_SET_RESERVATION", null);
@@ -173,6 +192,7 @@ const store = createStore({
         // Detach Listeners
         dispatch("detachOpenBatch");
         dispatch("detachStatus");
+        dispatch("detachCounters");
       }
     },
 
@@ -289,8 +309,25 @@ const store = createStore({
     // Batches
     async fetchLatestBatch({ state, commit }) {
       const batch = await state.dbLatestBatch.get();
-      if (!batch.empty) commit("SET_LATEST_BATCH", batch.docs[0].data());
+
+      if (!batch.empty) {
+        const data = batch.docs[0].data();
+        commit(
+          "SET_LATEST_BATCH",
+          new Batch(
+            batch.docs[0].id,
+            data.name,
+            data.created_at,
+            data.closed_at,
+            data.locked_at,
+            data.order_limit,
+            data.orders,
+            data.isDone
+          )
+        );
+      }
     },
+
     async fetchBatches({ state, commit }) {
       console.log("fetchBatches");
 
@@ -316,10 +353,11 @@ const store = createStore({
       commit("SET_LATEST_BATCH", cacheBatches[0]);
     },
 
-    async fetchPendingOrders({ state, commit }) {
-      console.log("fetchPendingOrders");
+    // Listener:  Pending Orders
+    async listenPendingOrders({ state, commit }) {
+      console.log("Listen: Pending Orders");
 
-      state.unsubscribe_PendingOrders = state.dbPendingOrders.onSnapshot(
+      state.unsubscribePendingOrders = state.dbPendingOrders.onSnapshot(
         (pendingOrders) => {
           const cachePendingOrders = [];
           pendingOrders.forEach((order) => {
@@ -329,6 +367,10 @@ const store = createStore({
           commit("SET_PENDING_ORDERS", cachePendingOrders);
         }
       );
+    },
+
+    detachPendingOrders({ state }) {
+      if (state.unsubscribePendingOrders) state.unsubscribePendingOrders();
     },
 
     async openNewBatch({ state, dispatch }) {
@@ -346,15 +388,15 @@ const store = createStore({
 
       // Reset Form
       data.name = "";
-      data.order_limit = 0;
+      data.order_limit = 50;
     },
 
-    async closeCurrentBatch({ state, commit, dispatch }) {
+    async closeCurrentBatch({ state, dispatch }) {
       console.log("closeCurrentBatch");
 
       const curBatch = state.openBatch;
 
-      // Get All Reserved Users based on Limit
+      // Get All Reserved Users based on Limit, earliest first
       const reservations = await state.dbReservations
         .orderBy("datetime", "asc")
         .limit(curBatch.order_limit)
@@ -391,9 +433,12 @@ const store = createStore({
       (await state.dbReservations.get()).forEach(
         async (r) => await state.dbReservations.doc(r.id).delete()
       );
+
+      // Clear Reservation Count
+      state.dbCounters.update({ reservations: 0 });
     },
 
-    async finalizeBatch({ state, dispatch }, id) {
+    async finalizeBatch({ state, dispatch }) {
       console.log("finalizeBatch");
 
       // Copy all data in PUBLIC_ORDERS to batch.orders
@@ -401,8 +446,6 @@ const store = createStore({
       (await state.dbPendingOrders.get()).forEach((order) => {
         cacheOrders.push(order.data());
       });
-
-      console.log("Cache Orders: ", cacheOrders);
 
       const queryLatest = await state.dbLatestBatch.get();
       if (!queryLatest.empty) {
@@ -417,17 +460,38 @@ const store = createStore({
         }
       }
 
-      // TODO: Clear Pending Orders
-      (await state.dbPendingOrders.get()).forEach(
-        async (o) => await state.dbPendingOrders.doc(o.id).delete()
+      // Clear Pending Orders
+      // TODO: Run within a batch write
+      const batchDeletePendingOrders = _db.batch();
+      (await state.dbPendingOrders.get()).forEach(async (o) =>
+        batchDeletePendingOrders.delete(state.dbPendingOrders.doc(o.id))
       );
+      await batchDeletePendingOrders.commit();
 
       // Change status to BATCH_STATUS.PENDING again
       dispatch("status_updateBatch", BATCH_STATUS.PENDING);
+
+      // Fetch Latest Batch again
+      dispatch("fetchLatestBatch");
     },
 
     async status_updateBatch({ state }, status) {
       await state.dbStatus.update({ batch: status });
+    },
+
+    // Counters for Reservation, etc
+    async listenCounters({ state, commit }) {
+      console.log("Listen: Counters");
+
+      state.unsubscribeCounters = state.dbCounters.onSnapshot((counter) => {
+        commit("SET_COUNTERS", counter.data());
+      });
+    },
+
+    detachCounters({ state }) {
+      console.log("Detach: Counters");
+
+      if (state.unsubscribeCounters) state.unsubscribeCounters();
     },
     // #endregion
 
@@ -445,6 +509,12 @@ const store = createStore({
 
         // Update reservationExists
         commit("SET_RESERVATION_EXISTS", true);
+
+        // Increment Reservation Count
+        state.dbCounters.update(
+          "reservations",
+          firebase.firestore.FieldValue.increment(1)
+        );
       }
     },
 
@@ -464,7 +534,7 @@ const store = createStore({
 
     // #region GLOBAL
     // Status Listener
-    async listenStatus({ commit, state, dispatch }) {
+    listenStatus({ commit, state, dispatch }) {
       console.log("Listen: Status");
 
       state.unsubscribeStatus = state.dbStatus.onSnapshot((status) => {

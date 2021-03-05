@@ -1,6 +1,3 @@
-import firebase from "@/firebase"
-import "firebase/functions"
-
 const localeDateTimeOpts = {
   weekday: "long",
   year: "numeric",

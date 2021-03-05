@@ -112,6 +112,6 @@
   }
 
   .input__number input[type="number"] {
-    @apply inline ring-0 focus:ring-0 w-6 text-center;
+    @apply inline w-10 text-center shadow-none border-none mt-0;
   }
 }
