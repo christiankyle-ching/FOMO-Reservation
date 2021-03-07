@@ -7,6 +7,7 @@
 <script>
 export default {
   name: "Batches",
+  
   components: {},
   computed: {},
   methods: {},

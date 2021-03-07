@@ -43,29 +43,26 @@ const store = createStore({
 
     // Firebase References
     // null: References that depend on other state
-    dbProducts: firebase.firestore().collection("products"),
-    dbBatches: firebase.firestore().collection("batches"),
+    dbProducts: _db.collection("products"),
+    dbBatches: _db.collection("batches"),
     dbOrder: null, // Pending Order of Customer
     dbOpenBatch: firebase
       .firestore()
       .collection("PUBLIC_READ")
       .doc("open_batch"),
-    dbStatus: firebase
-      .firestore()
-      .collection("PUBLIC_READ")
-      .doc("status"),
+    dbStatus: _db.collection("PUBLIC_READ").doc("status"),
     dbReservation: null, // Pending Reservation of Customer
-    dbReservations: firebase.firestore().collection("PUBLIC_RESERVATIONS"),
+    dbReservations: _db.collection("PUBLIC_RESERVATIONS"),
     dbCounters: firebase
       .firestore()
       .collection("PUBLIC_WRITE")
       .doc("counters"),
-    dbPendingOrders: firebase.firestore().collection("PUBLIC_ORDERS"),
-    dbLatestBatch: firebase
-      .firestore()
+    dbPendingOrders: _db.collection("PUBLIC_ORDERS"),
+    dbLatestBatch: _db
       .collection("batches")
       .orderBy("created_at", "desc")
       .limit(1),
+    dbUserLinks: null,
   },
   mutations: {
     // GLOBAL
@@ -93,6 +90,11 @@ const store = createStore({
 
       state.openBatch = value;
     },
+    SET_FORM_NEWBATCH(state, value) {
+      console.log("SET_FORM_NEWBATCH");
+
+      state.formNewBatch = value;
+    },
     SET_BATCHES(state, value) {
       console.log("SET_BATCHES");
 
@@ -112,6 +114,10 @@ const store = createStore({
       console.log("SET_PENDING_ORDERS");
 
       state.counters = value;
+    },
+    DB_SET_USER_LINKS(state, value) {
+      console.log("DB_SET_USER_LINKS");
+      state.dbUserLinks = value;
     },
 
     // CUSTOMER
@@ -134,12 +140,6 @@ const store = createStore({
       console.log("SET_RESERVATION_EXISTS");
 
       state.reservationExists = value;
-    },
-
-    SET_FORM_NEWBATCH(state, value) {
-      console.log("SET_FORM_NEWBATCH");
-
-      state.formNewBatch = value;
     },
   },
   actions: {
@@ -171,6 +171,12 @@ const store = createStore({
         // TODO: Conditional data fetch based on privileges
         const isAdmin = true;
         if (isAdmin) {
+          // DB References only for Admin
+          commit(
+            "DB_SET_USER_LINKS",
+            firebase.firestore().collection("user-links")
+          );
+
           dispatch("fetchBatches");
           dispatch("listenPendingOrders");
 
@@ -203,7 +209,18 @@ const store = createStore({
       commit("SET_USER", user);
     },
 
+    async getOrderStatus({ state }) {
+      // Only Allow Submitting of Order if
+      // a) User exists in PUBLIC_ORDERS, and
+      // b) User does not finalize order yet
+      const pendingOrder = await state.dbOrder.get();
+      state.orderAllowed = pendingOrder.exists && !pendingOrder.data().order;
+      state.orderDone = pendingOrder.exists && pendingOrder.data().order;
+    },
+
+
     // #region ADMIN
+    // TODO: Move Products data to a singleton
     // Products
     async fetchProducts({ commit, state, dispatch }) {
       console.log("fetchProducts");
@@ -241,22 +258,11 @@ const store = createStore({
       const order = new Order(
         state.user.uid,
         state.user.displayName,
-        state.user.email,
-        state.user.phoneNumber,
         orderProducts
       );
 
       commit("SET_ORDER", order);
       dispatch("getOrderStatus");
-    },
-
-    async getOrderStatus({ state }) {
-      // Only Allow Submitting of Order if
-      // a) User exists in PUBLIC_ORDERS, and
-      // b) User does not finalize order yet
-      const pendingOrder = await state.dbOrder.get();
-      state.orderAllowed = pendingOrder.exists && !pendingOrder.data().order;
-      state.orderDone = pendingOrder.exists && pendingOrder.data().order;
     },
 
     // Product Form
@@ -265,7 +271,7 @@ const store = createStore({
       const newProducts = state.formProducts.filter((p) => !p.id);
 
       savedProducts.forEach((product) => {
-        const dbProd = state.dbProducts.doc(product.id);
+        const dbProd = product.ref;
         const formProd = state.formProducts.find((p) => p.id == product.id);
 
         // If product still in form, just update
@@ -288,7 +294,7 @@ const store = createStore({
         const timestamp = firebase.firestore.FieldValue.serverTimestamp();
 
         const newProduct = new Product(timestamp, p.name, p.price, timestamp);
-
+        
         state.dbProducts.add(newProduct.firestoreDoc);
       });
 
@@ -308,10 +314,13 @@ const store = createStore({
 
     // Batches
     async fetchLatestBatch({ state, commit }) {
+      console.log("fetchLatestBatch");
+      
       const batch = await state.dbLatestBatch.get();
 
       if (!batch.empty) {
         const data = batch.docs[0].data();
+
         commit(
           "SET_LATEST_BATCH",
           new Batch(
@@ -353,7 +362,7 @@ const store = createStore({
       commit("SET_LATEST_BATCH", cacheBatches[0]);
     },
 
-    // Listener:  Pending Orders
+    // Listener: Pending Orders
     async listenPendingOrders({ state, commit }) {
       console.log("Listen: Pending Orders");
 
@@ -373,6 +382,7 @@ const store = createStore({
       if (state.unsubscribePendingOrders) state.unsubscribePendingOrders();
     },
 
+    // Order Flow
     async openNewBatch({ state, dispatch }) {
       const data = state.formNewBatch;
 
@@ -443,28 +453,32 @@ const store = createStore({
 
       // Copy all data in PUBLIC_ORDERS to batch.orders
       const cacheOrders = [];
-      (await state.dbPendingOrders.get()).forEach((order) => {
-        cacheOrders.push(order.data());
+      (await state.dbPendingOrders.orderBy("order").get()).forEach((order) => {
+        cacheOrders.push({ ...order.data(), isDone: false });
       });
 
       const queryLatest = await state.dbLatestBatch.get();
       if (!queryLatest.empty) {
-        const bId = queryLatest.docs[0].id;
-
-        const latestBatch = state.dbBatches.doc(bId);
+        const latestBatch = queryLatest.docs[0].ref;
 
         if (!(await latestBatch.get()).data().orders) {
           // Safety check if orders is already copied
           // Prevents erasure of orders
           latestBatch.update({ orders: cacheOrders });
+
+          // Set locked_at date
+          latestBatch.update({
+            locked_at: firebase.firestore.FieldValue.serverTimestamp(),
+          });
         }
       }
 
       // Clear Pending Orders
-      // TODO: Run within a batch write
       const batchDeletePendingOrders = _db.batch();
-      (await state.dbPendingOrders.get()).forEach(async (o) =>
-        batchDeletePendingOrders.delete(state.dbPendingOrders.doc(o.id))
+      (await _db.collection("PUBLIC_ORDERS").get()).forEach(async (o) =>
+        batchDeletePendingOrders.delete(
+          _db.collection("PUBLIC_ORDERS").doc(o.id)
+        )
       );
       await batchDeletePendingOrders.commit();
 
@@ -473,6 +487,40 @@ const store = createStore({
 
       // Fetch Latest Batch again
       dispatch("fetchLatestBatch");
+    },
+
+    async markLatestBatchAsDone({ state, commit, dispatch }) {
+      console.log("markLatestBatchAsDone");
+
+      // Update dbLatestBatch isDone
+      state.dbBatches.doc(state.latestBatch.id).update({ isDone: true });
+
+      // Update the local latest batch
+      // or fetch updated version (another read)
+      state.latestBatch.isDone = true;
+    },
+
+    async updateLatestBatch({ state }) {
+      console.log("updateLatestBatch");
+
+      const batchRef = (await state.dbLatestBatch.get()).docs[0].ref;
+
+      if (!batchRef.empty) {
+        const data = state.latestBatch;
+
+        const updatedBatch = new Batch(
+          data.id,
+          data.name,
+          data.created_at,
+          data.closed_at,
+          data.locked_at,
+          data.order_limit,
+          data.orders,
+          data.isDone
+        );
+
+        await batchRef.update(updatedBatch.firestoreDoc);
+      }
     },
 
     async status_updateBatch({ state }, status) {
@@ -527,7 +575,13 @@ const store = createStore({
         ...state.order.getOrderProductsDoc(state.products),
       };
 
+      // Update DB
       state.dbOrder.set(orderDoc);
+
+      // Reset Form
+      state.order.resetOrder();
+
+      // Update Order Status
       dispatch("getOrderStatus");
     },
     // #endregion
@@ -582,6 +636,10 @@ const store = createStore({
 firebase.auth().onAuthStateChanged((user) => {
   console.log("AuthChanged");
 
+  // TODO: Remove on prod
+  console.log(user);
+
+  // Setup User
   store.dispatch("initApp", user);
 });
 

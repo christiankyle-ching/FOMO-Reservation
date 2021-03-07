@@ -1,9 +1,7 @@
 class Order {
-  constructor(uid, name, email, phone, order) {
-    this.id = uid;
+  constructor(uid, name, order) {
+    this.uid = uid;
     this.name = name;
-    this.email = email;
-    this.phone = phone;
     this.orderProducts = order;
   }
 
@@ -11,7 +9,7 @@ class Order {
     const _order = [];
 
     Object.keys(this.orderProducts).forEach((id) => {
-      const product = products.find(p => p.id == id)
+      const product = products.find((p) => p.id == id);
 
       _order.push({
         name: product.name,
@@ -26,11 +24,16 @@ class Order {
   get firestoreDoc() {
     const doc = {};
 
+    Object.assign(doc, this.uid && { uid: this.uid });
     Object.assign(doc, this.name && { name: this.name });
-    Object.assign(doc, this.email && { email: this.email });
-    Object.assign(doc, this.phone && { name: this.phone });
 
     return doc;
+  }
+
+  resetOrder() {
+    Object.keys(this.orderProducts).forEach(
+      (key) => (this.orderProducts[key] = 0)
+    );
   }
 
   getOrderProductsDoc(products) {

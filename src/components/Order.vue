@@ -58,59 +58,36 @@
         </div>
       </div>
 
+      <!-- Report of Order -->
+      <Receipt :order="orderList" class="pt-3" />
+
       <div class="m-3">
-        <button type="submit" class="button button-block button-primary">
+        <button
+          type="submit"
+          class="button button-block button-primary"
+          :disabled="isEmpty"
+        >
           Finalize Order
         </button>
       </div>
     </form>
 
-    <!-- Report of Order -->
-    <div>
-      <h5 class="text-center">Summary of Order</h5>
-
-      <table class="table-auto w-full">
-        <tr>
-          <th>Item</th>
-          <th>Quantity</th>
-          <th>Unit Price</th>
-          <th>Total Price</th>
-        </tr>
-
-        <tr v-for="o in orderList" :key="o">
-          <td>{{ o.name }}</td>
-          <td>{{ o.qty }}</td>
-          <td>{{ o.price.toLocaleString() }} PHP</td>
-          <td>{{ o.total.toLocaleString() }} PHP</td>
-        </tr>
-
-        <tr>
-          <td>TOTAL</td>
-          <td>{{ totalQuantity }}</td>
-          <td></td>
-          <td>{{ totalPrice.toLocaleString() }} PHP</td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- <button @click="log">LOG</button> -->
+    <!-- <button class="button button-secondary" @click="log">LOG</button> -->
   </div>
 </template>
 
 <script>
 import { mapActions, mapState } from "vuex";
+import Receipt from "@/components/Receipt";
 
 export default {
   name: "Order",
-  data() {
-    return {
-      totalPrice: 0,
-      totalQuantity: 0,
-    };
-  },
+  components: { Receipt },
   computed: mapState({
     products: "products",
     order: "order",
+    isEmpty: (state) =>
+      Object.values(state.order.orderProducts).reduce((a, c) => a + c) <= 0,
     orderList: (state) => {
       const orderList = [];
 
@@ -130,24 +107,17 @@ export default {
       return orderList;
     },
   }),
-  watch: {
-    orderList: function () {
-      this.totalPrice = this.orderList
-        .map((o) => o.price * o.qty)
-        .reduce((acc, cur) => acc + cur);
 
-      this.totalQuantity = this.orderList
-        .map((o) => o.qty)
-        .reduce((a, c) => a + c);
-    },
-  },
   methods: {
     log() {
       console.log(this.order);
     },
     increment(pid) {
       // TODO: Get Max Quantity in Database
-      if (this.totalQuantity < 10) this.order.orderProducts[pid]++;
+      const totalQuantity = Object.values(this.order.orderProducts).reduce(
+        (a, c) => a + c
+      );
+      if (totalQuantity < 10) this.order.orderProducts[pid]++;
     },
     decrement(pid) {
       if (this.order.orderProducts[pid] > 0) this.order.orderProducts[pid]--;

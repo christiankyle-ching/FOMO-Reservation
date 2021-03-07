@@ -35,7 +35,12 @@ export default {
   }),
   methods: {
     logout() {
-      firebase.auth().signOut();
+      firebase
+        .auth()
+        .signOut()
+        .then(() => {
+          this.$router.push({ name: "Login" });
+        });
     },
   },
 };

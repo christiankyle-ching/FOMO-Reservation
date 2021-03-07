@@ -1,29 +1,12 @@
 <template>
   <div class="open-batch card">
     <div class="text-center">
-      <button @click="log" class="button button-secondary">LOG</button>
+      <!-- <button @click="log" class="button button-secondary">LOG</button> -->
 
       <h2>Current Batch</h2>
       <p v-if="status" class="capitalize font-medium" :class="statusColorClass">
         {{ statusMessage }}
       </p>
-    </div>
-
-    <!-- Current Open Batch -->
-    <div v-if="openBatch">
-      <h3 class="text-center mt-3">Open Batch</h3>
-      <button
-        @click="closeCurrentBatch"
-        class="button button-danger float-right"
-      >
-        Close Batch
-      </button>
-
-      <div>
-        <h4>{{ openBatch.name }}</h4>
-        <p class="italic text-sm">{{ openBatchDateString }}</p>
-        <p v-if="counters">Reservations: {{ counters.reservations }}</p>
-      </div>
     </div>
 
     <!-- Open New Batch -->
@@ -76,12 +59,32 @@
       </button>
     </form>
 
+    <!-- Current Open Batch -->
+    <div v-if="openBatch">
+      <h3 class="text-center mt-3">Open Batch</h3>
+      <button
+        @click="closeCurrentBatch"
+        class="button button-danger float-right"
+      >
+        Close Batch
+      </button>
+
+      <div>
+        <h4>{{ openBatch.name }}</h4>
+        <p class="italic text-sm">{{ openBatchDateString }}</p>
+        <p v-if="counters">Reservations: {{ counters.reservations }}</p>
+      </div>
+    </div>
+
     <!-- Finish Batch -->
     <div v-if="allowFinishBatch">
-      <h2>Finalize Batch "{{ latestBatch.name }}"</h2>
+      <h3>Finalize Batch "{{ latestBatch.name }}"</h3>
       <p>
-        If the customers' orders are submitted already, you finalize this batch
-        now to start preparing your orders.
+        If the customers' orders are submitted already, you can finalize this
+        batch now to start preparing your orders.
+        <span class="text-red-800 font-medium"
+          >This would stop accepting orders from unattended reservations.</span
+        >
       </p>
 
       <div class="mt-3">
@@ -92,12 +95,12 @@
 
         <div class="flex justify-between">
           <p>Total Food Items:</p>
-          <strong>{{ batchTotals.qty }}</strong>
+          <strong>{{ batchTotalQty }}</strong>
         </div>
 
         <div class="flex justify-between">
           <p>Total Amount:</p>
-          <strong>{{ batchTotals.price.toLocaleString() }} PHP</strong>
+          <strong>{{ batchTotalPrice.toLocaleString() }} PHP</strong>
         </div>
 
         <!-- Pending Order Item -->
@@ -131,8 +134,6 @@
       </div>
     </div>
 
-    <LatestBatch v-if="isReadyToProcess" class="m-5" />
-
     <!-- <button class="button button-secondary" @click="log">LOG</button> -->
   </div>
 </template>
@@ -143,14 +144,13 @@ import LatestBatch from "@/components/LatestBatch";
 import { localeDateTimeOpts } from "@/utils";
 import { BATCH_STATUS } from "@/models/Batch";
 
+const fnReducer = (a, c) => a + c;
+
 export default {
   name: "OpenBatch",
   components: { LatestBatch },
   data() {
     return {
-      statusMessage: null,
-      statusColorClass: null,
-
       batchTotals: {},
     };
   },
@@ -167,40 +167,69 @@ export default {
           ?.toDate()
           .toLocaleString("en-PH", localeDateTimeOpts),
 
+      // Status Styling
+      statusMessage: function (state) {
+        switch (this.status.batch) {
+          case BATCH_STATUS.OPEN:
+            return "Waiting for reservations...";
+          case BATCH_STATUS.CLOSED:
+            return "Waiting for orders...";
+          case BATCH_STATUS.PENDING:
+            return "Ready for another batch...";
+        }
+      },
+      statusColorClass: function (state) {
+        switch (this.status.batch) {
+          case BATCH_STATUS.OPEN:
+            return "text-green-800";
+          case BATCH_STATUS.CLOSED:
+            return "text-blue-800";
+          case BATCH_STATUS.PENDING:
+            return "text-red-800";
+        }
+      },
+
       // Allow Actions based on Status of Current Batch
       allowOpenNewBatch: (state) =>
         !(state.openBatch || false) &&
         state.status.batch == BATCH_STATUS.PENDING,
       allowFinishBatch: (state) =>
         state.latestBatch && state.status.batch == BATCH_STATUS.CLOSED,
-      isReadyToProcess: (state) =>
-        state.status.batch == BATCH_STATUS.PENDING &&
-        state.latestBatch.locked_at,
+
+      // Totals
+      batchTotalQty: function (state) {
+        const withOrders = state.pendingOrders.filter(
+          (o) => o.order !== undefined
+        );
+
+        if (withOrders.length <= 0) return 0;
+
+        return withOrders
+          .map((o) => o.order)
+          .map((order) => order.map((p) => p.qty))
+          .map((prices) => prices.reduce(fnReducer))
+          .reduce(fnReducer);
+      },
+
+      batchTotalPrice: function (state) {
+        const withOrders = state.pendingOrders.filter(
+          (o) => o.order !== undefined
+        );
+
+        if (withOrders.length <= 0) return 0;
+
+        return withOrders
+          .map((o) => o.order)
+          .map((order) => order.map((p) => p.qty * p.price))
+          .map((prices) => prices.reduce(fnReducer))
+          .reduce(fnReducer);
+      },
     }),
   },
-  watch: {
-    status: function () {
-      switch (this.status.batch) {
-        case BATCH_STATUS.OPEN:
-          this.statusMessage = "Waiting for reservations...";
-          this.statusColorClass = "text-green-800";
-          break;
-        case BATCH_STATUS.CLOSED:
-          this.statusMessage = "Waiting for orders...";
-          this.statusColorClass = "text-blue-800";
-          break;
-        case BATCH_STATUS.PENDING:
-          this.statusMessage = "Ready for another batch...";
-          this.statusColorClass = "text-red-800";
-          break;
-      }
-    },
-    counters: function () {
-      this.getBatchTotals();
-    },
-  },
   methods: {
-    log() {},
+    log() {
+      console.log(this.status);
+    },
 
     ...mapActions({
       openNewBatch: "openNewBatch",

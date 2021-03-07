@@ -10,6 +10,8 @@
         Facebook.
       </h3>
     </div>
+
+    <!-- <button @click="log" class="button button-secondary">LOG</button> -->
   </div>
 </template>
 
@@ -34,6 +36,10 @@ export default {
       orderDone: "orderDone",
     }),
   },
-  methods: {},
+  methods: {
+    log() {
+      console.log(this.$store.state.fbToken);
+    },
+  },
 };
 </script>

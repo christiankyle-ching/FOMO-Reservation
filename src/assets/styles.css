@@ -55,7 +55,11 @@
   }
 
   .checkbox {
-    @apply mt-3 mb-2;
+    @apply mt-3 mb-2 flex items-center cursor-pointer select-none;
+  }
+
+  .checkbox input[type="checkbox"] {
+    @apply hidden;
   }
 
   .checkbox .checkmark {
@@ -113,5 +117,10 @@
 
   .input__number input[type="number"] {
     @apply inline w-10 text-center shadow-none border-none mt-0;
+  }
+
+  th,
+  td {
+    @apply px-4 py-2;
   }
 }
