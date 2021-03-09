@@ -1,82 +1,87 @@
 <template>
   <div>
-    <h3 class="text-center">Order</h3>
-    <table class="table-auto m-auto">
+    <table class="table-auto w-full">
       <thead>
-        <tr>
+        <tr class="text-left">
           <th>Item</th>
-          <th>Unit Price</th>
-          <th>Quantity</th>
-          <th>Total Price</th>
+          <th></th>
+          <th>Price</th>
+          <th v-if="!inProcess"></th>
         </tr>
       </thead>
 
       <tbody>
-        <tr v-for="o in order" :key="o">
-          <td>{{ o.name }}</td>
-          <td class="text-right">{{ o.price.toLocaleString() }}</td>
-          <td class="text-right">x {{ o.qty }}</td>
-          <td class="text-right">{{ getPrice(o).toLocaleString() }} PHP</td>
+        <tr v-for="(product, index) in order" :key="index + product.name">
+          <td>{{ product.name }}</td>
+          <td class="text-right">{{ product.unit_price.toLocaleString() }} PHP x {{ product.qty }}</td>
+          <td class="text-right">
+            {{ product.total_price.toLocaleString() }} PHP
+          </td>
+          <td v-if="!inProcess">
+            <button
+              type="button"
+              @click="removeOrder(index)"
+              class="button-icon button-icon-sm button-danger m-auto"
+            >
+              <span class="fas fa-times"></span>
+            </button>
+          </td>
         </tr>
       </tbody>
 
-      <tfoot class="font-bold">
+      <tfoot>
         <tr>
-          <td>TOTAL</td>
-          <td class="text-right">{{ order_TotalQty }}</td>
-          <td></td>
-          <td class="text-right">
-            {{ order_TotalPrice.toLocaleString() }} PHP
-          </td>
+          <th class="text-left">TOTAL</th>
+          <th class="text-right">{{ orderTotalQty }} item/s</th>
+          <th class="text-right">{{ orderTotalPrice.toLocaleString() }} PHP</th>
+          <th v-if="!inProcess"></th>
         </tr>
       </tfoot>
     </table>
-
-    <div v-if="isDone">
-      <!-- TODO: Implement Print -->
-      <button class="button button-block button-primary">Print</button>
-    </div>
   </div>
 </template>
 
 <script>
 export default {
   name: "Receipt",
-  props: { order: Object, isDone: Boolean },
+  props: { order: Object, inProcess: Boolean },
   inheritAttrs: false,
 
   data() {
     return {
-      order_TotalPrice: 0,
-      order_TotalQty: 0,
+      orderTotalQty: 0,
+      orderTotalPrice: 0,
     };
   },
 
   methods: {
-    getPrice(orderProduct) {
-      return orderProduct.qty * orderProduct.price;
-    },
-
-    updateTotals() {
-      this.order_TotalPrice = this.order
-        .map((o) => o.price * o.qty)
-        .reduce((acc, cur) => acc + cur);
-
-      this.order_TotalQty = this.order
-        .map((o) => o.qty)
-        .reduce((a, c) => a + c);
+    removeOrder(index) {
+      this.order.splice(index, 1);
     },
   },
 
   watch: {
-    order() {
-      this.updateTotals();
+    order: {
+      handler: function () {
+        if (!this.order.length) {
+          this.orderTotalQty = 0;
+          this.orderTotalPrice = 0;
+          return;
+        }
+
+        this.orderTotalQty = this.order
+          .map((o) => o.qty)
+          .reduce((a, c) => a + c);
+
+        this.orderTotalPrice = this.order
+          .map((o) => o.total_price)
+          .reduce((a, c) => a + c);
+      },
+      deep: true,
     },
   },
 
-  mounted() {
-    this.updateTotals();
-  },
+  mounted() {},
 };
 </script>
 

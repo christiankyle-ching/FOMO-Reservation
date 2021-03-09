@@ -8,6 +8,7 @@ import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
 import Admin from "@/views/Admin.vue";
 import Batch from "@/views/Batch.vue";
+import Products from "@/views/Products.vue";
 
 const SITE_TITLE = "FOMO's";
 
@@ -35,6 +36,14 @@ const routes = [
     component: Admin,
     meta: {
       title: "Admin",
+    },
+  },
+  {
+    path: "/products/",
+    name: "Products",
+    component: Products,
+    meta: {
+      title: "Manage Menu",
     },
   },
   {

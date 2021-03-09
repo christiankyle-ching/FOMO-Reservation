@@ -1,13 +1,30 @@
 <template>
   <div class="admin container">
-    <h1 class="text-center py-10">Manage FOMO</h1>
+    <h1 class="text-center mt-10 mb-8">Manage FOMO</h1>
 
     <LatestBatch v-if="isProcessing" class="m-5" />
     <OpenBatch v-else class="m-5" />
 
-    <!-- TODO: Implement Router-View last batches with pagination -->
+    <!-- Admin Actions -->
+    <div class="card m-5">
+      <h2 class="pb-5 text-center">Actions</h2>
+      <router-link
+        :to="{ name: 'Products' }"
+        class="button button-primary button-block"
+      >
+        <span class="fas fa-utensils icon-sm"></span>
+        Manage Food Menu
+      </router-link>
 
-    <Products class="m-5" />
+      <!-- TODO: Implement Router-View last batches with pagination -->
+      <router-link
+        :to="{ name: 'Products' }"
+        class="button button-primary button-block mt-5"
+      >
+        <span class="fas fa-history icon-sm"></span>
+        View Batch History
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -15,7 +32,6 @@
 import { mapState } from "vuex";
 import { BATCH_STATUS } from "@/models/Batch";
 
-import Products from "@/components/Products.vue";
 import Batches from "@/components/Batches.vue";
 import OpenBatch from "@/components/OpenBatch";
 import LatestBatch from "@/components/LatestBatch";
@@ -23,7 +39,7 @@ import LatestBatch from "@/components/LatestBatch";
 export default {
   name: "Admin",
 
-  components: { Products, Batches, OpenBatch, LatestBatch },
+  components: { Batches, OpenBatch, LatestBatch },
   computed: {
     ...mapState({
       isProcessing: (state) => {

@@ -17,44 +17,21 @@
       <label># of Orders (Limit)</label>
       <div class="input__number">
         <button @click.prevent="decrement()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="icon-sm"
-          >
-            <path
-              fillRule="evenodd"
-              d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <span class="fas fa-minus"></span>
         </button>
         <input
           type="number"
-          min="0"
+          min="1"
           placeholder="0"
           v-model="formNewBatch.order_limit"
         />
         <button @click.prevent="increment()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="icon-sm"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
+          <span class="fas fa-plus"></span>
         </button>
       </div>
 
       <button type="submit" class="button button-block button-primary mt-3">
+        <span class="fas fa-clock"></span>
         Open a New Batch
       </button>
     </form>
@@ -104,15 +81,11 @@
         </div>
 
         <!-- Pending Order Item -->
-        <div v-for="o in pendingOrders" :key="o" class="mt-4 mb-2">
-          <!-- Order Sent Already -->
-          <div v-if="o.order" class="float-right">
-            <p>
-              {{ getQty(o.order).toLocaleString() }} items <br />
-              {{ getTotalPrice(o.order).toLocaleString() }} PHP
-            </p>
-          </div>
-
+        <div
+          v-for="o in pendingOrders"
+          :key="o"
+          class="my-4 flex justify-between"
+        >
           <div>
             <h6>{{ o.name }}</h6>
             <div class="text-sm italic">
@@ -121,7 +94,13 @@
             </div>
           </div>
 
-          <hr class="mx-2 mb-2" />
+          <!-- Order Sent Already -->
+          <div v-if="o.order">
+            <p>
+              {{ getQty(o.order).toLocaleString() }} items <br />
+              {{ getTotalPrice(o.order).toLocaleString() }} PHP
+            </p>
+          </div>
         </div>
 
         <!-- Finalize Orders -->
@@ -220,7 +199,7 @@ export default {
 
         return withOrders
           .map((o) => o.order)
-          .map((order) => order.map((p) => p.qty * p.price))
+          .map((order) => order.map((p) => p.total_price))
           .map((prices) => prices.reduce(fnReducer))
           .reduce(fnReducer);
       },
@@ -273,7 +252,7 @@ export default {
 
     getTotalPrice(order) {
       const _price = order
-        .map((o) => o.qty * o.price)
+        .map((o) => o.total_price)
         .reduce((acc, cur) => acc + cur);
       return _price;
     },

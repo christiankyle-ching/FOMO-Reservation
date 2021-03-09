@@ -23,10 +23,10 @@ const store = createStore({
 
     // Customer
     user: _user,
-    order: null,
     orderAllowed: null,
     orderDone: null,
     reservationExists: null,
+    dbUserLink: null,
 
     // Admin
     formProducts: [],
@@ -43,7 +43,7 @@ const store = createStore({
 
     // Firebase References
     // null: References that depend on other state
-    dbProducts: _db.collection("products"),
+    dbProducts: _db.collection("PUBLIC_READ").doc("products"),
     dbBatches: _db.collection("batches"),
     dbOrder: null, // Pending Order of Customer
     dbOpenBatch: firebase
@@ -62,6 +62,7 @@ const store = createStore({
       .collection("batches")
       .orderBy("created_at", "desc")
       .limit(1),
+
     dbUserLinks: null,
   },
   mutations: {
@@ -115,6 +116,7 @@ const store = createStore({
 
       state.counters = value;
     },
+
     DB_SET_USER_LINKS(state, value) {
       console.log("DB_SET_USER_LINKS");
       state.dbUserLinks = value;
@@ -126,11 +128,6 @@ const store = createStore({
 
       state.dbOrder = value;
     },
-    SET_ORDER(state, value) {
-      console.log("SET_ORDER");
-
-      state.order = value;
-    },
     DB_SET_RESERVATION(state, value) {
       console.log("DB_SET_RESERVATION");
 
@@ -140,6 +137,10 @@ const store = createStore({
       console.log("SET_RESERVATION_EXISTS");
 
       state.reservationExists = value;
+    },
+    DB_SET_USER_LINK(state, value) {
+      console.log("DB_SET_USER_LINK");
+      state.dbUserLink = value;
     },
   },
   actions: {
@@ -165,6 +166,13 @@ const store = createStore({
           firebase
             .firestore()
             .collection("PUBLIC_RESERVATIONS")
+            .doc(user.uid)
+        );
+        commit(
+          "DB_SET_USER_LINK",
+          firebase
+            .firestore()
+            .collection("user-links")
             .doc(user.uid)
         );
 
@@ -218,104 +226,36 @@ const store = createStore({
       state.orderDone = pendingOrder.exists && pendingOrder.data().order;
     },
 
-
     // #region ADMIN
     // TODO: Move Products data to a singleton
     // Products
-    async fetchProducts({ commit, state, dispatch }) {
+    async fetchProducts({ state, commit }) {
       console.log("fetchProducts");
+
+      const products = (await state.dbProducts.get()).data().products;
 
       const cacheProducts = [];
 
-      const products = await state.dbProducts.orderBy("name", "asc").get();
-
-      products.forEach((product) => {
-        const data = product.data();
-
-        cacheProducts.push(
-          new Product(
-            product.id,
-            data.name,
-            data.price,
-            data.created_at,
-            data.last_updated
-          )
-        );
+      products.forEach((p) => {
+        cacheProducts.push(new Product({ ...p }));
       });
 
       commit("SET_PRODUCTS", cacheProducts);
-
-      commit(
-        "SET_FORM_PRODUCTS",
-        cacheProducts.map((p) => p.clone())
-      );
-
-      // Set Order Form Object for Customer
-      const orderProducts = {};
-      // Set orderProducts based on current available items
-      products.forEach((p) => (orderProducts[p.id] = 0));
-
-      const order = new Order(
-        state.user.uid,
-        state.user.displayName,
-        orderProducts
-      );
-
-      commit("SET_ORDER", order);
-      dispatch("getOrderStatus");
     },
 
     // Product Form
-    async updateProducts({ dispatch, state }) {
-      const savedProducts = await state.dbProducts.get();
-      const newProducts = state.formProducts.filter((p) => !p.id);
+    async updateProducts({ state }) {
+      console.log("updateProducts");
 
-      savedProducts.forEach((product) => {
-        const dbProd = product.ref;
-        const formProd = state.formProducts.find((p) => p.id == product.id);
-
-        // If product still in form, just update
-        if (formProd !== undefined) {
-          const updatedProduct = new Product(
-            null,
-            formProd.name,
-            formProd.price
-          );
-
-          dbProd.update(updatedProduct.firestoreDoc);
-        } else {
-          // Else delete
-          dbProd.delete();
-        }
+      await state.dbProducts.set({
+        products: state.products.map((p) => p.firestoreDoc),
       });
-
-      // Add New Products
-      newProducts.forEach((p) => {
-        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-        const newProduct = new Product(timestamp, p.name, p.price, timestamp);
-        
-        state.dbProducts.add(newProduct.firestoreDoc);
-      });
-
-      // Fetch Updated Products
-      dispatch("fetchProducts");
-    },
-
-    addFormProduct({ state }) {
-      const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-      const newProduct = new Product(null, "", "", timestamp, timestamp);
-      state.formProducts.push(newProduct);
-    },
-
-    removeFormProduct({ state }, index) {
-      state.formProducts.splice(index, 1);
     },
 
     // Batches
     async fetchLatestBatch({ state, commit }) {
       console.log("fetchLatestBatch");
-      
+
       const batch = await state.dbLatestBatch.get();
 
       if (!batch.empty) {
@@ -567,22 +507,36 @@ const store = createStore({
     },
 
     // Order
-    async saveOrder({ state, dispatch }) {
+    async saveOrder({ state, dispatch }, order) {
       console.log("saveOrder");
 
-      const orderDoc = {
-        ...state.order.firestoreDoc,
-        ...state.order.getOrderProductsDoc(state.products),
-      };
+      const user = state.user;
+      const fbLink = (await state.dbUserLink.get()).data().fb;
+
+      const orderObj = new Order({
+        uid: user.uid,
+        name: user.displayName,
+        fbLink: fbLink,
+        order: order,
+      });
+
+      console.log(orderObj);
 
       // Update DB
-      state.dbOrder.set(orderDoc);
-
-      // Reset Form
-      state.order.resetOrder();
+      state.dbOrder.set(orderObj.firestoreDoc);
 
       // Update Order Status
       dispatch("getOrderStatus");
+    },
+
+    addOrder({ state }, order) {
+      console.log("addOrder");
+
+      state.order.push({ ...order });
+    },
+
+    removeOrder(index) {
+      console.log("removeOrder");
     },
     // #endregion
 

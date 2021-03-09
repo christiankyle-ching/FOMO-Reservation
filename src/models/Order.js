@@ -1,43 +1,20 @@
 class Order {
-  constructor(uid, name, order) {
-    this.uid = uid;
-    this.name = name;
-    this.orderProducts = order;
-  }
-
-  parseOrderProducts(products) {
-    const _order = [];
-
-    Object.keys(this.orderProducts).forEach((id) => {
-      const product = products.find((p) => p.id == id);
-
-      _order.push({
-        name: product.name,
-        price: product.price,
-        qty: this.orderProducts[id],
-      });
-    });
-
-    return _order;
+  constructor({ uid, name, fbLink, order }) {
+    this.uid = uid ?? null;
+    this.name = name ?? "";
+    this.fbLink = fbLink ?? "";
+    this.order = order ?? null;
   }
 
   get firestoreDoc() {
-    const doc = {};
+    const firestoreObj = {};
 
-    Object.assign(doc, this.uid && { uid: this.uid });
-    Object.assign(doc, this.name && { name: this.name });
+    Object.assign(firestoreObj, this.uid && { uid: this.uid });
+    Object.assign(firestoreObj, this.name && { name: this.name });
+    Object.assign(firestoreObj, this.fbLink && { fbLink: this.fbLink });
+    Object.assign(firestoreObj, this.order && { order: this.order });
 
-    return doc;
-  }
-
-  resetOrder() {
-    Object.keys(this.orderProducts).forEach(
-      (key) => (this.orderProducts[key] = 0)
-    );
-  }
-
-  getOrderProductsDoc(products) {
-    return { order: this.parseOrderProducts(products) };
+    return firestoreObj;
   }
 }
 

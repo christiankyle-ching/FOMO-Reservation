@@ -1,5 +1,6 @@
 <template>
   <div class="reserve">
+    <!-- Reserve Available? -->
     <div v-if="openBatch && !reservationExists">
       <div class="text-center">
         <h2>{{ openBatch.name }}</h2>
@@ -7,6 +8,7 @@
       </div>
 
       <button @click="reserve" class="button button-block button-primary mt-3">
+        <span class="fas fa-utensils"></span>
         Reserve
       </button>
     </div>
@@ -18,7 +20,7 @@
       </h2>
     </div>
 
-    <div v-else-if="!openBatch && !orderDone">
+    <div v-else-if="!openBatch && !orderDone && !orderAllowed">
       <h2 class="text-center">Stay tuned for the next batch!</h2>
     </div>
   </div>
@@ -30,10 +32,6 @@ export default {
   name: "Reserve",
   components: {},
   methods: {
-    log() {
-      console.log("Current Batch: ", this.openBatch);
-      console.log("Reservation Allowed: ", this.reservationExists);
-    },
     ...mapActions({
       reserve: "reserve",
     }),
@@ -42,6 +40,7 @@ export default {
     ...mapState({
       openBatch: "openBatch",
       orderDone: "orderDone",
+      orderAllowed: "orderAllowed",
       reservationExists: "reservationExists",
     }),
   },

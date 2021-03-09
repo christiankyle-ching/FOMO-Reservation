@@ -13,26 +13,15 @@
         <div class="modal__header mb-3">
           <div class="float-right">
             <button @click="closeOrderModal">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                class="icon-md"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <span class="fas fa-times"></span>
             </button>
           </div>
           <h3>{{ orderShown.name }}</h3>
         </div>
         <div class="modal__content">
-          <div class="mt-5"><Receipt :order="orderShown.order" is-done /></div>
+          <div class="mt-5">
+            <Receipt :order="orderShown.order" in-process />
+          </div>
         </div>
         <div class="modal__buttons" @click="closeOrderModal()"></div>
       </div>
@@ -65,48 +54,30 @@
           <tr v-for="(order, index) in latestBatch.orders" :key="order">
             <td>{{ order.name }}</td>
             <td>
-              <a :href="fbLinks[order.uid]" target="_blank">FB</a>
+              <a :href="order.fbLink" target="_blank" class="text-blue-700 icon-md">
+                <span class="fab fa-facebook-square"></span>
+              </a>
             </td>
             <td class="text-center">
-              <button class="button button-primary" @click="showOrder(order)">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="text-white icon-sm"
-                >
-                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                  <path
-                    fill-rule="evenodd"
-                    d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+              <button
+                class="m-auto button-icon button-icon button-primary"
+                @click="showOrder(order)"
+              >
+                <span class="fas fa-receipt"></span>
               </button>
             </td>
-            <td>
+            <td class="text-center">
               <!-- Update Done Status -->
-              <label class="checkbox" :for="order.uid + '-done'">
+              <label
+                class="checkbox inline-block m-auto"
+                :for="order.uid + '-done'"
+              >
                 <input
                   type="checkbox"
                   :id="order.uid + '-done'"
                   v-model="latestBatch.orders[index].isDone"
                   @change="updateLatestBatch"
                 />
-
-                <span class="checkmark">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </span>
               </label>
             </td>
           </tr>
@@ -119,7 +90,8 @@
         @click="markLatestBatchAsDone"
         class="button button-block button-primary mt-3"
       >
-        Mark as Done
+        <span class="fas fa-check"></span>
+        Mark Batch as Done
       </button>
     </div>
   </div>

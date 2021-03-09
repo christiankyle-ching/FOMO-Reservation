@@ -1,17 +1,16 @@
 <template>
-  <div class="home container">
-    <h1 class="text-center py-10">FOMO's Waitlist</h1>
-    <div v-if="user">
-      <Reserve />
+  <div class="home container flex flex-col min-h-screen">
+    <h1 class="text-center py-10 flex-grow-0">FOMO's Waitlist</h1>
 
-      <Order v-if="orderAllowed" class="m-5" />
-      <h3 v-else-if="orderDone" class="text-center mt-3">
+    <div v-if="user" class="flex-grow flex">
+      <Order v-if="orderAllowed" class="mx-auto" />
+      <h3 v-else-if="orderDone" class="text-center m-auto">
         You already submitted your order. Please wait for our confirmation on
         Facebook.
       </h3>
-    </div>
 
-    <!-- <button @click="log" class="button button-secondary">LOG</button> -->
+      <Reserve v-else class="m-auto pb-48" />
+    </div>
   </div>
 </template>
 
@@ -36,10 +35,6 @@ export default {
       orderDone: "orderDone",
     }),
   },
-  methods: {
-    log() {
-      console.log(this.$store.state.fbToken);
-    },
-  },
+  methods: {},
 };
 </script>

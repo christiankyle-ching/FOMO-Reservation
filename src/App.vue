@@ -42,7 +42,13 @@ export default {
           this.$router.push({ name: "Login" });
         });
     },
+
+    // Event Handlers
+    
   },
+  mounted() {
+
+  }
 };
 </script>
 
