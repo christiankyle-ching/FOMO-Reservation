@@ -10,6 +10,7 @@
         :key="'product' + index"
         class="mt-5 card grid grid-cols-2 gap-5"
       >
+        <h4 class="col-span-2">{{ product.name }}</h4>
         <!-- Name & Category -->
         <div class="col-span-1">
           <label>Name: </label>
@@ -27,6 +28,7 @@
             autocomplete=""
             v-model="product.category"
             placeholder="Enter category, or choose one..."
+            required
           />
 
           <datalist id="product-categories">
@@ -43,6 +45,7 @@
         <!-- Price or Variants? -->
         <div v-if="product.variants" class="col-span-2">
           <!-- Variants ForEach -->
+          <h6>Variants</h6>
           <div
             v-for="(variant, variantIndex) in product.variants"
             :key="'variant' + variantIndex"
@@ -84,10 +87,53 @@
           <input type="number" v-model="product.price" min="0" required />
         </div>
 
+        <!-- Any Additionals -->
+        <div class="col-span-2">
+          <h6>Add-Ons</h6>
+          <div v-if="product.addons">
+            <div
+              v-for="(addon, addonIndex) in product.addons"
+              :key="index + product + addon"
+              class="grid grid-cols-2 gap-5"
+            >
+              <div class="col-span-1">
+                <label>Add-On Label:</label>
+                <input
+                  type="text"
+                  v-model="addon.name"
+                  placeholder="i.e. Extra Rice, Nata..."
+                  required
+                />
+              </div>
+
+              <div class="col-span-1 flex">
+                <div class="flex-grow">
+                  <label>Price:</label>
+                  <input type="text" v-model="addon.price" min="0" required />
+                </div>
+                <button
+                  @click.prevent="removeAddOn(index, addonIndex)"
+                  class="button-icon button-danger ml-3 mt-auto"
+                >
+                  <span class="fas fa-times"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            @click="addAddOn(index)"
+            class="button button-block button-secondary mt-3"
+          >
+            Add Add-On
+          </button>
+        </div>
+
         <!-- Toggle: Variants -->
         <div class="col-span-1">
           <label
-            class="checkbox m-0 inline-flex"
+            class="checkbox m-0"
             :for="index + product.name + '-enableVariant'"
           >
             <span
@@ -146,15 +192,20 @@ export default {
     }),
   },
   methods: {
+    log() {
+      console.log(this.products);
+    },
     ...mapActions({
       updateProducts: "updateProducts",
     }),
+    // Product
     addProduct() {
       this.products.push(new Product({}));
     },
     removeProduct(index) {
       this.products.splice(index, 1);
     },
+    // Variants
     addVariant(index) {
       this.products[index].addVariant("", 0);
     },
@@ -175,6 +226,13 @@ export default {
         product.price = null;
         product.variants = product._tmpVariants || [];
       }
+    },
+    // AddOns
+    addAddOn(index) {
+      this.products[index].addAddOn("", 0);
+    },
+    removeAddOn(index, addonsIndex) {
+      this.products[index].removeAddOn(addonsIndex);
     },
   },
   watch: {

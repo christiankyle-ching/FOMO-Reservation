@@ -3,7 +3,7 @@
     <table class="table-auto w-full">
       <thead>
         <tr class="text-left">
-          <th>Item</th>
+          <th class="w-full">Item</th>
           <th></th>
           <th>Price</th>
           <th v-if="!inProcess"></th>
@@ -13,7 +13,9 @@
       <tbody>
         <tr v-for="(product, index) in order" :key="index + product.name">
           <td>{{ product.name }}</td>
-          <td class="text-right">{{ product.unit_price.toLocaleString() }} PHP x {{ product.qty }}</td>
+          <td class="text-right">
+            {{ product.unit_price.toLocaleString() }} PHP x {{ product.qty }}
+          </td>
           <td class="text-right">
             {{ product.total_price.toLocaleString() }} PHP
           </td>
@@ -58,30 +60,34 @@ export default {
     removeOrder(index) {
       this.order.splice(index, 1);
     },
+
+    updateTotals() {
+      if (!this.order.length) {
+        this.orderTotalQty = 0;
+        this.orderTotalPrice = 0;
+        return;
+      }
+
+      this.orderTotalQty = this.order.map((o) => o.qty).reduce((a, c) => a + c);
+
+      this.orderTotalPrice = this.order
+        .map((o) => o.total_price)
+        .reduce((a, c) => a + c);
+    },
   },
 
   watch: {
     order: {
       handler: function () {
-        if (!this.order.length) {
-          this.orderTotalQty = 0;
-          this.orderTotalPrice = 0;
-          return;
-        }
-
-        this.orderTotalQty = this.order
-          .map((o) => o.qty)
-          .reduce((a, c) => a + c);
-
-        this.orderTotalPrice = this.order
-          .map((o) => o.total_price)
-          .reduce((a, c) => a + c);
+        this.updateTotals();
       },
       deep: true,
     },
   },
 
-  mounted() {},
+  mounted() {
+    this.updateTotals();
+  },
 };
 </script>
 

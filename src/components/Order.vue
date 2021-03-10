@@ -52,7 +52,7 @@
         </div>
 
         <!-- 3: If has variants -->
-        <div v-if="formProduct.variants">
+        <div v-if="formProduct.variants?.length">
           <label>Choose a variant (i.e. size):</label>
           <select v-model="formVariant">
             <option
@@ -65,7 +65,7 @@
           </select>
         </div>
 
-        <!-- 4: Show Prices & Show Add Button -->
+        <!-- 4: Show Prices, AddOns & Show Add To Order Button -->
         <div v-if="formUnitPrice">
           <!-- Quantity -->
           <label class="block">Quantity</label>
@@ -76,6 +76,7 @@
             <input
               type="number"
               min="1"
+              :max="maxAllowedOrderQty - orderTotalQty"
               placeholder="0"
               v-model="formQty"
               @input="onInputNumber"
@@ -85,11 +86,29 @@
             </button>
           </div>
 
+          <!-- Add Ons -->
+          <div v-if="formProduct.addons">
+            <label>Add-Ons:</label>
+            <div
+              v-for="addon in formProduct.addons"
+              :key="formProduct.name + addon.name"
+            >
+              <label class="checkbox">
+                <input type="checkbox" v-model="addon.selected" />
+                <span>
+                  {{ addon.name }} -
+                  {{ addon.price.toLocaleString() }} PHP</span
+                >
+              </label>
+            </div>
+          </div>
+
           <!-- Prices -->
           <table class="my-5 w-full">
             <thead>
               <tr>
                 <th>Unit Price</th>
+                <th>Add-Ons</th>
                 <th>Quantity</th>
                 <th>Total Price</th>
               </tr>
@@ -98,8 +117,11 @@
             <tbody>
               <tr>
                 <td>{{ formUnitPrice.toLocaleString() }} PHP</td>
+                <td>{{ formAddOns.toLocaleString() }} PHP</td>
                 <td>x {{ formQty }}</td>
-                <td class="font-medium">{{ formTotalPrice.toLocaleString() }} PHP</td>
+                <td class="font-medium">
+                  {{ formTotalPrice.toLocaleString() }} PHP
+                </td>
               </tr>
             </tbody>
           </table>
@@ -114,7 +136,7 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
 import Receipt from "@/components/Receipt";
 
 export default {
@@ -123,6 +145,8 @@ export default {
   data() {
     return {
       order: [],
+      // TODO: Fetch this from DB
+      maxAllowedOrderQty: 8,
 
       // Form: Add Product in Order
       filteredProducts: [],
@@ -131,26 +155,45 @@ export default {
       formVariant: "",
       formUnitPrice: 0,
       formQty: 0,
+      formAddOns: 0,
       formTotalPrice: 0,
     };
   },
-  computed: mapState({
-    products: "products",
-    categories: (state) => [
-      ...new Set(
-        state.products.map((p) => (p.category ? p.category : "Uncategorized"))
-      ),
-    ],
-  }),
+  computed: {
+    selectedAddOns() {
+      return this.formProduct.addons
+        ? this.formProduct.addons.filter((a) => a.selected)
+        : [];
+    },
+    orderTotalQty() {
+      if (!this.order.length) return 0;
+      return this.order.map((o) => o.qty).reduce((a, c) => a + c);
+    },
+    ...mapState({
+      products: "products",
+      categories: (state) => [
+        ...new Set(
+          state.products.map((p) => (p.category ? p.category : "Uncategorized"))
+        ),
+      ],
+    }),
+  },
   methods: {
     // Order Functions
     addNewOrder() {
       const newOrder = {
         name: `${this.formCategory}: ${this.formProduct.name} ${this.formVariant}`,
-        unit_price: this.formUnitPrice,
+        unit_price: this.formUnitPrice + this.formAddOns,
         qty: this.formQty,
         total_price: this.formTotalPrice,
       };
+
+      // Append Add-Ons
+      if (this.selectedAddOns.length)
+        newOrder.name += ` w/ ${this.selectedAddOns
+          .map((a) => a.name)
+          .sort()
+          .join(", ")}`;
 
       const existingOrder =
         this.order.find((o) => o.name === newOrder.name) ?? null;
@@ -181,17 +224,28 @@ export default {
 
     // Helper/Updater Functions
     updateUnitPrice() {
-      // Get Unit Price
+      // Compute Add-Ons
+      let addonsPrice = 0;
+
+      if (this.formProduct.addons) {
+        if (this.selectedAddOns.length)
+          addonsPrice = this.selectedAddOns
+            .map((a) => +a.price)
+            .reduce((a, c) => a + c);
+      }
+
+      // Get Unit Price with Add-Ons
       if (this.formProduct.variants && this.formVariant) {
-        this.formUnitPrice = this.formProduct.variants.find(
+        this.formUnitPrice = +this.formProduct.variants.find(
           (v) => v.name == this.formVariant
         ).price;
       } else {
         this.formUnitPrice = this.formProduct.price;
       }
 
-      // Set Total Price based on qty * unit_price
-      this.formTotalPrice = this.formUnitPrice * this.formQty;
+      // Set Total Price based on Qty
+      this.formTotalPrice = (this.formUnitPrice + addonsPrice) * this.formQty;
+      this.formAddOns = addonsPrice;
     },
 
     resetNewOrder(field) {
@@ -208,12 +262,23 @@ export default {
       this.formVariant = "";
       this.formUnitPrice = 0;
       this.formQty = 1;
+      this.formAddOns = 0;
       this.formTotalPrice = 0;
+
+      this.clearSelectedAddOns();
+    },
+
+    clearSelectedAddOns() {
+      if (this.formProduct.addons) {
+        this.formProduct.addons.forEach((a) => (a.selected = false));
+      }
     },
   },
 
   watch: {
     formCategory: function () {
+      console.log("Watch: formCategory");
+
       this.resetNewOrder("category");
 
       // Filter Products
@@ -225,14 +290,23 @@ export default {
       this.formQty = 1;
 
       this.updateUnitPrice();
+      this.clearSelectedAddOns();
     },
     formProduct: function () {
-      this.resetNewOrder();
+      if (this.formProduct.name) this.resetNewOrder();
 
       this.updateUnitPrice();
     },
     formQty: function () {
+      console.log("Watch: formQty");
+
       this.updateUnitPrice();
+    },
+    selectedAddOns: {
+      handler() {
+        this.updateUnitPrice();
+      },
+      deep: true,
     },
   },
 };

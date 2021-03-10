@@ -40,11 +40,11 @@
         Closed at: <span class="italic">{{ latestBatch.closedAtString }}</span>
       </small>
 
-      <table v-if="latestBatch.orders?.length" class="table-auto w-full">
+      <table v-if="latestBatch.orders?.length" class="table-auto w-full mt-3">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>FB Link</th>
+            <th></th>
+            <th class="w-full">Facebook Name</th>
             <th>View</th>
             <th>Done</th>
           </tr>
@@ -52,12 +52,19 @@
 
         <tbody>
           <tr v-for="(order, index) in latestBatch.orders" :key="order">
-            <td>{{ order.name }}</td>
+            <td>{{ index + 1 }}</td>
             <td>
-              <a :href="order.fbLink" target="_blank" class="text-blue-700 icon-md">
+              {{ order.name }} <span> | </span>
+              <!-- FB Link -->
+              <a
+                :href="order.fbLink"
+                target="_blank"
+                class="text-blue-700 icon-md"
+              >
                 <span class="fab fa-facebook-square"></span>
               </a>
             </td>
+
             <td class="text-center">
               <button
                 class="m-auto button-icon button-icon button-primary"

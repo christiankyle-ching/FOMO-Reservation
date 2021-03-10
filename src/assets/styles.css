@@ -67,10 +67,14 @@
   }
 
   .card {
-    @apply shadow-xl rounded-3xl border-2 p-5;
+    @apply shadow-lg rounded-3xl border-2 p-5;
   }
 
   /* Checkbox */
+  label.checkbox {
+    @apply inline-flex items-center;
+  }
+
   label.checkbox input[type="checkbox"] {
     @apply appearance-none border-2 border-gray-300 checked:bg-yellow-500 checked:border-transparent transition-colors h-6 w-6 bg-contain m-0;
   }
@@ -83,7 +87,8 @@
   }
 
   label.checkbox :first-child {
-    @apply mr-2;
+    /* margin-right: 8px !important; */
+    @apply mr-2 !important;
   }
 
   label,
