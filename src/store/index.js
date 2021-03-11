@@ -20,6 +20,7 @@ const store = createStore({
     unsubscribeStatus: null,
     openBatch: null,
     unsubscribeBatch: null,
+    alerts: [],
 
     // Customer
     user: _user,
@@ -210,6 +211,14 @@ const store = createStore({
       }
     },
 
+    // Alerts
+    alert({ state }, alert) {
+      state.alerts.push(alert);
+    },
+    removeAlert({ state }, index) {
+      state.alerts.splice(index, 1);
+    },
+
     // USER
     fetchUser({ commit }, user) {
       console.log("fetchUser");
@@ -227,7 +236,6 @@ const store = createStore({
     },
 
     // #region ADMIN
-    // TODO: Move Products data to a singleton
     // Products
     async fetchProducts({ state, commit }) {
       console.log("fetchProducts");
@@ -589,9 +597,6 @@ const store = createStore({
 // User Observer
 firebase.auth().onAuthStateChanged((user) => {
   console.log("AuthChanged");
-
-  // TODO: Remove on prod
-  console.log(user);
 
   // Setup User
   store.dispatch("initApp", user);

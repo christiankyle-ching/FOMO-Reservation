@@ -30,6 +30,30 @@
     @apply opacity-50 pointer-events-none;
   }
 
+  .alert {
+    @apply flex rounded-md border-2 p-2 mb-2 transition-opacity;
+  }
+
+  .alert-info {
+    @apply bg-blue-200 text-blue-600 border-blue-500 opacity-100;
+  }
+
+  .alert-danger {
+    @apply bg-red-200 text-red-600 border-red-500 opacity-100;
+  }
+
+  .alert-success {
+    @apply bg-green-200 text-green-600 border-green-500 opacity-100;
+  }
+
+  .alert > .message {
+    @apply flex-grow;
+  }
+
+  .alert > button {
+    @apply button button-icon;
+  }
+
   .button {
     @apply text-center px-3 py-2 rounded-lg transition-colors;
   }
@@ -59,7 +83,7 @@
   }
 
   .button-icon svg {
-    @apply icon-md;
+    @apply icon-md m-0;
   }
 
   .button-icon-sm {
@@ -158,5 +182,16 @@
 
   .text-danger {
     @apply text-red-700;
+  }
+
+  /* Animations */
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    @apply transition-opacity;
   }
 }

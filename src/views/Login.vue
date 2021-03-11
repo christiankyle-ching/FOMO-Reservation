@@ -16,7 +16,6 @@ const ui = new firebaseui.auth.AuthUI(firebase.auth());
 export default {
   name: "Login",
   mounted() {
-    // TODO: Get user_link permissions
     ui.start("#firebaseui-auth-container", {
       signInOptions: [
         {
@@ -35,18 +34,12 @@ export default {
 
           const apiRes = await (await fetch(reqUrl)).json();
 
-          // TODO: Update FB Link in DB
           const uid = result.user.uid;
           await firebase
             .firestore()
             .collection("user-links")
             .doc(uid)
             .set({ fb: apiRes.link });
-
-          // Test
-          // const reqUrl2 = `https://graph.facebook.com/${fbUid}?fields=user_link&access_token=${token}`;
-          // const apiRes2 = await (await fetch(reqUrl2)).json();
-          // console.log(apiRes2);
 
           // Redirect to Home
           this.$router.push({ name: "Home" });

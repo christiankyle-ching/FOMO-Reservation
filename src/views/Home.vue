@@ -16,6 +16,7 @@
 
 <script>
 import { mapState } from "vuex";
+import { Alert } from "@/models/Alert";
 import Order from "@/components/Order.vue";
 import Reserve from "@/components/Reserve.vue";
 
@@ -35,6 +36,17 @@ export default {
       orderDone: "orderDone",
     }),
   },
-  methods: {},
+  methods: {
+    testAlert(type) {
+      this.$store.dispatch(
+        "alert",
+        new Alert({
+          message:
+            "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Tempore officiis esse, dicta dolores quos eius?",
+          type: type,
+        })
+      );
+    },
+  },
 };
 </script>

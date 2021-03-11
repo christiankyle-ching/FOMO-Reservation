@@ -215,8 +215,8 @@ export default {
 
     // Input Functions
     increment() {
-      // TODO: Compute remaining available order
-      if (true) this.formQty++;
+      if (this.formQty <= this.maxAllowedOrderQty - this.orderTotalQty)
+        this.formQty++;
     },
     decrement() {
       if (this.formQty > 1) this.formQty--;
