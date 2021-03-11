@@ -91,7 +91,7 @@
         </tbody>
       </table>
 
-      <p v-else class="text-center">No orders to process for this batch</p>
+      <p v-else class="text-center my-5 font-medium text-danger">No orders to process for this batch</p>
 
       <button
         @click="markLatestBatchAsDone"

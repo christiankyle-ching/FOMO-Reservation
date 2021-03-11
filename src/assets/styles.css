@@ -22,6 +22,14 @@
     @apply text-base font-bold;
   }
 
+  *:disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+
+  a[disabled="true"] {
+    @apply opacity-50 pointer-events-none;
+  }
+
   .button {
     @apply text-center px-3 py-2 rounded-lg transition-colors;
   }
@@ -44,10 +52,6 @@
 
   .button-danger {
     @apply text-white bg-red-600 hover:bg-red-700;
-  }
-
-  *:disabled {
-    @apply opacity-50 pointer-events-none;
   }
 
   .button-icon {
@@ -150,5 +154,9 @@
   table thead,
   table tfoot {
     @apply bg-yellow-200 text-yellow-700 font-medium;
+  }
+
+  .text-danger {
+    @apply text-red-700;
   }
 }

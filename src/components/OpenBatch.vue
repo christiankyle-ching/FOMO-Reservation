@@ -1,8 +1,6 @@
 <template>
   <div class="open-batch card">
-    <div class="text-center">
-      <!-- <button @click="log" class="button button-secondary">LOG</button> -->
-
+    <div class="text-center mb-3">
       <h2>Current Batch</h2>
       <p v-if="status" class="capitalize font-medium" :class="statusColorClass">
         {{ statusMessage }}

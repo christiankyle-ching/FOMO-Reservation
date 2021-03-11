@@ -1,6 +1,7 @@
 <template>
-  <div class="reserve">
-    <!-- Reserve Available? -->
+  <div class="reserve px-5">
+
+    <!-- a: Reservation Open -->
     <div v-if="openBatch && !reservationExists">
       <div class="text-center">
         <h2>{{ openBatch.name }}</h2>
@@ -13,6 +14,7 @@
       </button>
     </div>
 
+    <!-- a: Reserved Already -->
     <div v-else-if="reservationExists">
       <h2 class="text-center">
         Reservation request already sent! Please wait for confirmation if you
@@ -20,6 +22,7 @@
       </h2>
     </div>
 
+    <!-- No Open Batches, Wait for future batches -->
     <div v-else-if="!openBatch && !orderDone && !orderAllowed">
       <h2 class="text-center">Stay tuned for the next batch!</h2>
     </div>

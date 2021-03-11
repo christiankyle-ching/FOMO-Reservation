@@ -8,13 +8,20 @@
     <!-- Admin Actions -->
     <div class="card m-5">
       <h2 class="pb-5 text-center">Actions</h2>
-      <router-link
-        :to="{ name: 'Products' }"
-        class="button button-primary button-block"
+      <span
+        :title="
+          isTakingOrders ? 'Cannot adjust prices when taking orders' : null
+        "
       >
-        <span class="fas fa-utensils icon-sm"></span>
-        Manage Food Menu
-      </router-link>
+        <router-link
+          :to="isTakingOrders ? {} : { name: 'Products' }"
+          :disabled="isTakingOrders"
+          tag="button"
+          class="button button-primary button-block"
+          ><span class="fas fa-utensils icon-sm"></span>
+          Manage Food Menu
+        </router-link>
+      </span>
 
       <!-- TODO: Implement Router-View last batches with pagination -->
       <router-link
@@ -42,11 +49,8 @@ export default {
   components: { Batches, OpenBatch, LatestBatch },
   computed: {
     ...mapState({
+      isTakingOrders: (state) => state.status.batch == BATCH_STATUS.CLOSED,
       isProcessing: (state) => {
-        console.log(state.status.batch);
-        console.log(state.latestBatch?.locked_at);
-        console.log(state.latestBatch?.isDone);
-
         return (
           state.status.batch == BATCH_STATUS.PENDING &&
           // FIXME: undefined onChange
