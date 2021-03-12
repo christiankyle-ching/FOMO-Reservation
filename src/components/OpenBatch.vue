@@ -14,7 +14,7 @@
 
       <label># of Orders (Limit)</label>
       <div class="input__number">
-        <button @click.prevent="decrement()">
+        <button type="button" @click="decrement()">
           <span class="fas fa-minus"></span>
         </button>
         <input
@@ -22,8 +22,9 @@
           min="1"
           placeholder="0"
           v-model="formNewBatch.order_limit"
+          required
         />
-        <button @click.prevent="increment()">
+        <button type="button" @click="increment()">
           <span class="fas fa-plus"></span>
         </button>
       </div>
@@ -110,8 +111,6 @@
         </button>
       </div>
     </div>
-
-    <!-- <button class="button button-secondary" @click="log">LOG</button> -->
   </div>
 </template>
 
@@ -139,13 +138,14 @@ export default {
       pendingOrders: "pendingOrders",
       status: "status",
       counters: "counters",
-      openBatchDateString: (state) =>
-        state.openBatch.created_at
+      openBatchDateString(state) {
+        return state.openBatch.created_at
           ?.toDate()
-          .toLocaleString("en-PH", localeDateTimeOpts),
+          .toLocaleString("en-PH", localeDateTimeOpts);
+      },
 
       // Status Styling
-      statusMessage: function (state) {
+      statusMessage() {
         switch (this.status.batch) {
           case BATCH_STATUS.OPEN:
             return "Waiting for reservations...";
@@ -155,7 +155,7 @@ export default {
             return "Ready for another batch...";
         }
       },
-      statusColorClass: function (state) {
+      statusColorClass() {
         switch (this.status.batch) {
           case BATCH_STATUS.OPEN:
             return "text-green-800";
@@ -167,14 +167,18 @@ export default {
       },
 
       // Allow Actions based on Status of Current Batch
-      allowOpenNewBatch: (state) =>
-        !(state.openBatch || false) &&
-        state.status.batch == BATCH_STATUS.PENDING,
-      allowFinishBatch: (state) =>
-        state.latestBatch && state.status.batch == BATCH_STATUS.CLOSED,
+      allowOpenNewBatch(state) {
+        return (
+          !(state.openBatch || false) &&
+          state.status.batch == BATCH_STATUS.PENDING
+        );
+      },
+      allowFinishBatch(state) {
+        return state.latestBatch && state.status.batch == BATCH_STATUS.CLOSED;
+      },
 
       // Totals
-      batchTotalQty: function (state) {
+      batchTotalQty(state) {
         const withOrders = state.pendingOrders.filter(
           (o) => o.order !== undefined
         );
@@ -188,7 +192,7 @@ export default {
           .reduce(fnReducer);
       },
 
-      batchTotalPrice: function (state) {
+      batchTotalPrice(state) {
         const withOrders = state.pendingOrders.filter(
           (o) => o.order !== undefined
         );
@@ -204,10 +208,6 @@ export default {
     }),
   },
   methods: {
-    log() {
-      console.log(this.status);
-    },
-
     ...mapActions({
       openNewBatch: "openNewBatch",
       closeCurrentBatch: "closeCurrentBatch",

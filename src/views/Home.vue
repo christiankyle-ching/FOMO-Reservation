@@ -7,6 +7,9 @@
       <h3 v-else-if="orderDone" class="text-center m-auto">
         You already submitted your order. Please wait for our confirmation on
         Facebook.
+        <br />
+        <br />
+        Order #{{ oid }}
       </h3>
 
       <Reserve v-else class="m-auto pb-48" />
@@ -25,27 +28,25 @@ export default {
   components: { Order, Reserve },
   data() {
     return {
+      oid: "",
       showProfileDropdown: false,
     };
   },
   computed: {
     ...mapState({
       user: "user",
-      order: "order",
       orderAllowed: "orderAllowed",
       orderDone: "orderDone",
     }),
   },
-  methods: {
-    testAlert(type) {
-      this.$store.dispatch(
-        "alert",
-        new Alert({
-          message:
-            "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Tempore officiis esse, dicta dolores quos eius?",
-          type: type,
-        })
-      );
+  methods: {},
+  watch: {
+    orderDone() {
+      if (this.orderDone) {
+        this.$store.state.dbOrder
+          .get()
+          .then((order) => (this.oid = order.data().oid));
+      }
     },
   },
 };

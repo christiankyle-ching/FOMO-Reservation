@@ -21,9 +21,9 @@
     </div>
 
     <!-- Add Order -->
-    <div class="card">
+    <div class="card mt-10 mb-20">
       <h3 class="text-center mb-3">Select an item in the menu</h3>
-      <form @submit.prevent="addNewOrder">
+      <form v-if="orderRemainingAllowed" @submit.prevent="addNewOrder">
         <!-- 1: Select Category -->
         <label>Category:</label>
         <select v-model="formCategory">
@@ -75,8 +75,8 @@
             </button>
             <input
               type="number"
-              min="1"
-              :max="maxAllowedOrderQty - orderTotalQty"
+              :min="orderRemainingAllowed == 0 ? 0 : 1"
+              :max="orderRemainingAllowed"
               placeholder="0"
               v-model="formQty"
               @input="onInputNumber"
@@ -131,6 +131,14 @@
           </button>
         </div>
       </form>
+      <p v-else class="text-center my-5">
+        You reached the maximum allowed number of order in the menu ({{
+          maxAllowedOrderQty
+        }}
+        items).
+        <br />
+        Please remove some from your order to add more.
+      </p>
     </div>
   </div>
 </template>
@@ -165,9 +173,13 @@ export default {
         ? this.formProduct.addons.filter((a) => a.selected)
         : [];
     },
+    // Counters
     orderTotalQty() {
       if (!this.order.length) return 0;
       return this.order.map((o) => o.qty).reduce((a, c) => a + c);
+    },
+    orderRemainingAllowed() {
+      return this.maxAllowedOrderQty - this.orderTotalQty;
     },
     ...mapState({
       products: "products",
@@ -215,8 +227,7 @@ export default {
 
     // Input Functions
     increment() {
-      if (this.formQty <= this.maxAllowedOrderQty - this.orderTotalQty)
-        this.formQty++;
+      if (this.formQty < this.orderRemainingAllowed) this.formQty++;
     },
     decrement() {
       if (this.formQty > 1) this.formQty--;
@@ -277,8 +288,6 @@ export default {
 
   watch: {
     formCategory: function () {
-      console.log("Watch: formCategory");
-
       this.resetNewOrder("category");
 
       // Filter Products
@@ -298,8 +307,6 @@ export default {
       this.updateUnitPrice();
     },
     formQty: function () {
-      console.log("Watch: formQty");
-
       this.updateUnitPrice();
     },
     selectedAddOns: {

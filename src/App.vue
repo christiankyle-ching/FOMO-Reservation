@@ -30,8 +30,10 @@
     </nav>
 
     <!-- Alerts -->
-
-    <div class="alerts absolute top-0 p-5">
+    <div class="alerts">
+      <transition name="fade">
+        <Alert v-if="!isOnline" :alert="noInternetAlert" />
+      </transition>
       <transition-group name="fade">
         <div v-for="(alert, index) in alerts" :key="alert">
           <Alert :alert="alert" @remove="removeAlert(index)" />
@@ -47,13 +49,33 @@
 import firebase from "firebase/app";
 import { mapActions, mapState } from "vuex";
 import Alert from "@/components/Alert";
+import { Alert as AlertObj } from "@/models/Alert";
 
 export default {
   components: { Alert },
+  data() {
+    return {
+      noInternetAlert: new AlertObj({
+        message: "Please check your internet connection.",
+        type: "danger",
+        isPermanent: true,
+      }),
+    };
+  },
   computed: mapState({
     user: "user",
     alerts: "alerts",
+    isOnline: "isOnline",
   }),
+  created() {
+    // Network Connection Changes
+    window.addEventListener("offline", () => {
+      store.commit("SET_ONLINE", false);
+    });
+    window.addEventListener("online", () => {
+      store.commit("SET_ONLINE", true);
+    });
+  },
   methods: {
     logout() {
       firebase
@@ -65,7 +87,6 @@ export default {
     },
     ...mapActions({ removeAlert: "removeAlert" }),
   },
-  mounted() {},
 };
 </script>
 

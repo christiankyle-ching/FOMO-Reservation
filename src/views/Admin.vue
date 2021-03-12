@@ -49,12 +49,12 @@ export default {
   components: { Batches, OpenBatch, LatestBatch },
   computed: {
     ...mapState({
-      isTakingOrders: (state) => state.status.batch == BATCH_STATUS.CLOSED,
-      isProcessing: (state) => {
+      isTakingOrders(state) {
+        return state.status.batch == BATCH_STATUS.CLOSED;
+      },
+      isProcessing(state) {
         return (
           state.status.batch == BATCH_STATUS.PENDING &&
-          // FIXME: undefined onChange
-          // state.latestBatch?.locked_at &&
           state.latestBatch?.isDone == false
         );
       },

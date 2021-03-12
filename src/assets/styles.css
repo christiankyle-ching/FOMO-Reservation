@@ -30,6 +30,14 @@
     @apply opacity-50 pointer-events-none;
   }
 
+  a.link {
+    @apply font-medium text-blue-700 underline;
+  }
+
+  .alerts {
+    @apply absolute top-0 m-5 w-full;
+  }
+
   .alert {
     @apply flex rounded-md border-2 p-2 mb-2 transition-opacity;
   }

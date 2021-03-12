@@ -59,8 +59,6 @@ class Batch {
     Object.assign(firestoreObj, this.orders && { orders: this.orders });
     Object.assign(firestoreObj, { isDone: this.isDone });
 
-    console.log(firestoreObj);
-
     return firestoreObj;
   }
 

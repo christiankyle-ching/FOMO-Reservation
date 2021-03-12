@@ -2,13 +2,13 @@ class Product {
   constructor({ name, category, price, variants, addons }) {
     this.name = name ?? "";
     this.category = category ?? "";
-    this.price = +price ?? 0;
-    this.variants = variants ?? []; // Array of Maps
-    this.addons = addons ?? []; // Array of Maps
+    this.price = price !== undefined ? +price : 0;
+    this.variants = variants ?? null; // Array of Maps
+    this.addons = addons ?? null; // Array of Maps
   }
 
   addVariant(_name, _price) {
-    this.variants.push({ name: _name, price: _price });
+    this.variants.push({ name: _name, price: +_price });
   }
 
   removeVariant(index) {
@@ -16,7 +16,7 @@ class Product {
   }
 
   addAddOn(_name, _price) {
-    this.addons.push({ name: _name, price: _price });
+    this.addons.push({ name: _name, price: +_price });
   }
 
   removeAddOn(index) {
@@ -31,8 +31,6 @@ class Product {
     Object.assign(firestoreObj, this.price && { price: this.price });
     Object.assign(firestoreObj, this.variants && { variants: this.variants });
     Object.assign(firestoreObj, this.addons && { addons: this.addons });
-
-    console.log(firestoreObj);
 
     return firestoreObj;
   }

@@ -14,6 +14,9 @@ const _db = firebase.firestore();
 
 const store = createStore({
   state: {
+    // App
+    isOnline: navigator.onLine,
+
     // Shared
     products: [],
     status: {},
@@ -67,7 +70,13 @@ const store = createStore({
     dbUserLinks: null,
   },
   mutations: {
-    // GLOBAL
+    // APP
+    SET_ONLINE(state, value) {
+      console.log("SET_ONLINE");
+      state.isOnline = value;
+    },
+
+    // SHARED
     SET_USER(state, value) {
       console.log("SET_USER");
       state.user = value;
@@ -81,6 +90,7 @@ const store = createStore({
     // ADMIN
     SET_PRODUCTS(state, value) {
       console.log("SET_PRODUCTS");
+
       state.products = value;
     },
     SET_FORM_PRODUCTS(state, value) {
@@ -258,6 +268,16 @@ const store = createStore({
       await state.dbProducts.set({
         products: state.products.map((p) => p.firestoreDoc),
       });
+    },
+
+    replaceProducts({ commit }, products) {
+      commit("SET_PRODUCTS", products);
+    },
+
+    appendToProducts({ state, commit }, products) {
+      const mergedProducts = state.products.concat(products);
+
+      commit("SET_PRODUCTS", mergedProducts);
     },
 
     // Batches
@@ -528,7 +548,7 @@ const store = createStore({
         order: order,
       });
 
-      console.log(orderObj);
+      console.log(orderObj); // TODO: Remove in production
 
       // Update DB
       state.dbOrder.set(orderObj.firestoreDoc);

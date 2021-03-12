@@ -1,7 +1,7 @@
 <template>
   <div class="alert" :class="alert.className">
     <span class="message">{{ alert.message }} </span>
-    <button @click="$emit('remove')">
+    <button v-if="!alert.isPermanent" @click="$emit('remove')">
       <span class="fas fa-times"></span>
     </button>
   </div>

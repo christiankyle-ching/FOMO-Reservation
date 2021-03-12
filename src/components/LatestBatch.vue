@@ -28,11 +28,13 @@
     </div>
   </transition>
 
+  <!-- Orders -->
   <div class="latest-batch card" @keyup.esc="closeOrderModal()">
     <h2 class="text-center">Orders to Process</h2>
 
     <div>
       <h5>{{ latestBatch.name }}</h5>
+
       <small>
         Created at:
         <span class="italic">{{ latestBatch.createdAtString }}</span>
@@ -40,58 +42,75 @@
         Closed at: <span class="italic">{{ latestBatch.closedAtString }}</span>
       </small>
 
-      <table v-if="latestBatch.orders?.length" class="table-auto w-full mt-3">
-        <thead>
-          <tr>
-            <th></th>
-            <th class="w-full">Facebook Name</th>
-            <th>View</th>
-            <th>Done</th>
-          </tr>
-        </thead>
+      <!-- TODO: Search Feature -->
+      <div v-if="latestBatch.orders?.length">
+        <div class="input__search flex items-center">
+          <input
+            type="search"
+            class="flex-grow"
+            placeholder="Search..."
+            v-model="searchKey"
+          />
+          <span class="fas fa-search text-gray-700"></span>
+        </div>
 
-        <tbody>
-          <tr v-for="(order, index) in latestBatch.orders" :key="order">
-            <td>{{ index + 1 }}</td>
-            <td>
-              {{ order.name }} <span> | </span>
-              <!-- FB Link -->
-              <a
-                :href="order.fbLink"
-                target="_blank"
-                class="text-blue-700 icon-md"
-              >
-                <span class="fab fa-facebook-square"></span>
-              </a>
-            </td>
+        <table class="table-auto w-full mt-3">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th class="w-full">Facebook Name</th>
+              <th>View</th>
+              <th>Done</th>
+            </tr>
+          </thead>
 
-            <td class="text-center">
-              <button
-                class="m-auto button-icon button-icon button-primary"
-                @click="showOrder(order)"
-              >
-                <span class="fas fa-receipt"></span>
-              </button>
-            </td>
-            <td class="text-center">
-              <!-- Update Done Status -->
-              <label
-                class="checkbox inline-block m-auto"
-                :for="order.uid + '-done'"
-              >
-                <input
-                  type="checkbox"
-                  :id="order.uid + '-done'"
-                  v-model="latestBatch.orders[index].isDone"
-                  @change="updateLatestBatch"
-                />
-              </label>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          <tbody>
+            <tr v-for="(order, index) in filteredOrders" :key="order">
+              <td>
+                <small>{{ order.oid }}</small>
+              </td>
+              <td>
+                {{ order.name }} <span> | </span>
+                <!-- FB Link -->
+                <a
+                  :href="order.fbLink"
+                  target="_blank"
+                  class="text-blue-700 icon-md"
+                >
+                  <span class="fab fa-facebook-square"></span>
+                </a>
+              </td>
 
-      <p v-else class="text-center my-5 font-medium text-danger">No orders to process for this batch</p>
+              <td class="text-center">
+                <button
+                  class="m-auto button-icon button-icon button-primary"
+                  @click="showOrder(order)"
+                >
+                  <span class="fas fa-receipt"></span>
+                </button>
+              </td>
+              <td class="text-center">
+                <!-- Update Done Status -->
+                <label
+                  class="checkbox inline-block m-auto"
+                  :for="order.uid + '-done'"
+                >
+                  <input
+                    type="checkbox"
+                    :id="order.uid + '-done'"
+                    v-model="latestBatch.orders[index].isDone"
+                    @change="updateLatestBatch"
+                  />
+                </label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p v-else class="text-center my-5 font-medium text-danger">
+        No orders to process for this batch
+      </p>
 
       <button
         @click="markLatestBatchAsDone"
@@ -115,6 +134,8 @@ export default {
   inheritAttrs: false,
   data() {
     return {
+      searchKey: "",
+
       orderShown: null,
       showModal: false,
 
@@ -124,6 +145,13 @@ export default {
   computed: {
     ...mapState({
       latestBatch: "latestBatch",
+      filteredOrders(state) {
+        return state.latestBatch.orders.filter(
+          (o) =>
+            o.name.toLowerCase().includes(this.searchKey) ||
+            o.oid.toLowerCase().includes(this.searchKey)
+        );
+      },
     }),
   },
   methods: {
@@ -135,25 +163,12 @@ export default {
       this.showModal = false;
     },
 
-    // Helper Function
-    async getFBLink(uid) {
-      const links = (await this.$store.state.dbUserLinks.doc(uid).get()).data();
-
-      return links.fb;
-    },
-
     ...mapActions({
       updateLatestBatch: "updateLatestBatch",
       markLatestBatchAsDone: "markLatestBatchAsDone",
     }),
   },
-  mounted() {
-    if (!this.latestBatch.orders === undefined) {
-      this.latestBatch.orders.forEach(async (order) => {
-        this.fbLinks[order.uid] = await this.getFBLink(order.uid);
-      });
-    }
-  },
+  mounted() {},
 };
 </script>
 
