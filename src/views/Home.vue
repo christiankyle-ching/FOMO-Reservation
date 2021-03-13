@@ -4,7 +4,7 @@
 
     <div v-if="user" class="flex-grow flex">
       <Order v-if="orderAllowed" class="mx-auto" />
-      <h3 v-else-if="orderDone" class="text-center m-auto">
+      <h3 v-else-if="orderDone" class="text-center m-auto pb-32">
         You already submitted your order. Please wait for our confirmation on
         Facebook.
         <br />
@@ -19,7 +19,6 @@
 
 <script>
 import { mapState } from "vuex";
-import { Alert } from "@/models/Alert";
 import Order from "@/components/Order.vue";
 import Reserve from "@/components/Reserve.vue";
 

@@ -8,6 +8,7 @@ import "firebase/firestore";
 import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { Batch, BATCH_STATUS } from "@/models/Batch";
+import { Alert, ALERT_TYPE } from "@/models/Alert";
 
 const _user = firebase.auth().currentUser;
 const _db = firebase.firestore();
@@ -18,8 +19,8 @@ const store = createStore({
     isOnline: navigator.onLine,
 
     // Shared
-    products: [],
-    status: {},
+    products: null, // []
+    status: null, // {}
     unsubscribeStatus: null,
     openBatch: null,
     unsubscribeBatch: null,
@@ -212,7 +213,6 @@ const store = createStore({
         // Reset values set above when logged in
         commit("DB_SET_ORDER", null);
         commit("DB_SET_RESERVATION", null);
-        commit("SET_ORDER", null);
 
         // Detach Listeners
         dispatch("detachOpenBatch");
@@ -222,8 +222,8 @@ const store = createStore({
     },
 
     // Alerts
-    alert({ state }, alert) {
-      state.alerts.push(alert);
+    alert({ state }, alertObj) {
+      state.alerts.unshift(new Alert(alertObj));
     },
     removeAlert({ state }, index) {
       state.alerts.splice(index, 1);
@@ -262,22 +262,37 @@ const store = createStore({
     },
 
     // Product Form
-    async updateProducts({ state }) {
+    async updateProducts({ state, dispatch }) {
       console.log("updateProducts");
 
       await state.dbProducts.set({
         products: state.products.map((p) => p.firestoreDoc),
       });
+
+      dispatch("alert", {
+        message: "Successfully updated products.",
+        type: ALERT_TYPE.SUCCESS,
+      });
     },
 
-    replaceProducts({ commit }, products) {
+    replaceProducts({ commit, dispatch }, products) {
       commit("SET_PRODUCTS", products);
+
+      dispatch("alert", {
+        message: "Replaced all products with the template.",
+        type: ALERT_TYPE.INFO,
+      });
     },
 
-    appendToProducts({ state, commit }, products) {
+    appendToProducts({ state, commit, dispatch }, products) {
       const mergedProducts = state.products.concat(products);
 
       commit("SET_PRODUCTS", mergedProducts);
+
+      dispatch("alert", {
+        message: "Added products in template to existing products.",
+        type: ALERT_TYPE.INFO,
+      });
     },
 
     // Batches
@@ -364,9 +379,15 @@ const store = createStore({
       // Update Status
       dispatch("status_updateBatch", BATCH_STATUS.OPEN);
 
+      // Alert
+      dispatch("alert", {
+        message: `Successfully opened batch for "${data.name}". Waiting for reservations...`,
+        type: ALERT_TYPE.SUCCESS,
+      });
+
       // Reset Form
       data.name = "";
-      data.order_limit = 50;
+      data.order_limit = 50; // TODO: Get Default from DB
     },
 
     async closeCurrentBatch({ state, dispatch }) {
@@ -414,9 +435,17 @@ const store = createStore({
 
       // Clear Reservation Count
       state.dbCounters.update({ reservations: 0 });
+
+      // Alert
+      dispatch("alert", {
+        message: "Stopped accepting reservations.",
+        type: ALERT_TYPE.INFO,
+      });
     },
 
     async finalizeBatch({ state, dispatch }) {
+      // TODO: All DB Operation in a single batch
+
       console.log("finalizeBatch");
 
       // Copy all data in PUBLIC_ORDERS to batch.orders
@@ -442,19 +471,23 @@ const store = createStore({
       }
 
       // Clear Pending Orders
-      const batchDeletePendingOrders = _db.batch();
+      const batchOp = _db.batch();
       (await _db.collection("PUBLIC_ORDERS").get()).forEach(async (o) =>
-        batchDeletePendingOrders.delete(
-          _db.collection("PUBLIC_ORDERS").doc(o.id)
-        )
+        batchOp.delete(_db.collection("PUBLIC_ORDERS").doc(o.id))
       );
-      await batchDeletePendingOrders.commit();
+      await batchOp.commit();
 
       // Change status to BATCH_STATUS.PENDING again
       dispatch("status_updateBatch", BATCH_STATUS.PENDING);
 
       // Fetch Latest Batch again
       dispatch("fetchLatestBatch");
+
+      // Alert
+      dispatch("alert", {
+        message: "Stopped accepting orders.",
+        type: ALERT_TYPE.INFO,
+      });
     },
 
     async markLatestBatchAsDone({ state, commit, dispatch }) {
@@ -466,6 +499,13 @@ const store = createStore({
       // Update the local latest batch
       // or fetch updated version (another read)
       state.latestBatch.isDone = true;
+
+      // Alert
+      dispatch("alert", {
+        message:
+          "Successfully finished the last batch. Ready to open another one.",
+        type: ALERT_TYPE.SUCCESS,
+      });
     },
 
     async updateLatestBatch({ state }) {
@@ -555,16 +595,12 @@ const store = createStore({
 
       // Update Order Status
       dispatch("getOrderStatus");
-    },
 
-    addOrder({ state }, order) {
-      console.log("addOrder");
-
-      state.order.push({ ...order });
-    },
-
-    removeOrder(index) {
-      console.log("removeOrder");
+      // Alert
+      dispatch("alert", {
+        message: "Successfully sent your order. Thank you!",
+        type: ALERT_TYPE.SUCCESS,
+      });
     },
     // #endregion
 

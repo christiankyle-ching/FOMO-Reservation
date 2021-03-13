@@ -2,7 +2,10 @@
   <div class="admin container">
     <h1 class="text-center mt-10 mb-8">Manage FOMO</h1>
 
-    <LatestBatch v-if="isProcessing" class="m-5" />
+    <div v-if="status == null" class="flex h-32">
+      <LoadingSpinner class="m-auto" />
+    </div>
+    <LatestBatch v-else-if="isProcessing" class="m-5" />
     <OpenBatch v-else class="m-5" />
 
     <!-- Admin Actions -->
@@ -42,19 +45,21 @@ import { BATCH_STATUS } from "@/models/Batch";
 import Batches from "@/components/Batches.vue";
 import OpenBatch from "@/components/OpenBatch";
 import LatestBatch from "@/components/LatestBatch";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "Admin",
 
-  components: { Batches, OpenBatch, LatestBatch },
+  components: { Batches, OpenBatch, LatestBatch, LoadingSpinner },
   computed: {
     ...mapState({
+      status: "status",
       isTakingOrders(state) {
-        return state.status.batch == BATCH_STATUS.CLOSED;
+        return state.status?.batch == BATCH_STATUS.CLOSED;
       },
       isProcessing(state) {
         return (
-          state.status.batch == BATCH_STATUS.PENDING &&
+          state.status?.batch == BATCH_STATUS.PENDING &&
           state.latestBatch?.isDone == false
         );
       },

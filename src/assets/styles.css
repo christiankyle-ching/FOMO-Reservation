@@ -35,11 +35,11 @@
   }
 
   .alerts {
-    @apply absolute top-0 m-5 w-full;
+    @apply fixed top-0 left-0 right-0 m-5;
   }
 
   .alert {
-    @apply flex rounded-md border-2 p-2 mb-2 transition-opacity;
+    @apply flex rounded-md border-2 p-2 mb-2 items-center transition-opacity;
   }
 
   .alert-info {
@@ -59,11 +59,15 @@
   }
 
   .alert > button {
-    @apply button button-icon;
+    @apply button-icon button-icon-sm;
   }
 
   .button {
     @apply text-center px-3 py-2 rounded-lg transition-colors;
+  }
+
+  .button-rounded {
+    @apply rounded-full !important;
   }
 
   .button > svg {
@@ -87,23 +91,51 @@
   }
 
   .button-icon {
-    @apply flex justify-center items-center p-0 h-10 w-10 rounded-lg transition-colors;
+    @apply flex p-0 rounded-lg transition-colors;
   }
 
-  .button-icon svg {
-    @apply icon-md m-0;
+  .button-icon > svg {
+    @apply block m-auto;
+  }
+
+  .button-icon-lg {
+    @apply h-14 w-14;
+  }
+
+  .button-icon-lg svg {
+    @apply icon-lg;
+  }
+
+  .button-icon-md {
+    @apply h-10 w-10;
+  }
+
+  .button-icon-md svg {
+    @apply icon-md;
   }
 
   .button-icon-sm {
-    @apply flex justify-center items-center p-0 h-7 w-7 rounded-lg transition-colors;
+    @apply h-7 w-7;
   }
 
   .button-icon-sm svg {
-    @apply icon-md;
+    @apply icon-sm;
   }
 
   .card {
     @apply shadow-lg rounded-3xl border-2 p-5;
+  }
+
+  .fab-container {
+    @apply fixed bottom-10 right-5 flex flex-col z-10;
+  }
+
+  .fab-container > button {
+    @apply shadow-md;
+  }
+
+  .fab-container > :not(button:first-child) {
+    @apply mt-5;
   }
 
   /* Checkbox */
@@ -112,7 +144,7 @@
   }
 
   label.checkbox input[type="checkbox"] {
-    @apply appearance-none border-2 border-gray-300 checked:bg-yellow-500 checked:border-transparent transition-colors h-6 w-6 bg-contain m-0;
+    @apply appearance-none border-2 border-gray-300 checked:bg-yellow-500 checked:border-transparent transition-colors h-6 w-6 bg-contain m-0 cursor-pointer;
   }
 
   label.checkbox input[type="checkbox"]:checked {
@@ -122,9 +154,40 @@
     background-size: 1rem;
   }
 
-  label.checkbox :first-child {
-    /* margin-right: 8px !important; */
-    @apply mr-2 !important;
+  label.checkbox > :not(:first-child) {
+    @apply ml-2 !important;
+  }
+
+  .modal {
+    @apply fixed left-0 top-0 w-screen h-screen flex z-10;
+  }
+
+  .modal__backdrop {
+    @apply bg-black w-full h-full opacity-60 absolute;
+  }
+
+  .modal__dialog {
+    @apply card bg-white m-auto w-10/12 z-10;
+  }
+
+  .modal__header {
+    @apply flex items-center justify-between mb-3;
+  }
+
+  .modal__header > :first-child {
+    @apply flex-grow;
+  }
+
+  .modal__content {
+    @apply my-5;
+  }
+
+  .modal__buttons {
+    @apply text-right;
+  }
+
+  .modal__buttons > :not(:first-child) {
+    @apply ml-5;
   }
 
   label,
@@ -149,11 +212,15 @@
   }
 
   .icon-sm {
-    @apply h-4 w-4;
+    @apply h-4 w-4 !important;
   }
 
   .icon-md {
-    @apply h-6 w-6;
+    @apply h-5 w-5 !important;
+  }
+
+  .icon-lg {
+    @apply h-6 w-6 !important;
   }
 
   .input__number input[type="number"]::-webkit-inner-spin-button,

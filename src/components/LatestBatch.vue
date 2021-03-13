@@ -1,38 +1,28 @@
 <template>
+  <!-- Modal -->
   <transition name="fade">
-    <!-- TODO: Can implement generic modal component -->
-    <div
-      class="modal fixed left-0 top-0 w-screen h-screen flex z-10"
-      v-if="showModal"
-    >
-      <div
-        class="modal__backdrop bg-black w-full h-full opacity-60 absolute"
-        @click="closeOrderModal"
-      ></div>
-      <div class="modal__dialog card bg-white m-auto w-10/12 z-10">
-        <div class="modal__header mb-3">
-          <div class="float-right">
-            <button @click="closeOrderModal">
-              <span class="fas fa-times"></span>
-            </button>
-          </div>
-          <h3>{{ orderShown.name }}</h3>
-        </div>
-        <div class="modal__content">
-          <div class="mt-5">
-            <Receipt :order="orderShown.order" in-process />
-          </div>
-        </div>
-        <div class="modal__buttons" @click="closeOrderModal()"></div>
-      </div>
-    </div>
+    <Modal v-if="showModal" @close="closeOrderModal">
+      <template v-slot:header>
+        <h3>{{ orderShown.name }}</h3>
+        <small>Order #${{ orderShown.oid }}</small>
+      </template>
+      <template v-slot:content>
+        <Receipt :order="orderShown?.order" in-process />
+      </template>
+      <template v-slot:buttons>
+        <!-- TODO: Print -->
+        <button type="button" class="button button-secondary">Print</button>
+        <button type="button" class="button button-primary">Close</button>
+      </template>
+    </Modal>
   </transition>
 
   <!-- Orders -->
   <div class="latest-batch card" @keyup.esc="closeOrderModal()">
     <h2 class="text-center">Orders to Process</h2>
 
-    <div>
+    <!-- Header -->
+    <div class="mb-5">
       <h5>{{ latestBatch.name }}</h5>
 
       <small>
@@ -41,95 +31,102 @@
         <br />
         Closed at: <span class="italic">{{ latestBatch.closedAtString }}</span>
       </small>
+    </div>
 
-      <!-- TODO: Search Feature -->
-      <div v-if="latestBatch.orders?.length">
-        <div class="input__search flex items-center">
-          <input
-            type="search"
-            class="flex-grow"
-            placeholder="Search..."
-            v-model="searchKey"
-          />
-          <span class="fas fa-search text-gray-700"></span>
-        </div>
+    <div v-if="latestBatch.orders?.length">
+      <!-- Search -->
+      <div class="input__search flex items-center border-2 rounded-lg">
+        <input
+          type="search"
+          class="flex-grow border-0 m-0"
+          placeholder="Search..."
+          v-model="searchKey"
+        />
+        <span class="fas fa-search text-gray-700 mr-3"></span>
+      </div>
 
-        <table class="table-auto w-full mt-3">
-          <thead>
-            <tr>
-              <th>Order #</th>
-              <th class="w-full">Facebook Name</th>
-              <th>View</th>
-              <th>Done</th>
-            </tr>
-          </thead>
+      <!-- Table: Orders -->
+      <table class="table-auto w-full mt-3">
+        <thead>
+          <tr>
+            <th class="hidden md:table-cell">Order #</th>
+            <th>Facebook Name</th>
+            <th>View</th>
+            <th>Done</th>
+          </tr>
+        </thead>
 
-          <tbody>
-            <tr v-for="(order, index) in filteredOrders" :key="order">
-              <td>
-                <small>{{ order.oid }}</small>
-              </td>
-              <td>
-                {{ order.name }} <span> | </span>
+        <tbody>
+          <tr v-for="(order, index) in filteredOrders" :key="order">
+            <td class="hidden md:table-cell">
+              <small>{{ order.oid }}</small>
+            </td>
+            <td class="w-full">
+              <div class="flex items-center justify-between">
+                <span>{{ order.name }}</span>
+
                 <!-- FB Link -->
                 <a
                   :href="order.fbLink"
                   target="_blank"
-                  class="text-blue-700 icon-md"
+                  class="button-icon button-icon-md text-blue-700"
                 >
                   <span class="fab fa-facebook-square"></span>
                 </a>
-              </td>
+              </div>
+            </td>
 
-              <td class="text-center">
-                <button
-                  class="m-auto button-icon button-icon button-primary"
-                  @click="showOrder(order)"
-                >
-                  <span class="fas fa-receipt"></span>
-                </button>
-              </td>
-              <td class="text-center">
-                <!-- Update Done Status -->
-                <label
-                  class="checkbox inline-block m-auto"
-                  :for="order.uid + '-done'"
-                >
-                  <input
-                    type="checkbox"
-                    :id="order.uid + '-done'"
-                    v-model="latestBatch.orders[index].isDone"
-                    @change="updateLatestBatch"
-                  />
-                </label>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p v-else class="text-center my-5 font-medium text-danger">
-        No orders to process for this batch
-      </p>
-
-      <button
-        @click="markLatestBatchAsDone"
-        class="button button-block button-primary mt-3"
-      >
-        <span class="fas fa-check"></span>
-        Mark Batch as Done
-      </button>
+            <td>
+              <button
+                class="button-icon button-icon-md button-primary m-auto"
+                @click="showOrder(order)"
+              >
+                <span class="fas fa-receipt"></span>
+              </button>
+            </td>
+            <td class="text-center">
+              <!-- Update Done Status -->
+              <label
+                class="checkbox inline-block m-auto"
+                :for="order.uid + '-done'"
+              >
+                <input
+                  type="checkbox"
+                  :id="order.uid + '-done'"
+                  v-model="latestBatch.orders[index].isDone"
+                  @change="updateLatestBatch"
+                />
+              </label>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+    <p v-else class="text-center my-5 font-medium text-danger">
+      No orders to process for this batch
+    </p>
+
+    <button
+      @click="markLatestBatchAsDone"
+      class="button button-block button-primary mt-3"
+    >
+      <span class="fas fa-check"></span>
+      Mark Batch as Done
+    </button>
   </div>
 </template>
 
 <script>
 import { mapActions, mapState } from "vuex";
 import Receipt from "@/components/Receipt";
+import Modal from "@/components/Modal";
+
 export default {
   name: "LatestBatch",
   components: {
     Receipt,
+    Modal,
   },
   inheritAttrs: false,
   data() {

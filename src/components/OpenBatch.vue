@@ -169,12 +169,12 @@ export default {
       // Allow Actions based on Status of Current Batch
       allowOpenNewBatch(state) {
         return (
-          !(state.openBatch || false) &&
-          state.status.batch == BATCH_STATUS.PENDING
+          !(state.openBatch ?? false) &&
+          state.status?.batch == BATCH_STATUS.PENDING
         );
       },
       allowFinishBatch(state) {
-        return state.latestBatch && state.status.batch == BATCH_STATUS.CLOSED;
+        return state.latestBatch && state.status?.batch == BATCH_STATUS.CLOSED;
       },
 
       // Totals

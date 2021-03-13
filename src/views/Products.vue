@@ -5,7 +5,7 @@
 
     <form @submit.prevent="updateProducts" class="my-5">
       <!-- Products ForEach -->
-      <div v-if="products.length">
+      <div v-if="products != null">
         <div
           v-for="(product, index) in products"
           :key="'product' + index"
@@ -68,8 +68,9 @@
                   <input type="text" v-model="variant.price" min="0" required />
                 </div>
                 <button
-                  @click.prevent="deleteVariant(index, variantIndex)"
-                  class="button-icon button-danger ml-3 mt-auto"
+                  type="button"
+                  @click="deleteVariant(index, variantIndex)"
+                  class="button-icon button-icon-sm button-danger ml-3 mt-auto"
                 >
                   <span class="fas fa-times"></span>
                 </button>
@@ -77,7 +78,8 @@
             </div>
 
             <button
-              @click.prevent="addVariant(index)"
+              type="button"
+              @click="addVariant(index)"
               class="button button-secondary button-block my-3"
             >
               Add Variant
@@ -113,8 +115,9 @@
                     <input type="text" v-model="addon.price" min="0" required />
                   </div>
                   <button
-                    @click.prevent="removeAddOn(index, addonIndex)"
-                    class="button-icon button-danger ml-3 mt-auto"
+                    type="button"
+                    @click="removeAddOn(index, addonIndex)"
+                    class="button-icon button-icon-sm button-danger ml-3 mt-auto"
                   >
                     <span class="fas fa-times"></span>
                   </button>
@@ -163,6 +166,9 @@
           </div>
         </div>
       </div>
+      <div v-else-if="!products?.length" class="flex m-auto h-32">
+        <LoadingSpinner class="m-auto"/>
+      </div>
       <div v-else>
         <p class="font-medium text-center">
           No Products Yet. Add one using the button below, or import a template.
@@ -170,17 +176,21 @@
       </div>
 
       <!-- Actions -->
-      <button
-        @click.prevent="addProduct()"
-        class="button button-secondary button-block mt-6"
-      >
-        <span class="fas fa-plus"></span>
-        Add Product
-      </button>
-      <button type="submit" class="button button-primary button-block my-3">
-        <span class="fas fa-save"></span>
-        Save
-      </button>
+      <div class="fab-container">
+        <button
+          @click="addProduct()"
+          type="button"
+          class="button-icon button-icon-lg button-rounded button-primary"
+        >
+          <span class="fas fa-plus"></span>
+        </button>
+        <button
+          type="submit"
+          class="button-icon button-icon-lg button-rounded button-primary"
+        >
+          <span class="fas fa-save"></span>
+        </button>
+      </div>
     </form>
 
     <!-- Use Template CSV -->
@@ -193,11 +203,13 @@
 <script>
 import { Product } from "@/models/Product";
 import ImportProducts from "@/components/ImportProducts";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { mapActions, mapState } from "vuex";
 
 export default {
   components: {
     ImportProducts,
+    LoadingSpinner,
   },
   data() {
     return {

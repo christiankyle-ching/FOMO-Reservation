@@ -1,7 +1,13 @@
+const ALERT_TYPE = Object.freeze({
+  INFO: "info",
+  SUCCESS: "success",
+  DANGER: "danger",
+});
+
 class Alert {
   constructor({ message, type, isPermanent }) {
     this.message = message ?? "";
-    this.type = type ?? "info";
+    this.type = type ?? ALERT_TYPE.INFO;
     this.isPermanent = isPermanent ?? false;
   }
 
@@ -10,4 +16,4 @@ class Alert {
   }
 }
 
-export { Alert };
+export { Alert, ALERT_TYPE };
