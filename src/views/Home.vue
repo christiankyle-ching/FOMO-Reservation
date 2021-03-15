@@ -1,18 +1,43 @@
 <template>
-  <div class="home container flex flex-col min-h-screen">
-    <h1 class="text-center py-10 flex-grow-0">FOMO's Waitlist</h1>
+  <div class="home container px-10 py-10">
+    <h1 class="text-center pb-10">FOMO's Waitlist</h1>
+    <div v-if="user">
+      <!-- a: Order Allowed -->
+      <Order v-if="orderAllowed" />
 
-    <div v-if="user" class="flex-grow flex">
-      <Order v-if="orderAllowed" class="mx-auto" />
-      <h3 v-else-if="orderDone" class="text-center m-auto pb-32">
-        You already submitted your order. Please wait for our confirmation on
-        Facebook.
-        <br />
-        <br />
-        Order #{{ oid }}
-      </h3>
+      <!-- b: Order Done, Wait for Payment -->
+      <div v-else-if="orderDone">
+        <Payment class="mb-10" />
+        <Receipt :order="pendingOrder" inProcess />
+      </div>
 
-      <Reserve v-else class="m-auto pb-48" />
+      <!-- c: Payment Done - Details -->
+      <div v-else-if="pendingOrder?.payment">
+        <h4 class="text-center">
+          We received your payment. Please wait for our confirmation on
+          Facebook. Thank You!
+        </h4>
+        <div class="pt-10">
+          <h3 class="text-center pb-5">Payment Details</h3>
+          <Receipt :order="pendingOrder" inProcess />
+        </div>
+      </div>
+
+      <!-- d: Latest Batch is not done. Check if you are included -->
+      <div v-else-if="orderFromLatestBatch != null" class="card">
+        <h3 class="text-center">
+          Batch "{{ latestBatch?.name }}" is in process.
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 my-3">
+          <span class="col-span-1 font-medium">Started Processing:</span>
+          <span class="col-span-1"> {{ latestBatch.createdAtString }}</span>
+        </div>
+
+        <h5 class="text-center mb-3">Your Order</h5>
+        <Receipt :order="orderFromLatestBatch" inProcess />
+      </div>
+
+      <Reserve v-else />
     </div>
   </div>
 </template>
@@ -20,33 +45,34 @@
 <script>
 import { mapState } from "vuex";
 import Order from "@/components/Order.vue";
+import Receipt from "@/components/Receipt.vue";
 import Reserve from "@/components/Reserve.vue";
+import Payment from "@/components/Payment.vue";
 
 export default {
   name: "Home",
-  components: { Order, Reserve },
-  data() {
-    return {
-      oid: "",
-      showProfileDropdown: false,
-    };
-  },
+  components: { Order, Reserve, Payment, Receipt },
   computed: {
     ...mapState({
       user: "user",
+      pendingOrder: "pendingOrder",
       orderAllowed: "orderAllowed",
       orderDone: "orderDone",
+      latestBatch: "latestBatch",
+      orderFromLatestBatch(state) {
+        console.log(this.$route.query);
+        if (state.latestBatch != null && !state.latestBatch?.isDone) {
+          return (
+            state.latestBatch.orders?.find(
+              (o) => o.email === state.user.email
+            ) ?? null
+          );
+        }
+
+        return null;
+      },
     }),
   },
   methods: {},
-  watch: {
-    orderDone() {
-      if (this.orderDone) {
-        this.$store.state.dbOrder
-          .get()
-          .then((order) => (this.oid = order.data().oid));
-      }
-    },
-  },
 };
 </script>

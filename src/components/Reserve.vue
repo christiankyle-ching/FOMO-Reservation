@@ -16,10 +16,10 @@
 
     <!-- a: Reserved Already -->
     <div v-else-if="reservationExists">
-      <h2 class="text-center">
+      <h3 class="text-center">
         Reservation request already sent! Please wait for confirmation if you
         are lucky to get into the limit.
-      </h2>
+      </h3>
     </div>
 
     <!-- No Open Batches, Wait for future batches -->

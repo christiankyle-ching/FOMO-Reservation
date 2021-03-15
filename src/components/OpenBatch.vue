@@ -10,7 +10,7 @@
     <!-- Open New Batch -->
     <form @submit.prevent="openNewBatch" v-if="allowOpenNewBatch">
       <label>Name</label>
-      <input type="text" v-model="formNewBatch.name" />
+      <input type="text" v-model="formNewBatch.name" required />
 
       <label># of Orders (Limit)</label>
       <div class="input__number">
@@ -36,70 +36,45 @@
     </form>
 
     <!-- Current Open Batch -->
-    <div v-if="openBatch">
+    <div v-else-if="openBatch">
       <h3 class="text-center mt-3">Open Batch</h3>
-      <button
-        @click="closeCurrentBatch"
-        class="button button-danger float-right"
-      >
-        Close Batch
-      </button>
 
-      <div>
+      <div class="my-3">
         <h4>{{ openBatch.name }}</h4>
         <p class="italic text-sm">{{ openBatchDateString }}</p>
         <p v-if="counters">Reservations: {{ counters.reservations }}</p>
       </div>
+
+      <button
+        @click="closeCurrentBatch"
+        class="button button-danger button-block"
+      >
+        <span class="fas fa-door-closed"></span>
+        Close Batch
+      </button>
     </div>
 
     <!-- Finish Batch -->
-    <div v-if="allowFinishBatch">
+    <div v-else-if="allowFinishBatch">
       <h3>Finalize Batch "{{ latestBatch.name }}"</h3>
       <p>
-        If the customers' orders are submitted already, you can finalize this
-        batch now to start preparing your orders.
-        <span class="text-red-800 font-medium"
-          >This would stop accepting orders from unattended reservations.</span
+        If the customers' orders are submitted and paid already, you can
+        finalize this batch now to start preparing your orders.
+        <span class="text-red-700 font-medium"
+          >This would stop accepting orders from unattended or unpaid
+          reservations.</span
         >
       </p>
 
       <div class="mt-3">
         <h5>
-          Submitted Orders: {{ pendingOrders.filter((o) => o.order).length }} of
-          {{ pendingOrders.length }}
+          Paid Orders: {{ paidOrders?.length }} of
+          {{ latestBatch?.orders?.length }}
         </h5>
 
-        <div class="flex justify-between">
-          <p>Total Food Items:</p>
-          <strong>{{ batchTotalQty }}</strong>
-        </div>
-
-        <div class="flex justify-between">
-          <p>Total Amount:</p>
-          <strong>{{ batchTotalPrice.toLocaleString() }} PHP</strong>
-        </div>
-
-        <!-- Pending Order Item -->
-        <div
-          v-for="o in pendingOrders"
-          :key="o"
-          class="my-4 flex justify-between"
-        >
-          <div>
-            <h6>{{ o.name }}</h6>
-            <div class="text-sm italic">
-              <p>{{ o.email }}</p>
-              <p>{{ o.phone }}</p>
-            </div>
-          </div>
-
-          <!-- Order Sent Already -->
-          <div v-if="o.order">
-            <p>
-              {{ getQty(o.order).toLocaleString() }} items <br />
-              {{ getTotalPrice(o.order).toLocaleString() }} PHP
-            </p>
-          </div>
+        <!-- Pending Orders -->
+        <div class="my-5">
+          <BatchOrders :batch="latestBatch" />
         </div>
 
         <!-- Finalize Orders -->
@@ -116,26 +91,33 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import LatestBatch from "@/components/LatestBatch";
+import BatchOrders from "@/components/BatchOrders";
+import { Batch } from "@/models/Batch";
 import { localeDateTimeOpts } from "@/utils";
 import { BATCH_STATUS } from "@/models/Batch";
 
-const fnReducer = (a, c) => a + c;
-
 export default {
   name: "OpenBatch",
-  components: { LatestBatch },
-  data() {
-    return {
-      batchTotals: {},
-    };
-  },
+  components: { BatchOrders },
   computed: {
     ...mapState({
       formNewBatch: "formNewBatch",
       openBatch: "openBatch",
-      latestBatch: "latestBatch",
-      pendingOrders: "pendingOrders",
+      latestBatch(state) {
+        console.log(
+          new Batch({
+            ...state.latestBatch.firestoreDoc,
+            orders: state.pendingOrders,
+          })
+        );
+        return new Batch({
+          ...state.latestBatch.firestoreDoc,
+          orders: state.pendingOrders,
+        });
+      },
+      paidOrders(state) {
+        return state.pendingOrders.filter((o) => o.payment != null);
+      },
       status: "status",
       counters: "counters",
       openBatchDateString(state) {
@@ -176,35 +158,6 @@ export default {
       allowFinishBatch(state) {
         return state.latestBatch && state.status?.batch == BATCH_STATUS.CLOSED;
       },
-
-      // Totals
-      batchTotalQty(state) {
-        const withOrders = state.pendingOrders.filter(
-          (o) => o.order !== undefined
-        );
-
-        if (withOrders.length <= 0) return 0;
-
-        return withOrders
-          .map((o) => o.order)
-          .map((order) => order.map((p) => p.qty))
-          .map((prices) => prices.reduce(fnReducer))
-          .reduce(fnReducer);
-      },
-
-      batchTotalPrice(state) {
-        const withOrders = state.pendingOrders.filter(
-          (o) => o.order !== undefined
-        );
-
-        if (withOrders.length <= 0) return 0;
-
-        return withOrders
-          .map((o) => o.order)
-          .map((order) => order.map((p) => p.total_price))
-          .map((prices) => prices.reduce(fnReducer))
-          .reduce(fnReducer);
-      },
     }),
   },
   methods: {
@@ -214,45 +167,12 @@ export default {
       finalizeBatch: "finalizeBatch",
     }),
 
-    // Get Overall Totals
-    getBatchTotals() {
-      const fnReducer = (a, c) => a + c;
-
-      if (this.pendingOrders.length <= 0)
-        return (this.batchTotals = { qty: 0, price: 0 });
-
-      const _orders = this.pendingOrders.map((o) => o.order);
-
-      this.batchTotals.qty = _orders
-        .map((order) => order.map((p) => p.qty))
-        .map((qtys) => qtys.reduce(fnReducer))
-        .reduce(fnReducer);
-
-      this.batchTotals.price = _orders
-        .map((order) => order.map((p) => p.qty * p.price))
-        .map((prices) => prices.reduce(fnReducer))
-        .reduce(fnReducer);
-    },
-
     // Input: For order_limit
     increment() {
       this.formNewBatch.order_limit++;
     },
     decrement() {
       if (this.formNewBatch.order_limit > 0) this.formNewBatch.order_limit--;
-    },
-
-    // Helper Functions: Order Items and Total Price
-    getQty(order) {
-      const _qty = order.map((o) => o.qty).reduce((acc, cur) => acc + cur);
-      return _qty;
-    },
-
-    getTotalPrice(order) {
-      const _price = order
-        .map((o) => o.total_price)
-        .reduce((acc, cur) => acc + cur);
-      return _price;
     },
   },
 };

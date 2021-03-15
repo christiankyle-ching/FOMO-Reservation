@@ -15,60 +15,67 @@ const _db = firebase.firestore();
 
 const store = createStore({
   state: {
-    // App
+    // APP
     isOnline: navigator.onLine,
 
-    // Shared
-    products: null, // []
+    // #region SHARED
+    products: null, // Product()[]
     status: null, // {}
-    unsubscribeStatus: null,
-    openBatch: null,
-    unsubscribeBatch: null,
+    unsubscribeStatus: null, // method()
+    openBatch: null, // Batch()
+    unsubscribeBatch: null, // method()
     alerts: [],
-
-    // Customer
-    user: _user,
-    orderAllowed: null,
-    orderDone: null,
-    reservationExists: null,
-    dbUserLink: null,
-
-    // Admin
-    formProducts: [],
-    latestBatch: null,
-    batches: [],
-    formNewBatch: {
-      name: "",
-      order_limit: 50, // TODO: Set Default: 50
-    },
-    counters: null,
-    unsubscribeCounters: null,
-    pendingOrders: [],
-    unsubscribePendingOrders: null,
-
-    // Firebase References
-    // null: References that depend on other state
+    maxAllowedOrderQty: 8, // TODO: Fetch this from DB Options
+    // Firebase Refs
+    dbStatus: _db.collection("PUBLIC_READ").doc("status"),
     dbProducts: _db.collection("PUBLIC_READ").doc("products"),
-    dbBatches: _db.collection("batches"),
-    dbOrder: null, // Pending Order of Customer
     dbOpenBatch: firebase
       .firestore()
       .collection("PUBLIC_READ")
       .doc("open_batch"),
-    dbStatus: _db.collection("PUBLIC_READ").doc("status"),
-    dbReservation: null, // Pending Reservation of Customer
-    dbReservations: _db.collection("PUBLIC_RESERVATIONS"),
     dbCounters: firebase
       .firestore()
       .collection("PUBLIC_WRITE")
       .doc("counters"),
-    dbPendingOrders: _db.collection("PUBLIC_ORDERS"),
     dbLatestBatch: _db
       .collection("batches")
       .orderBy("created_at", "desc")
       .limit(1),
+    // #endregion
 
-    dbUserLinks: null,
+    // #region CUSTOMER
+    user: _user,
+    pendingOrder: null, // Order()
+    unsubscribePendingOrder: null, // method()
+    // Status Tracking of Customer Order
+    orderAllowed: null, // bool
+    orderDone: null, // bool
+    reservationExists: null, // bool
+    paymentReceived: null, // bool
+    // Firebase Refs
+    dbUserLink: null,
+    dbReservation: null, // Pending Reservation
+    dbPendingOrder: null,
+    // #endregion
+
+    // #region ADMIN
+    formProducts: [], // Product()[]
+    latestBatch: null, // Batch()
+    batches: [], // Batch()[]
+    formNewBatch: {
+      name: "",
+      order_limit: 50, // TODO: Set Default from DB Option: 50
+    },
+    counters: null, // {}
+    unsubscribeCounters: null, // method()
+    pendingOrders: [],
+    unsubscribePendingOrders: null, // method()
+    // Firebase Refs
+    dbPendingOrders: _db.collection("PUBLIC_ORDERS"),
+    dbBatches: _db.collection("batches"),
+    dbUserLinks: firebase.firestore().collection("user-links"),
+    dbReservations: _db.collection("PUBLIC_RESERVATIONS"),
+    // #endregion
   },
   mutations: {
     // APP
@@ -84,75 +91,55 @@ const store = createStore({
     },
     SET_STATUS(state, value) {
       console.log("SET_STATUS");
-
       state.status = value;
     },
 
     // ADMIN
     SET_PRODUCTS(state, value) {
       console.log("SET_PRODUCTS");
-
       state.products = value;
-    },
-    SET_FORM_PRODUCTS(state, value) {
-      console.log("SET_FORM_PRODUCTS");
-      state.formProducts = value;
     },
     SET_OPEN_BATCH(state, value) {
       console.log("SET_OPEN_BATCH");
-
       state.openBatch = value;
-    },
-    SET_FORM_NEWBATCH(state, value) {
-      console.log("SET_FORM_NEWBATCH");
-
-      state.formNewBatch = value;
     },
     SET_BATCHES(state, value) {
       console.log("SET_BATCHES");
-
       state.batches = value;
     },
     SET_LATEST_BATCH(state, value) {
       console.log("SET_LATEST_BATCH");
-
       state.latestBatch = value;
     },
     SET_PENDING_ORDERS(state, value) {
       console.log("SET_PENDING_ORDERS");
-
       state.pendingOrders = value;
     },
     SET_COUNTERS(state, value) {
-      console.log("SET_PENDING_ORDERS");
-
+      console.log("SET_COUNTERS");
       state.counters = value;
     },
 
-    DB_SET_USER_LINKS(state, value) {
-      console.log("DB_SET_USER_LINKS");
-      state.dbUserLinks = value;
-    },
-
     // CUSTOMER
-    DB_SET_ORDER(state, value) {
-      console.log("DB_SET_ORDER");
-
-      state.dbOrder = value;
+    SET_RESERVATION_EXISTS(state, value) {
+      console.log("SET_RESERVATION_EXISTS");
+      state.reservationExists = value;
+    },
+    SET_PENDING_ORDER(state, value) {
+      console.log("SET_PENDING_ORDER");
+      state.pendingOrder = value;
     },
     DB_SET_RESERVATION(state, value) {
       console.log("DB_SET_RESERVATION");
-
       state.dbReservation = value;
-    },
-    SET_RESERVATION_EXISTS(state, value) {
-      console.log("SET_RESERVATION_EXISTS");
-
-      state.reservationExists = value;
     },
     DB_SET_USER_LINK(state, value) {
       console.log("DB_SET_USER_LINK");
       state.dbUserLink = value;
+    },
+    DB_SET_PENDING_ORDER(state, value) {
+      console.log("DB_SET_PENDING_ORDER");
+      state.dbPendingOrder = value;
     },
   },
   actions: {
@@ -167,13 +154,6 @@ const store = createStore({
 
         // Customer DB References
         commit(
-          "DB_SET_ORDER",
-          firebase
-            .firestore()
-            .collection("PUBLIC_ORDERS")
-            .doc(user.uid)
-        );
-        commit(
           "DB_SET_RESERVATION",
           firebase
             .firestore()
@@ -187,16 +167,18 @@ const store = createStore({
             .collection("user-links")
             .doc(user.uid)
         );
+        commit(
+          "DB_SET_PENDING_ORDER",
+          firebase
+            .firestore()
+            .collection("PUBLIC_ORDERS")
+            .doc(user.uid)
+        );
 
         // TODO: Conditional data fetch based on privileges
         const isAdmin = true;
         if (isAdmin) {
-          // DB References only for Admin
-          commit(
-            "DB_SET_USER_LINKS",
-            firebase.firestore().collection("user-links")
-          );
-
+          dispatch("fetchLatestBatch");
           dispatch("fetchBatches");
           dispatch("listenPendingOrders");
 
@@ -207,11 +189,12 @@ const store = createStore({
         // Listeners
         dispatch("listenOpenBatch");
         dispatch("listenStatus");
+        dispatch("listenCustomerPendingOrder");
       } else {
         console.log("---LOGGED OUT---");
 
         // Reset values set above when logged in
-        commit("DB_SET_ORDER", null);
+        commit("DB_SET_PENDING_ORDER", null);
         commit("DB_SET_RESERVATION", null);
 
         // Detach Listeners
@@ -234,15 +217,6 @@ const store = createStore({
       console.log("fetchUser");
 
       commit("SET_USER", user);
-    },
-
-    async getOrderStatus({ state }) {
-      // Only Allow Submitting of Order if
-      // a) User exists in PUBLIC_ORDERS, and
-      // b) User does not finalize order yet
-      const pendingOrder = await state.dbOrder.get();
-      state.orderAllowed = pendingOrder.exists && !pendingOrder.data().order;
-      state.orderDone = pendingOrder.exists && pendingOrder.data().order;
     },
 
     // #region ADMIN
@@ -306,16 +280,16 @@ const store = createStore({
 
         commit(
           "SET_LATEST_BATCH",
-          new Batch(
-            batch.docs[0].id,
-            data.name,
-            data.created_at,
-            data.closed_at,
-            data.locked_at,
-            data.order_limit,
-            data.orders,
-            data.isDone
-          )
+          new Batch({
+            id: batch.docs[0].id,
+            name: data.name,
+            created_at: data.created_at,
+            closed_at: data.closed_at,
+            locked_at: data.locked_at,
+            order_limit: data.order_limit,
+            orders: data.orders?.map((o) => new Order({ ...o })),
+            isDone: data.isDone,
+          })
         );
       }
     },
@@ -328,21 +302,20 @@ const store = createStore({
       batches.forEach((batch) => {
         const data = batch.data();
         cacheBatches.push(
-          new Batch(
-            batch.id,
-            data.name,
-            data.created_at,
-            data.closed_at,
-            data.locked_at,
-            data.order_limit,
-            data.orders,
-            data.isDone
-          )
+          new Batch({
+            id: batch.id,
+            name: data.name,
+            created_at: data.created_at,
+            closed_at: data.closed_at,
+            locked_at: data.locked_at,
+            order_limit: data.order_limit,
+            orders: data.orders,
+            isDone: data.isDone,
+          })
         );
       });
 
       commit("SET_BATCHES", cacheBatches);
-      commit("SET_LATEST_BATCH", cacheBatches[0]);
     },
 
     // Listener: Pending Orders
@@ -353,7 +326,7 @@ const store = createStore({
         (pendingOrders) => {
           const cachePendingOrders = [];
           pendingOrders.forEach((order) => {
-            cachePendingOrders.push({ id: order.id, ...order.data() });
+            cachePendingOrders.push(new Order({ ...order.data() }));
           });
 
           commit("SET_PENDING_ORDERS", cachePendingOrders);
@@ -387,7 +360,7 @@ const store = createStore({
 
       // Reset Form
       data.name = "";
-      data.order_limit = 50; // TODO: Get Default from DB
+      data.order_limit = 50; // TODO: Get Default from DB Options (already in $store.state)
     },
 
     async closeCurrentBatch({ state, dispatch }) {
@@ -407,16 +380,16 @@ const store = createStore({
       });
 
       // Save Open Batch to Batches
-      const closedBatch = new Batch(
-        null,
-        curBatch.name,
-        curBatch.created_at,
-        firebase.firestore.FieldValue.serverTimestamp(),
-        null,
-        curBatch.order_limit,
-        null,
-        false
-      );
+      const closedBatch = new Batch({
+        id: null,
+        name: curBatch.name,
+        created_at: curBatch.created_at,
+        closed_at: firebase.firestore.FieldValue.serverTimestamp(),
+        locked_at: null,
+        order_limit: curBatch.order_limit,
+        orders: null,
+        isDone: false,
+      });
 
       // Save Batch in Batches, Awaiting Finalize to Copy Orders
       await state.dbBatches.add(closedBatch.firestoreDoc);
@@ -444,37 +417,49 @@ const store = createStore({
     },
 
     async finalizeBatch({ state, dispatch }) {
-      // TODO: All DB Operation in a single batch
-
       console.log("finalizeBatch");
 
-      // Copy all data in PUBLIC_ORDERS to batch.orders
+      // WRITEBATCH
+      const batchOp = _db.batch();
+
+      // Copy all data in PUBLIC_ORDERS to batch.orders for those who are paid (with Order.payment)
       const cacheOrders = [];
-      (await state.dbPendingOrders.orderBy("order").get()).forEach((order) => {
+      (
+        await _db
+          .collection("PUBLIC_ORDERS")
+          .orderBy("payment")
+          .get()
+      ).forEach((order) => {
         cacheOrders.push({ ...order.data(), isDone: false });
       });
 
-      const queryLatest = await state.dbLatestBatch.get();
+      const queryLatest = await _db
+        .collection("batches")
+        .orderBy("created_at", "desc")
+        .limit(1)
+        .get();
       if (!queryLatest.empty) {
         const latestBatch = queryLatest.docs[0].ref;
+        const data = (await latestBatch.get()).data();
 
-        if (!(await latestBatch.get()).data().orders) {
+        if (!data.orders) {
           // Safety check if orders is already copied
           // Prevents erasure of orders
-          latestBatch.update({ orders: cacheOrders });
 
-          // Set locked_at date
-          latestBatch.update({
+          // Batch: Copy All Paid Orders
+          batchOp.update(latestBatch, {
+            orders: cacheOrders,
             locked_at: firebase.firestore.FieldValue.serverTimestamp(),
           });
         }
       }
 
-      // Clear Pending Orders
-      const batchOp = _db.batch();
-      (await _db.collection("PUBLIC_ORDERS").get()).forEach(async (o) =>
+      // Batch: Clear Pending Orders
+      (await _db.collection("PUBLIC_ORDERS").get()).forEach((o) =>
         batchOp.delete(_db.collection("PUBLIC_ORDERS").doc(o.id))
       );
+
+      // COMMIT WriteBatch
       await batchOp.commit();
 
       // Change status to BATCH_STATUS.PENDING again
@@ -490,7 +475,7 @@ const store = createStore({
       });
     },
 
-    async markLatestBatchAsDone({ state, commit, dispatch }) {
+    async markLatestBatchAsDone({ state, dispatch }) {
       console.log("markLatestBatchAsDone");
 
       // Update dbLatestBatch isDone
@@ -575,7 +560,7 @@ const store = createStore({
     },
 
     // Order
-    async saveOrder({ state, dispatch }, order) {
+    async saveOrder({ state, dispatch }, orderList) {
       console.log("saveOrder");
 
       const user = state.user;
@@ -584,23 +569,61 @@ const store = createStore({
       const orderObj = new Order({
         uid: user.uid,
         name: user.displayName,
+        email: user.email,
         fbLink: fbLink,
-        order: order,
+        orderList: orderList,
       });
 
-      console.log(orderObj); // TODO: Remove in production
+      // Only Allow Orders of > 100 PHP
+      if (
+        orderObj.totalPrice > 100 &&
+        orderObj.totalQty <= state.maxAllowedOrderQty
+      ) {
+        // Update DB
+        state.dbPendingOrder.set(orderObj.firestoreDoc);
 
-      // Update DB
-      state.dbOrder.set(orderObj.firestoreDoc);
+        dispatch("alert", {
+          message: "Successfully sent your order. Thank you!",
+          type: ALERT_TYPE.SUCCESS,
+        });
+      } else {
+        dispatch("alert", {
+          message: `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.maxAllowedOrderQty} item/s`,
+          type: ALERT_TYPE.DANGER,
+        });
+      }
+    },
 
-      // Update Order Status
-      dispatch("getOrderStatus");
+    // Listener: Customer Pending Order
+    async listenCustomerPendingOrder({ state, commit, dispatch }) {
+      console.log("Listen: Customer's Pending Order");
 
-      // Alert
-      dispatch("alert", {
-        message: "Successfully sent your order. Thank you!",
-        type: ALERT_TYPE.SUCCESS,
-      });
+      state.unsubscribePendingOrder = state.dbPendingOrder.onSnapshot(
+        (pendingOrder) => {
+          const data = pendingOrder.data();
+          const orderObj = new Order({ ...data });
+
+          commit("SET_PENDING_ORDER", orderObj);
+
+          // Track Status of Ordering System based on order attributes
+          state.orderAllowed =
+            pendingOrder.exists &&
+            orderObj.orderList == null &&
+            orderObj.payment == null;
+
+          state.orderDone =
+            pendingOrder.exists &&
+            orderObj.orderList != null &&
+            orderObj.payment == null;
+
+          state.paymentReceived =
+            pendingOrder.exists && orderObj.payment != null;
+        }
+      );
+    },
+
+    detachCustomerPendingOrder({ state }) {
+      if (state.unsubscribePendingOrder) state.unsubscribePendingOrder();
     },
     // #endregion
 
@@ -611,9 +634,6 @@ const store = createStore({
 
       state.unsubscribeStatus = state.dbStatus.onSnapshot((status) => {
         commit("SET_STATUS", status.data());
-
-        // Update Customer orderAllowed when status changes. Might be allowed already.
-        dispatch("getOrderStatus");
       });
     },
 

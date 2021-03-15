@@ -171,15 +171,11 @@
   }
 
   .modal__header {
-    @apply flex items-center justify-between mb-3;
+    @apply flex items-start justify-between mb-3;
   }
 
   .modal__header > :first-child {
     @apply flex-grow;
-  }
-
-  .modal__content {
-    @apply my-5;
   }
 
   .modal__buttons {
@@ -253,6 +249,14 @@
   table thead,
   table tfoot {
     @apply bg-yellow-200 text-yellow-700 font-medium;
+  }
+
+  .text-success {
+    @apply text-green-700;
+  }
+
+  .text-info {
+    @apply text-blue-700;
   }
 
   .text-danger {

@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Navbar -->
-    <nav class="navbar shadow-xl">
+    <nav class="navbar shadow-xl h-16">
       <div class="container mx-auto flex p-3">
         <h3 class="py-1">
           <router-link :to="{ name: 'Home' }">FOMO</router-link>

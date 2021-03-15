@@ -6,14 +6,14 @@
 
       <!-- Order Quantities -->
       <form v-if="order" @submit.prevent="saveOrder">
-        <div class="my-5">
+        <div class="mt-5 mb-3">
           <Receipt :order="order" />
         </div>
 
         <button
           type="submit"
           class="button button-block button-primary"
-          :disabled="!order.length"
+          :disabled="!order.orderList.length"
         >
           Send Order
         </button>
@@ -146,15 +146,14 @@
 <script>
 import { mapState } from "vuex";
 import Receipt from "@/components/Receipt";
+import { Order } from "@/models/Order";
 
 export default {
   name: "Order",
   components: { Receipt },
   data() {
     return {
-      order: [],
-      // TODO: Fetch this from DB
-      maxAllowedOrderQty: 8,
+      order: new Order({ orderList: [] }),
 
       // Form: Add Product in Order
       filteredProducts: [],
@@ -174,12 +173,8 @@ export default {
         : [];
     },
     // Counters
-    orderTotalQty() {
-      if (!this.order.length) return 0;
-      return this.order.map((o) => o.qty).reduce((a, c) => a + c);
-    },
     orderRemainingAllowed() {
-      return this.maxAllowedOrderQty - this.orderTotalQty;
+      return this.maxAllowedOrderQty - this.order.totalQty;
     },
     ...mapState({
       products: "products",
@@ -188,6 +183,7 @@ export default {
           state.products.map((p) => (p.category ? p.category : "Uncategorized"))
         ),
       ],
+      maxAllowedOrderQty: "maxAllowedOrderQty",
     }),
   },
   methods: {
@@ -208,21 +204,23 @@ export default {
           .join(", ")}`;
 
       const existingOrder =
-        this.order.find((o) => o.name === newOrder.name) ?? null;
+        this.order.orderList.find((o) => o.name === newOrder.name) ?? null;
 
       // If same item is in list, just add
       if (existingOrder) {
         existingOrder.qty += newOrder.qty;
         existingOrder.total_price += newOrder.total_price;
       } else {
-        this.order.push(newOrder);
+        this.order.orderList.push(newOrder);
       }
 
       this.resetNewOrder("all");
     },
 
     saveOrder() {
-      this.$store.dispatch("saveOrder", this.order);
+      this.$store.dispatch("saveOrder", this.order.orderList);
+
+      this.$router.replace(this.$route.path); // Remove status from payment
     },
 
     // Input Functions

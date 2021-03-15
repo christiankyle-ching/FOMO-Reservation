@@ -7,8 +7,10 @@ const BATCH_STATUS = Object.freeze({
   PENDING: "pending",
 });
 
+const fnReducer = (a, c) => a + c;
+
 class Batch {
-  constructor(
+  constructor({
     id,
     name,
     created_at,
@@ -16,16 +18,16 @@ class Batch {
     locked_at,
     order_limit,
     orders,
-    isDone
-  ) {
-    this.id = id;
-    this.name = name;
-    this.created_at = created_at;
-    this.closed_at = closed_at;
-    this.locked_at = locked_at;
-    this.order_limit = order_limit;
-    this.orders = orders;
-    this.isDone = isDone;
+    isDone,
+  }) {
+    this.id = id ?? null;
+    this.name = name ?? null;
+    this.created_at = created_at ?? null;
+    this.closed_at = closed_at ?? null;
+    this.locked_at = locked_at ?? null;
+    this.order_limit = order_limit ?? null; // TODO: Get default in DB Options
+    this.orders = orders ?? null;
+    this.isDone = isDone ?? false;
   }
 
   get createdAtString() {
@@ -34,6 +36,10 @@ class Batch {
 
   get closedAtString() {
     return this.closed_at.toDate().toLocaleString("en-US", localeDateTimeOpts);
+  }
+
+  get lockedAtString() {
+    return this.locked_at.toDate().toLocaleString("en-US", localeDateTimeOpts);
   }
 
   get firestoreDoc() {
@@ -60,6 +66,30 @@ class Batch {
     Object.assign(firestoreObj, { isDone: this.isDone });
 
     return firestoreObj;
+  }
+
+  get totalQty() {
+    const paidOrders = this.orders.filter((o) => o.payment);
+
+    if (paidOrders.length <= 0) return 0;
+
+    return paidOrders
+      .map((o) => o.orderList)
+      .map((order) => order.map((p) => p.qty))
+      .map((prices) => prices.reduce(fnReducer))
+      .reduce(fnReducer);
+  }
+
+  get totalPrice() {
+    const paidOrders = this.orders.filter((o) => o.payment);
+
+    if (paidOrders.length <= 0) return 0;
+
+    return paidOrders
+      .map((o) => o.orderList)
+      .map((order) => order.map((p) => p.total_price))
+      .map((prices) => prices.reduce(fnReducer))
+      .reduce(fnReducer);
   }
 
   clone() {
