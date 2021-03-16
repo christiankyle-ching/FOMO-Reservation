@@ -8,9 +8,8 @@ import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
 import Admin from "@/views/Admin.vue";
 import Batch from "@/views/Batch.vue";
+import BatchHistory from "@/views/BatchHistory.vue";
 import Products from "@/views/Products.vue";
-
-const SITE_TITLE = "FOMO's";
 
 const routes = [
   {
@@ -49,9 +48,18 @@ const routes = [
   {
     path: "/batch/:id",
     name: "Batch",
+    props: true,
     component: Batch,
     meta: {
       title: "Batch",
+    },
+  },
+  {
+    path: "/batch-history",
+    name: "BatchHistory",
+    component: BatchHistory,
+    meta: {
+      title: "Batch History",
     },
   },
 ];
@@ -64,8 +72,8 @@ const router = createRouter({
 router.afterEach((to, from) => {
   nextTick(() => {
     document.title = to.meta.title
-      ? `${to.meta.title} - ${SITE_TITLE}`
-      : SITE_TITLE;
+      ? `${to.meta.title} - ${process.env.VUE_APP_TITLE}`
+      : process.env.VUE_APP_TITLE;
   });
 });
 

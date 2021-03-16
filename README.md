@@ -1,19 +1,7 @@
-# proto-gringo
+# Prototype - Gringo
 
-## Project setup
-```
-npm install
-```
+## Deployment Notes
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+1. Deploy backend to Vercel. Get the static URL / domain.
+2. Get Firebase Config File.
+3. Use it in `Payment.vue`.

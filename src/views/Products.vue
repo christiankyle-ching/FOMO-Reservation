@@ -1,7 +1,7 @@
 
 <template>
   <div class="container py-10 px-5">
-    <h2 class="text-center">FOMO's Menu</h2>
+    <h2 class="text-center">{{ $store.state.clientName }}'s Menu</h2>
 
     <form @submit.prevent="updateProducts" class="my-5">
       <!-- Products ForEach -->

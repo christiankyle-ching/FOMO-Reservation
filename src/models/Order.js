@@ -39,12 +39,18 @@ class Order {
   }
 
   get totalPrice() {
+    // FIXME: Causes null/undefined on Vue Template. Consider using Optional Chaining instead (?.)
+    if (this.orderList == null) return 0;
+
     if (!this.orderList.length) return 0;
 
     return this.orderList.map((o) => o.total_price).reduce((a, c) => a + c);
   }
 
   get totalQty() {
+    // FIXME: Causes null/undefined on Vue Template. Consider using Optional Chaining instead (?.)
+    if (this.orderList == null) return 0;
+
     if (!this.orderList.length) return 0;
 
     return this.orderList.map((o) => o.qty).reduce((a, c) => a + c);

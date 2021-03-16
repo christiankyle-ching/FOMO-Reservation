@@ -1,5 +1,6 @@
 import "firebase/firestore";
 import { localeDateTimeOpts } from "../utils";
+import { Order } from "@/models/Order";
 
 const BATCH_STATUS = Object.freeze({
   OPEN: "open",
@@ -26,7 +27,7 @@ class Batch {
     this.closed_at = closed_at ?? null;
     this.locked_at = locked_at ?? null;
     this.order_limit = order_limit ?? null; // TODO: Get default in DB Options
-    this.orders = orders ?? null;
+    this.orders = orders?.map((o) => new Order({ ...o })) ?? null;
     this.isDone = isDone ?? false;
   }
 
@@ -69,6 +70,8 @@ class Batch {
   }
 
   get totalQty() {
+    if (this.orders == null) return 0;
+
     const paidOrders = this.orders.filter((o) => o.payment);
 
     if (paidOrders.length <= 0) return 0;
@@ -81,6 +84,8 @@ class Batch {
   }
 
   get totalPrice() {
+    if (this.orders == null) return 0;
+
     const paidOrders = this.orders.filter((o) => o.payment);
 
     if (paidOrders.length <= 0) return 0;

@@ -17,6 +17,9 @@ const store = createStore({
   state: {
     // APP
     isOnline: navigator.onLine,
+    appTitle: process.env.VUE_APP_TITLE,
+    clientName: process.env.VUE_APP_CLIENT,
+    clientUrl: process.env.VUE_APP_CLIENT_LINK,
 
     // #region SHARED
     products: null, // Product()[]
@@ -61,7 +64,7 @@ const store = createStore({
     // #region ADMIN
     formProducts: [], // Product()[]
     latestBatch: null, // Batch()
-    batches: [], // Batch()[]
+    previousBatches: null, // Batch()[]
     formNewBatch: {
       name: "",
       order_limit: 50, // TODO: Set Default from DB Option: 50
@@ -73,6 +76,7 @@ const store = createStore({
     // Firebase Refs
     dbPendingOrders: _db.collection("PUBLIC_ORDERS"),
     dbBatches: _db.collection("batches"),
+    dbBatchesCursor: null, // For Pagination
     dbUserLinks: firebase.firestore().collection("user-links"),
     dbReservations: _db.collection("PUBLIC_RESERVATIONS"),
     // #endregion
@@ -105,7 +109,7 @@ const store = createStore({
     },
     SET_BATCHES(state, value) {
       console.log("SET_BATCHES");
-      state.batches = value;
+      state.previousBatches = value;
     },
     SET_LATEST_BATCH(state, value) {
       console.log("SET_LATEST_BATCH");
@@ -282,13 +286,7 @@ const store = createStore({
           "SET_LATEST_BATCH",
           new Batch({
             id: batch.docs[0].id,
-            name: data.name,
-            created_at: data.created_at,
-            closed_at: data.closed_at,
-            locked_at: data.locked_at,
-            order_limit: data.order_limit,
-            orders: data.orders?.map((o) => new Order({ ...o })),
-            isDone: data.isDone,
+            ...data,
           })
         );
       }
@@ -297,25 +295,67 @@ const store = createStore({
     async fetchBatches({ state, commit }) {
       console.log("fetchBatches");
 
+      const batches = await state.dbBatches
+        .orderBy("created_at", "desc")
+        .limit(5)
+        .get();
+
       const cacheBatches = [];
-      const batches = await state.dbBatches.orderBy("created_at", "desc").get();
       batches.forEach((batch) => {
         const data = batch.data();
         cacheBatches.push(
           new Batch({
             id: batch.id,
-            name: data.name,
-            created_at: data.created_at,
-            closed_at: data.closed_at,
-            locked_at: data.locked_at,
-            order_limit: data.order_limit,
-            orders: data.orders,
-            isDone: data.isDone,
+            ...data,
           })
         );
       });
 
+      const _last = batches.docs[batches.docs.length - 1];
+
+      // Save cursor to fetch next batch
+      if (_last != undefined) {
+        state.dbBatchesCursor = state.dbBatches
+          .orderBy("created_at", "desc")
+          .startAfter(_last)
+          .limit(5);
+      }
+
       commit("SET_BATCHES", cacheBatches);
+    },
+
+    async fetchNextBatches({ state, commit }) {
+      console.log("fetchNextBatches");
+
+      return new Promise(async (resolve, _) => {
+        const nextBatches = await state.dbBatchesCursor.get();
+
+        const cacheBatches = [];
+        nextBatches.forEach((batch) => {
+          const data = batch.data();
+          cacheBatches.push(
+            new Batch({
+              id: batch.id,
+              ...data,
+            })
+          );
+        });
+
+        const _last = nextBatches.docs[nextBatches.docs.length - 1];
+
+        // Save cursor to fetch next batch
+        if (_last != undefined && state.dbBatchesCursor != null) {
+          state.dbBatchesCursor = state.dbBatches
+            .orderBy("created_at", "desc")
+            .startAfter(_last)
+            .limit(5);
+        } else {
+          state.dbBatchesCursor = null;
+        }
+
+        commit("SET_BATCHES", state.previousBatches.concat(cacheBatches));
+        resolve();
+      });
     },
 
     // Listener: Pending Orders

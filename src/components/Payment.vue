@@ -12,10 +12,12 @@
         </p>
 
         <p class="mt-3">
-          If you are charged but has not received your
-          <strong>Payment ID</strong>, please contact us on
-          <a href="" class="link">Facebook</a> to verify your payment.
-          <!-- TODO -->
+          <strong
+            >If you are charged but has not received your Payment ID</strong
+          >, please contact us on
+          <a :href="$store.state.clientLink" class="link">Facebook</a> to verify
+          your payment.
+          <!-- TODO: Get Gringo's Link -->
         </p>
       </div>
 
@@ -25,36 +27,50 @@
     </div>
 
     <div v-else>
-      <h2 class="text-center pb-5">Pay With</h2>
+      <div v-if="!fetchingLink">
+        <h2 class="text-center pb-5">Pay With</h2>
 
-      <div class="flex items-center justify-around">
-        <button @click="payWithEwallet('gcash')" class="button button-primary">
-          Pay with GCash
-        </button>
-        <span>or</span>
-        <button
-          @click="payWithEwallet('grab_pay')"
-          class="button button-primary"
+        <div class="flex items-center justify-around">
+          <button
+            @click="payWithEwallet('gcash')"
+            class="button button-primary"
+          >
+            Pay with GCash
+          </button>
+          <span>or</span>
+          <button
+            @click="payWithEwallet('grab_pay')"
+            class="button button-primary"
+          >
+            Pay with GrabPay
+          </button>
+        </div>
+
+        <p
+          class="font-medium text-danger text-center mt-3"
+          v-if="$route.query.status == 'fail'"
         >
-          Pay with GrabPay
-        </button>
+          Payment aborted or unsuccessful. Please try again.
+        </p>
       </div>
 
-      <p
-        class="font-medium text-danger text-center mt-3"
-        v-if="$route.query.status == 'fail'"
-      >
-        Payment aborted or unsuccessful. Please try again.
-      </p>
+      <LoadingSpinner v-else class="m-auto" />
     </div>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
-import { ALERT_TYPE } from "../models/Alert";
+import { ALERT_TYPE } from "@/models/Alert";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default {
+  components: { LoadingSpinner },
+  data() {
+    return {
+      fetchingLink: false,
+    };
+  },
   computed: {
     redirectUrl() {
       // TODO: Replace redirect url
@@ -66,7 +82,7 @@ export default {
   },
   methods: {
     async payWithEwallet(sourceType) {
-      const url = "https://90868428.loca.lt/api/payment";
+      const url = `${process.env.VUE_APP_BACKEND_URL}/api/payment`;
 
       const options = {
         method: "POST",
@@ -83,6 +99,8 @@ export default {
       };
 
       try {
+        this.fetchingLink = true;
+
         const response = await fetch(url, options);
 
         if (!response.ok) throw new Error(response.body);
@@ -97,6 +115,8 @@ export default {
             "Something went wrong in generating your link. Please reload the page and try again.",
           type: ALERT_TYPE.DANGER,
         });
+      } finally {
+        this.fetchingLink = false;
       }
     },
   },

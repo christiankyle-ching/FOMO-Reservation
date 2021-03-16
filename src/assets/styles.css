@@ -34,6 +34,10 @@
     @apply font-medium text-blue-700 underline;
   }
 
+  a.card {
+    @apply block cursor-pointer hover:shadow-xl ring-gray-700 hover:ring-2;
+  }
+
   .alerts {
     @apply fixed top-0 left-0 right-0 m-5;
   }
@@ -83,7 +87,7 @@
   }
 
   .button-secondary {
-    @apply hover:text-white bg-transparent hover:bg-yellow-600 border-2 border-yellow-600;
+    @apply hover:text-white bg-transparent hover:bg-yellow-600 ring-2 ring-yellow-600 ring-inset;
   }
 
   .button-danger {
@@ -123,7 +127,7 @@
   }
 
   .card {
-    @apply shadow-lg rounded-3xl border-2 p-5;
+    @apply shadow-lg rounded-3xl border-2 p-5 transition-shadow;
   }
 
   .fab-container {
@@ -236,13 +240,25 @@
     @apply inline-block w-10 text-center shadow-none border-none mt-0 p-1;
   }
 
+  .input__search {
+    @apply flex items-center border-2 rounded-lg;
+  }
+
+  .input__search > input[type="search"] {
+    @apply flex-grow border-0 m-0;
+  }
+
+  .input__search > svg {
+    @apply text-gray-700 mr-3;
+  }
+
   select {
     @apply p-1 mt-1 rounded-md shadow-sm border-2 focus:outline-none w-full;
   }
 
   th,
   td {
-    @apply px-4 py-2;
+    @apply px-2 py-1 sm:px-4 sm:py-2;
     @apply border border-yellow-500;
   }
 

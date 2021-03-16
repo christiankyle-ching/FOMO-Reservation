@@ -8,6 +8,7 @@ module.exports = {
     extend: {
       backgroundColor: ["checked"],
       borderColor: ["checked"],
+      ringWidth: ['hover'],
     },
   },
   plugins: [],

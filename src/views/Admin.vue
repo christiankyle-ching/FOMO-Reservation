@@ -1,6 +1,6 @@
 <template>
   <div class="admin container">
-    <h1 class="text-center mt-10 mb-8">Manage FOMO</h1>
+    <h1 class="text-center mt-10 mb-8">Manage {{ $store.state.clientName }}</h1>
 
     <div v-if="status == null" class="flex h-32">
       <LoadingSpinner class="m-auto" />
@@ -26,9 +26,8 @@
         </router-link>
       </span>
 
-      <!-- TODO: Implement Router-View last batches with pagination -->
       <router-link
-        :to="{ name: 'Products' }"
+        :to="{ name: 'BatchHistory' }"
         class="button button-primary button-block mt-5"
       >
         <span class="fas fa-history icon-sm"></span>

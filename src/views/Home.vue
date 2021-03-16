@@ -1,6 +1,6 @@
 <template>
-  <div class="home container px-10 py-10">
-    <h1 class="text-center pb-10">FOMO's Waitlist</h1>
+  <div class="home container p-5 sm:p-10">
+    <h1 class="text-center pb-10">{{ $store.state.clientName }}'s Waitlist</h1>
     <div v-if="user">
       <!-- a: Order Allowed -->
       <Order v-if="orderAllowed" />
@@ -14,8 +14,10 @@
       <!-- c: Payment Done - Details -->
       <div v-else-if="pendingOrder?.payment">
         <h4 class="text-center">
-          We received your payment. Please wait for our confirmation on
-          Facebook. Thank You!
+          <span class="text-success"> We received your payment.</span> Please
+          wait for our confirmation on
+          <a :href="$store.state.clientLink" class="link">Facebook</a>. Thank
+          You!
         </h4>
         <div class="pt-10">
           <h3 class="text-center pb-5">Payment Details</h3>
@@ -29,8 +31,8 @@
           Batch "{{ latestBatch?.name }}" is in process.
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 my-3">
-          <span class="col-span-1 font-medium">Started Processing:</span>
-          <span class="col-span-1"> {{ latestBatch.createdAtString }}</span>
+          <span class="font-medium">Started Processing:</span>
+          <span> {{ latestBatch.lockedAtString }}</span>
         </div>
 
         <h5 class="text-center mb-3">Your Order</h5>
@@ -60,8 +62,7 @@ export default {
       orderDone: "orderDone",
       latestBatch: "latestBatch",
       orderFromLatestBatch(state) {
-        console.log(this.$route.query);
-        if (state.latestBatch != null && !state.latestBatch?.isDone) {
+        if (state.latestBatch != null && !state.latestBatch.isDone) {
           return (
             state.latestBatch.orders?.find(
               (o) => o.email === state.user.email

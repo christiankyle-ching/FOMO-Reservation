@@ -2,9 +2,19 @@
   <div>
     <!-- Navbar -->
     <nav class="navbar shadow-xl h-16">
-      <div class="container mx-auto flex p-3">
-        <h3 class="py-1">
-          <router-link :to="{ name: 'Home' }">FOMO</router-link>
+      <div class="container mx-auto flex p-3 items-center">
+        <button
+          v-if="$route.name != 'Home'"
+          @click="$router.go(-1)"
+          class="button-icon button-icon-md mr-3"
+        >
+          <span class="fas fa-arrow-left"></span>
+        </button>
+
+        <h3>
+          <router-link :to="{ name: 'Home' }">{{
+            $store.state.clientName
+          }}</router-link>
         </h3>
 
         <div class="ml-auto my-auto flex items-center">

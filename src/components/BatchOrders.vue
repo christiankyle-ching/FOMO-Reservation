@@ -3,14 +3,17 @@
   <transition name="fade">
     <Modal v-if="showModal" @close="closeOrderModal">
       <template v-slot:header>
-        <span class="text-2xl font-medium">{{ orderShown.name }}</span>
-        <a
-          :href="orderShown.fbLink"
-          target="_blank"
-          class="button-icon button-icon-md text-blue-700 inline ml-2"
-        >
-          <span class="fab fa-facebook-square"></span>
-        </a>
+        <div class="flex items-center justify-start">
+          <h3 class="font-medium">{{ orderShown.name }}</h3>
+          <!-- FB Link -->
+          <a
+            :href="orderShown.fbLink"
+            target="_blank"
+            class="button-icon button-icon-md text-blue-700"
+          >
+            <span class="fab fa-facebook-square"></span>
+          </a>
+        </div>
       </template>
       <template v-slot:content>
         <Receipt :order="orderShown" in-process />
@@ -20,22 +23,23 @@
 
   <div>
     <div class="grid grid-cols-2 mb-3">
-      <span class="col-span-1">Total Food Items:</span>
-      <strong>{{ batch.totalQty }} item/s</strong>
+      <span>Total Food Items:</span>
+      <strong class="sm:text-right">{{ batch?.totalQty }} item/s</strong>
 
-      <span class="col-span-1">Total Amount Received:</span>
-      <strong>{{ batch.totalPrice.toLocaleString() }} PHP</strong>
+      <span>Total Amount Received:</span>
+      <strong class="sm:text-right"
+        >{{ batch?.totalPrice.toLocaleString() }} PHP</strong
+      >
     </div>
 
     <!-- Search -->
-    <div class="input__search flex items-center border-2 rounded-lg">
+    <div class="input__search">
       <input
         type="search"
-        class="flex-grow border-0 m-0"
-        placeholder="Search..."
+        placeholder="Search for Payment ID, Order ID, or Name..."
         v-model="searchKey"
       />
-      <span class="fas fa-search text-gray-700 mr-3"></span>
+      <span class="fas fa-search"></span>
     </div>
 
     <!-- Table: Orders -->
@@ -70,7 +74,7 @@
             </div>
           </td>
 
-          <td>{{ order.totalPrice.toLocaleString() }} PHP</td>
+          <td>{{ order.totalPrice?.toLocaleString() }} PHP</td>
 
           <td>
             <!-- Show Modal: Receipt -->
@@ -124,11 +128,14 @@ export default {
 
   computed: {
     filteredOrders() {
-      return this.batch.orders.filter(
-        (o) =>
-          o.name.toLowerCase().includes(this.searchKey) ||
-          o.oid.toLowerCase().includes(this.searchKey)
-      );
+      return this.batch.orders
+        .filter((o) => o.payment)
+        .filter(
+          (o) =>
+            o.name.toLowerCase().includes(this.searchKey) ||
+            o.oid.toLowerCase().includes(this.searchKey) ||
+            o.payment.id.toLowerCase().includes(this.searchKey)
+        );
     },
   },
   methods: {

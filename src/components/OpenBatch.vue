@@ -104,12 +104,6 @@ export default {
       formNewBatch: "formNewBatch",
       openBatch: "openBatch",
       latestBatch(state) {
-        console.log(
-          new Batch({
-            ...state.latestBatch.firestoreDoc,
-            orders: state.pendingOrders,
-          })
-        );
         return new Batch({
           ...state.latestBatch.firestoreDoc,
           orders: state.pendingOrders,
