@@ -31,7 +31,6 @@
             v-for="(category, index) in categories"
             :key="index + category"
             :value="category"
-            class="active:ring-yellow-700"
           >
             {{ category }}
           </option>

@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: Might be better in Modal -->
   <div class="import-products card">
     <h6>Select a templated file:</h6>
     <input

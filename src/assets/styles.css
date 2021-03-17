@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  body {
+    @apply transition-colors;
+  }
+
   h1 {
     @apply text-4xl font-medium;
   }
@@ -88,19 +92,19 @@
   }
 
   .button-primary {
-    @apply text-light bg-primary hover:bg-darkPrimary;
+    @apply text-white bg-primary hover:bg-darkPrimary;
   }
 
   .button-secondary {
-    @apply hover:text-light bg-transparent hover:bg-primary ring-2 ring-primary ring-inset;
+    @apply hover:text-white bg-transparent hover:bg-primary ring-2 ring-primary ring-inset;
   }
 
   .button-transparent {
-    @apply hover:text-darkSecondary bg-transparent hover:bg-lightSecondary;
+    @apply text-dark3 bg-transparent hover:bg-lightSecondary;
   }
 
   .button-danger {
-    @apply text-light bg-danger hover:bg-darkDanger;
+    @apply text-white bg-danger hover:bg-darkDanger;
   }
 
   .button-icon {
@@ -138,6 +142,14 @@
 
   .button-icon-sm svg {
     @apply icon-sm;
+  }
+
+  .button-icon-xs {
+    @apply h-5 w-5;
+  }
+
+  .button-icon-sm svg {
+    @apply icon-xs;
   }
 
   .card {
@@ -213,7 +225,8 @@
     @apply pt-2 text-sm text-secondary;
   }
 
-  input {
+  input,
+  .input__search {
     @apply p-1 mt-1 w-full border-2 rounded-md shadow-sm focus:outline-none;
   }
 
@@ -223,6 +236,10 @@
 
   input:required:valid {
     @apply focus:border-primary;
+  }
+
+  .icon-xs {
+    @apply h-3 w-3 !important;
   }
 
   .icon-sm {
@@ -242,16 +259,16 @@
     display: none;
   }
 
-  .input__number button {
-    @apply button-icon-sm;
-  }
-
   .input__number {
     @apply mt-1 rounded-lg border-2 border-primary inline-flex items-center;
   }
 
+  .input__number button {
+    @apply button-icon button-icon-sm;
+  }
+
   .input__number input[type="number"] {
-    @apply inline-block w-10 text-center shadow-none border-none mt-0 p-1;
+    @apply inline-block w-9 text-center shadow-none border-none mt-0 bg-transparent;
   }
 
   .input__search {
@@ -267,7 +284,7 @@
   }
 
   select {
-    @apply p-1 mt-1 rounded-md shadow-sm border-2 focus:outline-none w-full;
+    @apply p-1 mt-1 rounded-md shadow-sm border-2 focus:outline-none w-full cursor-pointer;
   }
 
   th,
@@ -290,5 +307,81 @@
   .fade-enter-active,
   .fade-leave-active {
     @apply transition-opacity;
+  }
+
+  /* DARK MODE */
+  html.dark > body {
+    @apply bg-dark3 text-darkText;
+
+    nav {
+      @apply bg-dark2;
+    }
+
+    a.link {
+      @apply text-lightInfo;
+    }
+
+    a.card {
+      @apply hover:border-lightSecondary;
+    }
+
+    .button-primary {
+      @apply bg-darkPrimary hover:bg-nightPrimary;
+    }
+
+    .button-secondary {
+      @apply bg-transparent hover:bg-nightPrimary ring-darkPrimary;
+    }
+
+    .button-transparent {
+      @apply text-darkText hover:bg-black;
+    }
+
+    .card {
+      @apply bg-dark2 border-dark1 border-opacity-50;
+    }
+
+    label {
+      @apply text-lightSecondary;
+    }
+
+    label.checkbox input[type="checkbox"] {
+      @apply border-darkSecondary checked:bg-darkPrimary;
+    }
+
+    .modal__dialog {
+      @apply bg-dark2;
+    }
+
+    input,
+    .input__search,
+    .input__number,
+    select {
+      @apply bg-dark1 border-dark1;
+    }
+
+    /* bg-dark2 border-lightSecondary text-darkText */
+
+    input:required:invalid {
+      @apply border-darkDanger;
+    }
+
+    input:required:valid {
+      @apply focus:border-darkPrimary;
+    }
+
+    .input__search > svg {
+      @apply text-lightSecondary;
+    }
+
+    th,
+    td {
+      @apply border-darkPrimary;
+    }
+
+    table thead,
+    table tfoot {
+      @apply bg-lightPrimary text-darkPrimary;
+    }
   }
 }

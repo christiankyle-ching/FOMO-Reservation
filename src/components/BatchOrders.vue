@@ -9,7 +9,7 @@
           <a
             :href="orderShown.fbLink"
             target="_blank"
-            class="button-icon button-icon-md text-blue-700"
+            class="button-icon button-icon-md text-info"
           >
             <span class="fab fa-facebook-square"></span>
           </a>
@@ -67,7 +67,7 @@
               <a
                 :href="order.fbLink"
                 target="_blank"
-                class="button-icon button-icon-md text-blue-700"
+                class="button-icon button-icon-md text-info"
               >
                 <span class="fab fa-facebook-square"></span>
               </a>

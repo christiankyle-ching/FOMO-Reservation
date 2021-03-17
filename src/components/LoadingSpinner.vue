@@ -53,6 +53,10 @@ export default {};
   animation: sk-stretchdelay 1.2s infinite ease-in-out;
 }
 
+html.dark .spinner > div {
+  background-color: #ddd;
+}
+
 .spinner .rect2 {
   -webkit-animation-delay: -1.1s;
   animation-delay: -1.1s;

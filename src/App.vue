@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <router-view class="container mx-auto" />
+  <router-view class="container mx-auto min-h-screen p-5 sm:p-10" />
 </template>
 
 <script>
@@ -107,9 +107,8 @@ export default {
   },
   methods: {
     toggleDarkMode() {
-      this.darkModeEnabled = document
-        .querySelector("html")
-        .classList.toggle("dark");
+      this.darkModeEnabled = !this.darkModeEnabled;
+      localStorage.darkMode = this.darkModeEnabled;
     },
     logout() {
       firebase
@@ -120,6 +119,16 @@ export default {
         });
     },
     ...mapActions({ removeAlert: "removeAlert" }),
+  },
+  watch: {
+    darkModeEnabled(enable) {
+      enable
+        ? document.querySelector("html").classList.add("dark")
+        : document.querySelector("html").classList.remove("dark");
+    },
+  },
+  mounted() {
+    this.darkModeEnabled = (localStorage.darkMode ?? false) == "true";
   },
 };
 </script>

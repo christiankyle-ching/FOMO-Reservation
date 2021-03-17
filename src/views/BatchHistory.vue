@@ -1,8 +1,8 @@
 <template>
   <!-- TODO: Implement Router-View last batches with pagination -->
 
-  <div class="batch-history container mx-auto p-10">
-    <h1 class="text-center mb-10">Batch History</h1>
+  <div class="batch-history">
+    <h1 class="text-center mb-5 sm:mb-10">Batch History</h1>
 
     <!-- a: Loading -->
     <LoadingSpinner v-if="previousBatches == null" class="m-auto" />
@@ -10,8 +10,8 @@
     <!-- b: Has Previous Batches -->
     <div v-else>
       <!-- Search: Jump to Date -->
-      <form @submit.prevent="jumpToDate()" class="card mb-5 sticky top-0">
-        <label>Jump to Date (Started Processing):</label>
+      <form @submit.prevent="jumpToDate()" class="card mb-5 sticky top-2 py-2">
+        <label class="p-0">Jump to Date (Started Processing):</label>
         <input type="date" v-model="searchDate" required />
 
         <div class="text-right mt-3">

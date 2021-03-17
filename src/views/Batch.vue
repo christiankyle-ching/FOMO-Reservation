@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-5 sm:p-10">
+  <div>
     <LoadingSpinner v-if="batch == null" class="m-auto mt-10" />
 
     <div v-else>
@@ -36,7 +36,7 @@ export default {
       .get()
       .then((doc) => {
         const data = doc.data();
-        
+
         this.batch = new Batch({
           id: doc.id,
           ...data,

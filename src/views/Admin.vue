@@ -1,15 +1,15 @@
 <template>
-  <div class="admin container">
-    <h1 class="text-center mt-10 mb-8">Manage {{ $store.state.clientName }}</h1>
+  <div class="admin">
+    <h1 class="text-center mb-5 sm:mb-10">Manage {{ $store.state.clientName }}</h1>
 
     <div v-if="status == null" class="flex h-32">
       <LoadingSpinner class="m-auto" />
     </div>
-    <LatestBatch v-else-if="isProcessing" class="m-5" />
-    <OpenBatch v-else class="m-5" />
+    <LatestBatch v-else-if="isProcessing" />
+    <OpenBatch v-else />
 
     <!-- Admin Actions -->
-    <div class="card m-5">
+    <div class="card mt-5">
       <h2 class="pb-5 text-center">Actions</h2>
       <span
         :title="

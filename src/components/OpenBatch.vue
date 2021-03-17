@@ -2,7 +2,7 @@
   <div class="open-batch card">
     <div class="text-center mb-3">
       <h2>Current Batch</h2>
-      <p v-if="status" class="capitalize font-medium" :class="statusColorClass">
+      <p v-if="status" class="capitalize italic">
         {{ statusMessage }}
       </p>
     </div>
@@ -129,16 +129,6 @@ export default {
             return "Waiting for orders...";
           case BATCH_STATUS.PENDING:
             return "Ready for another batch...";
-        }
-      },
-      statusColorClass() {
-        switch (this.status.batch) {
-          case BATCH_STATUS.OPEN:
-            return "text-darkSuccess";
-          case BATCH_STATUS.CLOSED:
-            return "text-darkInfo";
-          case BATCH_STATUS.PENDING:
-            return "text-red-darkDanger";
         }
       },
 

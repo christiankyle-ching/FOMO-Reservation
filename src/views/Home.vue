@@ -1,6 +1,8 @@
 <template>
-  <div class="home container p-5 sm:p-10">
-    <h1 class="text-center pb-10">{{ $store.state.clientName }}'s Waitlist</h1>
+  <div class="home">
+    <h1 class="text-center mb-5 sm:mb-10">
+      {{ $store.state.clientName }}'s Waitlist
+    </h1>
     <div v-if="user">
       <!-- a: Order Allowed -->
       <Order v-if="orderAllowed" />
@@ -14,8 +16,8 @@
       <!-- c: Payment Done - Details -->
       <div v-else-if="pendingOrder?.payment">
         <h4 class="text-center">
-          <span class="text-darkSuccess"> We received your payment.</span> Please
-          wait for our confirmation on
+          <span class="text-darkSuccess"> We received your payment.</span>
+          Please wait for our confirmation on
           <a :href="$store.state.clientLink" class="link">Facebook</a>. Thank
           You!
         </h4>
