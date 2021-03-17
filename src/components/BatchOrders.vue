@@ -103,7 +103,7 @@
       </tbody>
     </table>
 
-    <p v-else class="text-center my-5 font-medium text-danger">
+    <p v-else class="text-center my-5 font-medium text-darkDanger">
       No orders to process for this batch
     </p>
   </div>

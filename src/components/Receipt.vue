@@ -9,10 +9,10 @@
         >
           <span class="font-medium">Status: </span>
           <span class="mb-1 sm:mb-0">
-            <span v-if="order.payment" class="text-success font-medium"
+            <span v-if="order.payment" class="text-darkSuccess font-medium"
               >Paid</span
             >
-            <span v-else class="text-danger font-medium">Pending</span>
+            <span v-else class="text-darkDanger font-medium">Pending</span>
           </span>
 
           <span class="font-medium">Order #: </span>

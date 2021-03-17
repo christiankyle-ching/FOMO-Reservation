@@ -10,7 +10,7 @@
     <!-- b: Has Previous Batches -->
     <div v-else>
       <!-- Search: Jump to Date -->
-      <form @submit.prevent="jumpToDate()" class="mb-5">
+      <form @submit.prevent="jumpToDate()" class="card mb-5 sticky top-0">
         <label>Jump to Date (Started Processing):</label>
         <input type="date" v-model="searchDate" required />
 
@@ -35,6 +35,8 @@
 
       <!-- ForEach: Batches (Prioritize Searched Batches, then Previous/History)-->
       <div v-if="searchBatches != null">
+        <LoadingSpinner v-if="isLoadingSearch" class="m-auto" />
+
         <div v-if="searchBatches?.length">
           <router-link
             :to="{ name: 'Batch', params: { id: batch.id } }"
@@ -102,6 +104,7 @@ export default {
     return {
       searchDate: null,
       searchBatches: null,
+      isLoadingSearch: false,
 
       isLoadingMore: false,
     };
@@ -122,6 +125,8 @@ export default {
         .finally(() => (this.isLoadingMore = false));
     },
     async jumpToDate() {
+      this.isLoadingSearch = true;
+
       const _startDate = new Date(this.searchDate);
       const _endDate = new Date(this.searchDate);
       _endDate.setDate(_endDate.getDate() + 1);
@@ -140,6 +145,8 @@ export default {
           })
         );
       });
+
+      this.isLoadingSearch = false;
 
       this.searchBatches = cacheBatches;
     },

@@ -134,11 +134,11 @@ export default {
       statusColorClass() {
         switch (this.status.batch) {
           case BATCH_STATUS.OPEN:
-            return "text-green-800";
+            return "text-darkSuccess";
           case BATCH_STATUS.CLOSED:
-            return "text-blue-800";
+            return "text-darkInfo";
           case BATCH_STATUS.PENDING:
-            return "text-red-800";
+            return "text-red-darkDanger";
         }
       },
 

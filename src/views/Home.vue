@@ -14,7 +14,7 @@
       <!-- c: Payment Done - Details -->
       <div v-else-if="pendingOrder?.payment">
         <h4 class="text-center">
-          <span class="text-success"> We received your payment.</span> Please
+          <span class="text-darkSuccess"> We received your payment.</span> Please
           wait for our confirmation on
           <a :href="$store.state.clientLink" class="link">Facebook</a>. Thank
           You!

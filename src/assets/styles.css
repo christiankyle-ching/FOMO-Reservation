@@ -6,18 +6,23 @@
   h1 {
     @apply text-4xl font-medium;
   }
+
   h2 {
     @apply text-3xl font-medium;
   }
+
   h3 {
     @apply text-2xl font-semibold;
   }
+
   h4 {
     @apply text-xl font-semibold;
   }
+
   h5 {
     @apply text-lg font-bold;
   }
+
   h6 {
     @apply text-base font-bold;
   }
@@ -31,11 +36,11 @@
   }
 
   a.link {
-    @apply font-medium text-blue-700 underline;
+    @apply font-medium text-darkInfo underline;
   }
 
   a.card {
-    @apply block cursor-pointer hover:shadow-xl ring-gray-700 hover:ring-2;
+    @apply block cursor-pointer hover:shadow-xl hover:border-secondary;
   }
 
   .alerts {
@@ -47,15 +52,15 @@
   }
 
   .alert-info {
-    @apply bg-blue-200 text-blue-600 border-blue-500 opacity-100;
+    @apply bg-lightInfo text-darkInfo border-darkInfo opacity-100;
   }
 
   .alert-danger {
-    @apply bg-red-200 text-red-600 border-red-500 opacity-100;
+    @apply bg-lightDanger text-darkDanger border-darkDanger opacity-100;
   }
 
   .alert-success {
-    @apply bg-green-200 text-green-600 border-green-500 opacity-100;
+    @apply bg-lightSuccess text-darkSuccess border-darkSuccess opacity-100;
   }
 
   .alert > .message {
@@ -83,22 +88,31 @@
   }
 
   .button-primary {
-    @apply text-white bg-yellow-600 hover:bg-yellow-700;
+    @apply text-light bg-primary hover:bg-darkPrimary;
   }
 
   .button-secondary {
-    @apply hover:text-white bg-transparent hover:bg-yellow-600 ring-2 ring-yellow-600 ring-inset;
+    @apply hover:text-light bg-transparent hover:bg-primary ring-2 ring-primary ring-inset;
+  }
+
+  .button-transparent {
+    @apply hover:text-darkSecondary bg-transparent hover:bg-lightSecondary;
   }
 
   .button-danger {
-    @apply text-white bg-red-600 hover:bg-red-700;
+    @apply text-light bg-danger hover:bg-darkDanger;
   }
 
   .button-icon {
     @apply flex p-0 rounded-lg transition-colors;
   }
 
-  .button-icon > svg {
+  .button-icon div {
+    @apply w-full h-full flex;
+  }
+
+  .button-icon > svg,
+  .button-icon div > svg {
     @apply block m-auto;
   }
 
@@ -127,7 +141,7 @@
   }
 
   .card {
-    @apply shadow-lg rounded-3xl border-2 p-5 transition-shadow;
+    @apply shadow-lg rounded-3xl border-2 border-lightSecondary p-5 transition-colors bg-white;
   }
 
   .fab-container {
@@ -148,7 +162,7 @@
   }
 
   label.checkbox input[type="checkbox"] {
-    @apply appearance-none border-2 border-gray-300 checked:bg-yellow-500 checked:border-transparent transition-colors h-6 w-6 bg-contain m-0 cursor-pointer;
+    @apply appearance-none border-2 border-lightSecondary checked:bg-primary checked:border-transparent transition-colors h-6 w-6 bg-contain m-0 cursor-pointer;
   }
 
   label.checkbox input[type="checkbox"]:checked {
@@ -196,19 +210,19 @@
   }
 
   label {
-    @apply pt-2 text-sm text-gray-500;
+    @apply pt-2 text-sm text-secondary;
   }
 
   input {
-    @apply p-1 mt-1 w-full rounded-md shadow-sm border-2 focus:outline-none;
+    @apply p-1 mt-1 w-full border-2 rounded-md shadow-sm focus:outline-none;
   }
 
   input:required:invalid {
-    @apply ring-2 ring-red-600;
+    @apply border-danger;
   }
 
   input:required:valid {
-    @apply ring-0 focus:ring-2 focus:ring-yellow-600;
+    @apply focus:border-primary;
   }
 
   .icon-sm {
@@ -233,7 +247,7 @@
   }
 
   .input__number {
-    @apply mt-1 rounded-lg border-2 border-yellow-500 inline-flex items-center;
+    @apply mt-1 rounded-lg border-2 border-primary inline-flex items-center;
   }
 
   .input__number input[type="number"] {
@@ -249,7 +263,7 @@
   }
 
   .input__search > svg {
-    @apply text-gray-700 mr-3;
+    @apply text-darkSecondary mr-3;
   }
 
   select {
@@ -259,24 +273,12 @@
   th,
   td {
     @apply px-2 py-1 sm:px-4 sm:py-2;
-    @apply border border-yellow-500;
+    @apply border border-primary;
   }
 
   table thead,
   table tfoot {
-    @apply bg-yellow-200 text-yellow-700 font-medium;
-  }
-
-  .text-success {
-    @apply text-green-700;
-  }
-
-  .text-info {
-    @apply text-blue-700;
-  }
-
-  .text-danger {
-    @apply text-red-700;
+    @apply bg-lightPrimary text-darkPrimary font-medium;
   }
 
   /* Animations */

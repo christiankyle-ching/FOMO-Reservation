@@ -35,6 +35,22 @@
             class="block button button-primary"
             >Login</router-link
           >
+
+          <!-- Dark Mode -->
+          <button
+            type="button"
+            class="button-icon button-icon-md button-transparent ml-2"
+            @click="toggleDarkMode"
+          >
+            <transition name="fade" mode="out-in">
+              <div v-if="darkModeEnabled">
+                <span class="fas fa-sun"></span>
+              </div>
+              <div v-else>
+                <span class="fas fa-moon"></span>
+              </div>
+            </transition>
+          </button>
         </div>
       </div>
     </nav>
@@ -65,6 +81,7 @@ export default {
   components: { Alert },
   data() {
     return {
+      darkModeEnabled: false,
       noInternetAlert: new AlertObj({
         message: "Please check your internet connection.",
         type: "danger",
@@ -72,11 +89,13 @@ export default {
       }),
     };
   },
-  computed: mapState({
-    user: "user",
-    alerts: "alerts",
-    isOnline: "isOnline",
-  }),
+  computed: {
+    ...mapState({
+      user: "user",
+      alerts: "alerts",
+      isOnline: "isOnline",
+    }),
+  },
   created() {
     // Network Connection Changes
     window.addEventListener("offline", () => {
@@ -87,6 +106,11 @@ export default {
     });
   },
   methods: {
+    toggleDarkMode() {
+      this.darkModeEnabled = document
+        .querySelector("html")
+        .classList.toggle("dark");
+    },
     logout() {
       firebase
         .auth()
