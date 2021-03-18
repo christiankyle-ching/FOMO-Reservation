@@ -16,10 +16,11 @@
       <!-- c: Payment Done - Details -->
       <div v-else-if="pendingOrder?.payment">
         <h4 class="text-center">
-          <span class="text-darkSuccess"> We received your payment.</span>
+          <span class="text-success"> We received your payment.</span>
           Please wait for our confirmation on
-          <a :href="$store.state.clientLink" class="link">Facebook</a>. Thank
-          You!
+          <a :href="$store.state.clientUrl" class="link" target="_blank"
+            >Facebook</a
+          >. Thank You!
         </h4>
         <div class="pt-10">
           <h3 class="text-center pb-5">Payment Details</h3>

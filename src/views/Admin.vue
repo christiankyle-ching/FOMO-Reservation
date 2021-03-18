@@ -1,6 +1,8 @@
 <template>
   <div class="admin">
-    <h1 class="text-center mb-5 sm:mb-10">Manage {{ $store.state.clientName }}</h1>
+    <h1 class="text-center mb-5 sm:mb-10">
+      Manage {{ $store.state.clientName }}
+    </h1>
 
     <div v-if="status == null" class="flex h-32">
       <LoadingSpinner class="m-auto" />
@@ -41,7 +43,6 @@
 import { mapState } from "vuex";
 import { BATCH_STATUS } from "@/models/Batch";
 
-import Batches from "@/components/Batches.vue";
 import OpenBatch from "@/components/OpenBatch";
 import LatestBatch from "@/components/LatestBatch";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -49,7 +50,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "Admin",
 
-  components: { Batches, OpenBatch, LatestBatch, LoadingSpinner },
+  components: { OpenBatch, LatestBatch, LoadingSpinner },
   computed: {
     ...mapState({
       status: "status",

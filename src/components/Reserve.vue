@@ -8,7 +8,7 @@
         <h4>Reservation is now open for the next batch!</h4>
       </div>
 
-      <button @click="reserve" class="button button-block button-primary mt-3">
+      <button @click="reserve()" class="button button-block button-primary mt-3">
         <span class="fas fa-utensils"></span>
         Reserve
       </button>

@@ -9,7 +9,7 @@
         >
           <span class="font-medium">Status: </span>
           <span class="mb-1 sm:mb-0">
-            <span v-if="order.payment" class="text-darkSuccess font-medium"
+            <span v-if="order.payment" class="text-success font-medium"
               >Paid</span
             >
             <span v-else class="text-darkDanger font-medium">Pending</span>
@@ -50,7 +50,7 @@
           >
             <td>{{ product.name }}</td>
             <td class="text-right">
-              {{ product.unit_price.toLocaleString() }} PHP x {{ product.qty }}
+              {{ product.unit_price.toLocaleString() }} PHP x{{ product.qty }}
             </td>
             <td class="text-right">
               {{ product.total_price.toLocaleString() }} PHP
@@ -77,18 +77,32 @@
         </tfoot>
       </table>
     </div>
-    <button
-      @click="print"
-      type="button"
-      class="button button-block button-secondary mt-3"
-    >
-      <span class="fas fa-print"></span>
-      Print
-    </button>
+
+    <div v-if="order.payment">
+      <button
+        @click="print()"
+        type="button"
+        class="button button-block button-secondary mt-3"
+      >
+        <span class="fas fa-print"></span>
+        Print
+      </button>
+      <button
+        @click="saveAsImage()"
+        type="button"
+        class="button button-block button-secondary mt-3"
+      >
+        <span class="fas fa-file-image"></span>
+        Save As Image
+      </button>
+    </div>
   </div>
 </template>
 
 <script>
+import html2canvas from "html2canvas";
+import { ALERT_TYPE } from "../models/Alert";
+
 export default {
   name: "Receipt",
   props: { order: Object, inProcess: Boolean },
@@ -98,8 +112,80 @@ export default {
     removeOrder(index) {
       this.order.orderList.splice(index, 1);
     },
-    print() {
-      // TODO: Implement Print
+    async saveAsImage() {
+      try {
+        const imageData = await this.generateImageOfReceipt();
+
+        if (imageData === "") throw new Error("noImageData");
+
+        // Download using a.href
+        const downloadLink = document.createElement("a");
+        downloadLink.href = imageData;
+        downloadLink.setAttribute("download", `Order #${this.order.oid}.png`);
+        downloadLink.click();
+
+        this.$store.dispatch("alert", {
+          message: `Downloaded receipt for Order #${this.order.oid}.`,
+          type: ALERT_TYPE.SUCCESS,
+        });
+      } catch {
+        this.$store.dispatch("alert", {
+          message: "Something went wrong in saving your image.",
+          type: ALERT_TYPE.DANGER,
+        });
+      }
+    },
+
+    async print() {
+      try {
+        const imageData = await this.generateImageOfReceipt();
+
+        if (imageData === "") throw new Error("noImageData");
+
+        // Open a new Window, Add img with src of imageData, then window.print
+        const printWindow = window.open(
+          "",
+          `${this.$store.state.clientName} - Order #${this.order.oid}`
+        );
+        printWindow.document.write(`<img src="${imageData}" />`);
+        setTimeout(() => {
+          printWindow.print();
+        }, 250);
+      } catch (err) {
+        this.$store.dispatch("alert", {
+          message: "Something went wrong in printing.",
+          type: ALERT_TYPE.DANGER,
+        });
+      }
+    },
+
+    async generateImageOfReceipt() {
+      // Generate Light Mode for Receipt First
+      const _originalDarkMode = !!this.$store.state.darkModeEnabled;
+      this.$store.dispatch("toggleDarkMode", false);
+
+      const receiptContainer = document.createElement("div");
+      receiptContainer.classList.add("p-5", "print-container");
+      const receipt = this.$refs.receipt.cloneNode(true);
+      receiptContainer.appendChild(receipt);
+      document.body.appendChild(receiptContainer);
+
+      window.scrollTo(0, 0); // html2canvas Bug: Image Cropped when window is scrolled
+      const options = {};
+      let imageData = "";
+      try {
+        const canvas = await html2canvas(receiptContainer, options);
+        imageData = canvas.toDataURL("image/png");
+      } catch (err) {
+        throw err;
+      } finally {
+        // Return Dark Mode to Original State
+        this.$store.dispatch("toggleDarkMode", _originalDarkMode);
+
+        receiptContainer.remove();
+      }
+
+      return imageData;
     },
   },
 };

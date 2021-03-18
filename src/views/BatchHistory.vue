@@ -1,6 +1,4 @@
 <template>
-  <!-- TODO: Implement Router-View last batches with pagination -->
-
   <div class="batch-history">
     <h1 class="text-center mb-5 sm:mb-10">Batch History</h1>
 
@@ -16,7 +14,7 @@
 
         <div class="text-right mt-3">
           <button
-            @click="resetSearch"
+            @click="resetSearch()"
             type="button"
             class="button button-secondary"
             :disabled="!searchDate"
@@ -76,7 +74,7 @@
 
         <button
           v-else-if="dbBatchesCursor != null"
-          @click="fetchNextBatches"
+          @click="fetchNextBatches()"
           type="button"
           class="button button-block button-secondary mt-3"
         >

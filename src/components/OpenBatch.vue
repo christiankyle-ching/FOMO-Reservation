@@ -46,7 +46,7 @@
       </div>
 
       <button
-        @click="closeCurrentBatch"
+        @click="closeCurrentBatch()"
         class="button button-danger button-block"
       >
         <span class="fas fa-door-closed"></span>
@@ -79,7 +79,7 @@
 
         <!-- Finalize Orders -->
         <button
-          @click="finalizeBatch"
+          @click="finalizeBatch()"
           class="button button-primary button-block mt-3"
         >
           Stop Accepting Orders (Finalize)

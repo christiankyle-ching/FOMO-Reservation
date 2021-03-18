@@ -117,7 +117,7 @@
               <tr>
                 <td>{{ formUnitPrice.toLocaleString() }} PHP</td>
                 <td>{{ formAddOns.toLocaleString() }} PHP</td>
-                <td>x {{ formQty }}</td>
+                <td>x{{ formQty }}</td>
                 <td class="font-medium">
                   {{ formTotalPrice.toLocaleString() }} PHP
                 </td>

@@ -9,6 +9,8 @@
       </div>
 
       <BatchOrders :batch="batch" />
+
+      <button @click="batch.clone()">Clone</button>
     </div>
   </div>
 </template>

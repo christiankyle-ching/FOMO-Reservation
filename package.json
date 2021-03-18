@@ -12,6 +12,7 @@
     "csv": "^5.4.0",
     "firebase": "^8.2.9",
     "firebaseui": "^4.7.3",
+    "html2canvas": "1.0.0-rc.7",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
     "vuex": "^4.0.0-0"

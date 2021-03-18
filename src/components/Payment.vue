@@ -8,41 +8,42 @@
       <div class="text-sm">
         <p class="mt-3">
           You will not be charged until the status below becomes
-          <span class="text-darkSuccess">Paid</span>.
+          <span class="text-success">Paid</span>.
         </p>
 
         <p class="mt-3">
           <strong
             >If you are charged but has not received your Payment ID</strong
           >, please contact us on
-          <a :href="$store.state.clientLink" class="link">Facebook</a> to verify
+          <a :href="$store.state.clientUrl" class="link" target="_blank">Facebook</a> to verify
           your payment.
-          <!-- TODO: Get Gringo's Link -->
         </p>
       </div>
 
       <!-- FIXME: What to do if it takes long, and not yet charged. -->
       <!-- Problem: Might get double charged -->
-      <!-- <p>If this takes too long, but you are not yet charged, Please click here to reload the page and try to pay again.</p> -->
     </div>
 
     <div v-else>
       <div v-if="!fetchingLink">
-        <h2 class="text-center pb-5">Pay With</h2>
+        <h2 class="text-center pb-5">Payment Options</h2>
 
-        <div class="flex items-center justify-around">
+        <div
+          class="flex justify-center items-center mx-auto flex-col sm:flex-row"
+        >
+          <!-- GCash -->
           <button
             @click="payWithEwallet('gcash')"
-            class="button button-primary"
+            class="button overflow-hidden p-0 m-2"
           >
-            Pay with GCash
+            <img src="@/assets/icons/gcash.png" alt="GCash" class="w-32" />
           </button>
-          <span>or</span>
+          <!-- GrabPay -->
           <button
             @click="payWithEwallet('grab_pay')"
-            class="button button-primary"
+            class="button overflow-hidden p-0 m-2"
           >
-            Pay with GrabPay
+            <img src="@/assets/icons/grabpay.png" alt="GrabPay" class="w-32" />
           </button>
         </div>
 
@@ -73,7 +74,6 @@ export default {
   },
   computed: {
     redirectUrl() {
-      // TODO: Replace redirect url
       return `${location.origin}${this.$router.resolve({ name: "Home" }).path}`;
     },
     ...mapState({

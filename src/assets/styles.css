@@ -76,7 +76,7 @@
   }
 
   .button {
-    @apply text-center px-3 py-2 rounded-lg transition-colors;
+    @apply text-center px-3 py-2 rounded-lg  max-w-md transition-colors;
   }
 
   .button-rounded {
@@ -88,7 +88,7 @@
   }
 
   .button-block {
-    @apply w-full block;
+    @apply w-full block m-auto;
   }
 
   .button-primary {
@@ -101,6 +101,10 @@
 
   .button-transparent {
     @apply text-dark3 bg-transparent hover:bg-lightSecondary;
+  }
+
+  .button-light {
+    @apply bg-light hover:bg-lightSecondary;
   }
 
   .button-danger {
@@ -174,7 +178,9 @@
   }
 
   label.checkbox input[type="checkbox"] {
-    @apply appearance-none border-2 border-lightSecondary checked:bg-primary checked:border-transparent transition-colors h-6 w-6 bg-contain m-0 cursor-pointer;
+    @apply appearance-none border-2 border-lightSecondary checked:bg-primary;
+    @apply checked:border-primary transition-colors h-6 w-6 bg-contain m-0
+      cursor-pointer;
   }
 
   label.checkbox input[type="checkbox"]:checked {
@@ -254,6 +260,10 @@
     @apply h-6 w-6 !important;
   }
 
+  .icon-landscape-lg {
+    max-height: 2rem !important;
+  }
+
   .input__number input[type="number"]::-webkit-inner-spin-button,
   .input__number input[type="number"]::-webkit-outer-spin-button {
     display: none;
@@ -318,7 +328,7 @@
     }
 
     a.link {
-      @apply text-lightInfo;
+      @apply text-lightPrimary;
     }
 
     a.card {
@@ -346,7 +356,7 @@
     }
 
     label.checkbox input[type="checkbox"] {
-      @apply border-darkSecondary checked:bg-darkPrimary;
+      @apply border-darkSecondary checked:border-darkPrimary checked:bg-darkPrimary;
     }
 
     .modal__dialog {

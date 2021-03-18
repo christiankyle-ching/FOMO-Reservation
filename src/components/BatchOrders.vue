@@ -60,7 +60,7 @@
             <small>{{ order.oid }}</small>
           </td>
           <td class="w-full">
-            <div class="flex items-center justify-between">
+            <div class="flex items-start justify-between">
               <span>{{ order.name }}</span>
 
               <!-- FB Link -->

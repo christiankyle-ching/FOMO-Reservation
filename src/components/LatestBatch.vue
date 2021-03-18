@@ -18,7 +18,7 @@
     <BatchOrders :batch="latestBatch" />
 
     <button
-      @click="markLatestBatchAsDone"
+      @click="markLatestBatchAsDone()"
       class="button button-block button-primary mt-3"
     >
       <span class="fas fa-check"></span>

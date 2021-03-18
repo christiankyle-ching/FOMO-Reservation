@@ -32,15 +32,24 @@ class Batch {
   }
 
   get createdAtString() {
-    return this.created_at.toDate().toLocaleString("en-US", localeDateTimeOpts);
+    return (
+      this.created_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ??
+      "Not Yet"
+    );
   }
 
   get closedAtString() {
-    return this.closed_at.toDate().toLocaleString("en-US", localeDateTimeOpts);
+    return (
+      this.closed_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ??
+      "Not Yet"
+    );
   }
 
   get lockedAtString() {
-    return this.locked_at.toDate().toLocaleString("en-US", localeDateTimeOpts);
+    return (
+      this.locked_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ??
+      "Not Yet"
+    );
   }
 
   get firestoreDoc() {
@@ -98,8 +107,8 @@ class Batch {
   }
 
   clone() {
-    // TODO: Implement for editing
-    return {};
+    // TODO: Do I need to edit saved batches?
+    return new Batch({ ...this });
   }
 }
 

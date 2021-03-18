@@ -20,6 +20,7 @@ const store = createStore({
     appTitle: process.env.VUE_APP_TITLE,
     clientName: process.env.VUE_APP_CLIENT,
     clientUrl: process.env.VUE_APP_CLIENT_LINK,
+    darkModeEnabled: null,
 
     // #region SHARED
     products: null, // Product()[]
@@ -149,6 +150,9 @@ const store = createStore({
   actions: {
     // GLOBAL
     async initApp({ dispatch, commit }, user) {
+      // App
+      if (localStorage.darkMode == "true") dispatch("toggleDarkMode", true);
+
       dispatch("fetchUser", user);
 
       if (user) {
@@ -206,6 +210,19 @@ const store = createStore({
         dispatch("detachStatus");
         dispatch("detachCounters");
       }
+    },
+
+    toggleDarkMode({ state }, value) {
+      const newValue = value ?? !state.darkModeEnabled;
+
+      state.darkModeEnabled = newValue;
+      localStorage.darkMode = newValue;
+
+      newValue
+        ? document.querySelector("html").classList.add("dark")
+        : document.querySelector("html").classList.remove("dark");
+
+      console.log("Dark Mode: ", state.darkModeEnabled);
     },
 
     // Alerts

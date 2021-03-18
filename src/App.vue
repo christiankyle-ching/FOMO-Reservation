@@ -11,11 +11,25 @@
           <span class="fas fa-arrow-left"></span>
         </button>
 
-        <h3>
-          <router-link :to="{ name: 'Home' }">{{
-            $store.state.clientName
-          }}</router-link>
-        </h3>
+        <router-link :to="{ name: 'Home' }">
+          <h3>{{ $store.state.clientName }}</h3>
+        </router-link>
+
+        <!-- Toggle: Dark Mode -->
+        <button
+          type="button"
+          class="button-icon button-icon-md button-transparent ml-2"
+          @click="toggleDarkMode()"
+        >
+          <transition name="fade" mode="out-in">
+            <div v-if="darkModeEnabled">
+              <span class="fas fa-sun text-lightPrimary"></span>
+            </div>
+            <div v-else>
+              <span class="fas fa-moon text-darkSecondary"></span>
+            </div>
+          </transition>
+        </button>
 
         <div class="ml-auto my-auto flex items-center">
           <router-link :to="{ name: 'Admin' }" class="nav-link mr-5"
@@ -25,7 +39,7 @@
           <button
             v-if="user"
             class="block button button-primary"
-            @click="logout"
+            @click="logout()"
           >
             Logout
           </button>
@@ -35,22 +49,6 @@
             class="block button button-primary"
             >Login</router-link
           >
-
-          <!-- Dark Mode -->
-          <button
-            type="button"
-            class="button-icon button-icon-md button-transparent ml-2"
-            @click="toggleDarkMode"
-          >
-            <transition name="fade" mode="out-in">
-              <div v-if="darkModeEnabled">
-                <span class="fas fa-sun"></span>
-              </div>
-              <div v-else>
-                <span class="fas fa-moon"></span>
-              </div>
-            </transition>
-          </button>
         </div>
       </div>
     </nav>
@@ -81,7 +79,6 @@ export default {
   components: { Alert },
   data() {
     return {
-      darkModeEnabled: false,
       noInternetAlert: new AlertObj({
         message: "Please check your internet connection.",
         type: "danger",
@@ -94,6 +91,7 @@ export default {
       user: "user",
       alerts: "alerts",
       isOnline: "isOnline",
+      darkModeEnabled: "darkModeEnabled",
     }),
   },
   created() {
@@ -106,10 +104,6 @@ export default {
     });
   },
   methods: {
-    toggleDarkMode() {
-      this.darkModeEnabled = !this.darkModeEnabled;
-      localStorage.darkMode = this.darkModeEnabled;
-    },
     logout() {
       firebase
         .auth()
@@ -118,17 +112,10 @@ export default {
           this.$router.push({ name: "Login" });
         });
     },
-    ...mapActions({ removeAlert: "removeAlert" }),
-  },
-  watch: {
-    darkModeEnabled(enable) {
-      enable
-        ? document.querySelector("html").classList.add("dark")
-        : document.querySelector("html").classList.remove("dark");
-    },
-  },
-  mounted() {
-    this.darkModeEnabled = (localStorage.darkMode ?? false) == "true";
+    ...mapActions({
+      removeAlert: "removeAlert",
+      toggleDarkMode: "toggleDarkMode",
+    }),
   },
 };
 </script>
