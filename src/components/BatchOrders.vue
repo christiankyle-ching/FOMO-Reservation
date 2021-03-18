@@ -16,7 +16,7 @@
         </div>
       </template>
       <template v-slot:content>
-        <Receipt :order="orderShown" in-process />
+        <Receipt :order="orderShown" :batch="batch" inProcess />
       </template>
     </Modal>
   </transition>
@@ -67,7 +67,7 @@
               <a
                 :href="order.fbLink"
                 target="_blank"
-                class="button-icon button-icon-md text-info"
+                class="button p-0 text-info"
               >
                 <span class="fab fa-facebook-square"></span>
               </a>
@@ -95,7 +95,11 @@
                 type="checkbox"
                 :id="order.uid + '-done'"
                 v-model="batch.orders[index].isDone"
-                @change="updateLatestBatch"
+                @change="
+                  isFinalized
+                    ? updateLatestBatch()
+                    : updatePendingOrder(batch.orders[index])
+                "
               />
             </label>
           </td>
@@ -115,7 +119,7 @@ import Receipt from "@/components/Receipt";
 import Modal from "@/components/Modal";
 
 export default {
-  props: { batch: Object },
+  props: { batch: Object, isFinalized: Boolean },
   components: { Receipt, Modal },
   data() {
     return {
@@ -148,6 +152,7 @@ export default {
     },
     ...mapActions({
       updateLatestBatch: "updateLatestBatch",
+      updatePendingOrder: "updatePendingOrder",
     }),
   },
 };

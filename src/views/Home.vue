@@ -10,7 +10,7 @@
       <!-- b: Order Done, Wait for Payment -->
       <div v-else-if="orderDone">
         <Payment class="mb-10" />
-        <Receipt :order="pendingOrder" inProcess />
+        <Receipt :order="pendingOrder" :batch="latestBatch" inProcess />
       </div>
 
       <!-- c: Payment Done - Details -->
@@ -24,7 +24,7 @@
         </h4>
         <div class="pt-10">
           <h3 class="text-center pb-5">Payment Details</h3>
-          <Receipt :order="pendingOrder" inProcess />
+          <Receipt :order="pendingOrder" :batch="latestBatch" inProcess />
         </div>
       </div>
 
@@ -34,12 +34,12 @@
           Batch "{{ latestBatch?.name }}" is in process.
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 my-3">
-          <span class="font-medium">Started Processing:</span>
-          <span> {{ latestBatch.lockedAtString }}</span>
+          <span class="font-medium">Batch Date (Closed Reservations):</span>
+          <span> {{ latestBatch.closedAtString }}</span>
         </div>
 
         <h5 class="text-center mb-3">Your Order</h5>
-        <Receipt :order="orderFromLatestBatch" inProcess />
+        <Receipt :order="orderFromLatestBatch" :batch="latestBatch" inProcess />
       </div>
 
       <Reserve v-else />
@@ -57,6 +57,9 @@ import Payment from "@/components/Payment.vue";
 export default {
   name: "Home",
   components: { Order, Reserve, Payment, Receipt },
+  data() {
+    return { orderFromLatestBatch: null };
+  },
   computed: {
     ...mapState({
       user: "user",
@@ -64,19 +67,22 @@ export default {
       orderAllowed: "orderAllowed",
       orderDone: "orderDone",
       latestBatch: "latestBatch",
-      orderFromLatestBatch(state) {
-        if (state.latestBatch != null && !state.latestBatch.isDone) {
-          return (
-            state.latestBatch.orders?.find(
-              (o) => o.email === state.user.email
-            ) ?? null
-          );
-        }
-
-        return null;
-      },
+      // status: "status",
     }),
   },
-  methods: {},
+  watch: {
+    latestBatch() {
+      console.log(this.latestBatch);
+
+      if (this.latestBatch != null && !this.latestBatch.isDone) {
+        return (this.orderFromLatestBatch =
+          this.latestBatch.orders?.find(
+            (o) => o.email === this.$store.state.user.email
+          ) ?? null);
+      }
+
+      this.orderFromLatestBatch = null;
+    },
+  },
 };
 </script>

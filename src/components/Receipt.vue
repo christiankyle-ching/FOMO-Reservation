@@ -15,6 +15,11 @@
             <span v-else class="text-darkDanger font-medium">Pending</span>
           </span>
 
+          <span class="font-medium" v-if="batch != null">Batch: </span>
+          <span class="mb-1 sm:mb-0" v-if="batch != null"
+            >{{ batch?.closedAtString }} ({{ batch?.name }})</span
+          >
+
           <span class="font-medium">Order #: </span>
           <span class="mb-1 sm:mb-0"> {{ order.oid }}</span>
         </div>
@@ -105,7 +110,7 @@ import { ALERT_TYPE } from "../models/Alert";
 
 export default {
   name: "Receipt",
-  props: { order: Object, inProcess: Boolean },
+  props: { order: Object, batch: Object, inProcess: Boolean },
   inheritAttrs: false,
 
   methods: {

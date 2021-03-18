@@ -4,6 +4,7 @@
 
 @layer base {
   body {
+    /* FIXME: Transition Lag on Products View */
     @apply transition-colors;
   }
 

@@ -211,7 +211,6 @@ const store = createStore({
         dispatch("detachCounters");
       }
     },
-
     toggleDarkMode({ state }, value) {
       const newValue = value ?? !state.darkModeEnabled;
 
@@ -383,7 +382,9 @@ const store = createStore({
         (pendingOrders) => {
           const cachePendingOrders = [];
           pendingOrders.forEach((order) => {
-            cachePendingOrders.push(new Order({ ...order.data() }));
+            cachePendingOrders.push(
+              new Order({ id: order.id, ...order.data() })
+            );
           });
 
           commit("SET_PENDING_ORDERS", cachePendingOrders);
@@ -397,6 +398,7 @@ const store = createStore({
 
     // Order Flow
     async openNewBatch({ state, dispatch }) {
+      // TODO: Do in a WriteBatch
       const data = state.formNewBatch;
 
       // Set open_batch in database
@@ -421,6 +423,8 @@ const store = createStore({
     },
 
     async closeCurrentBatch({ state, dispatch }) {
+      // TODO: Do in a WriteBatch
+      
       console.log("closeCurrentBatch");
 
       const curBatch = state.openBatch;
@@ -487,7 +491,7 @@ const store = createStore({
           .orderBy("payment")
           .get()
       ).forEach((order) => {
-        cacheOrders.push({ ...order.data(), isDone: false });
+        cacheOrders.push({ ...order.data() });
       });
 
       const queryLatest = await _db
@@ -558,18 +562,21 @@ const store = createStore({
       if (!batchRef.empty) {
         const data = state.latestBatch;
 
-        const updatedBatch = new Batch(
-          data.id,
-          data.name,
-          data.created_at,
-          data.closed_at,
-          data.locked_at,
-          data.order_limit,
-          data.orders,
-          data.isDone
-        );
+        const updatedBatch = new Batch({ ...data });
+
+        console.log(updatedBatch);
 
         await batchRef.update(updatedBatch.firestoreDoc);
+      }
+    },
+
+    async updatePendingOrder({ state }, order) {
+      console.log("updatePendingOrder");
+
+      const pendingOrder = state.dbPendingOrders.doc(order.uid);
+
+      if (!pendingOrder.exists) {
+        await pendingOrder.update(order.firestoreDoc);
       }
     },
 
@@ -658,7 +665,7 @@ const store = createStore({
       state.unsubscribePendingOrder = state.dbPendingOrder.onSnapshot(
         (pendingOrder) => {
           const data = pendingOrder.data();
-          const orderObj = new Order({ ...data });
+          const orderObj = new Order({ id: pendingOrder.id, ...data });
 
           commit("SET_PENDING_ORDER", orderObj);
 

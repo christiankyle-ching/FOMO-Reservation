@@ -8,9 +8,7 @@
         <p class="text-sm mt-2"><strong>Batch ID: </strong>{{ id }}</p>
       </div>
 
-      <BatchOrders :batch="batch" />
-
-      <button @click="batch.clone()">Clone</button>
+      <BatchOrders :batch="batch" :isFinalized="batch.locked_at" />
     </div>
   </div>
 </template>

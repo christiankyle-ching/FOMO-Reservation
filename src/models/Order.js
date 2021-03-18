@@ -1,7 +1,7 @@
 import { localeDateTimeOpts } from "@/utils";
 
 class Order {
-  constructor({ uid, oid, name, email, fbLink, orderList, payment }) {
+  constructor({ uid, oid, name, email, fbLink, orderList, payment, isDone }) {
     const rgxOnlyNums = /\D/g;
 
     this.uid = uid ?? null;
@@ -19,6 +19,7 @@ class Order {
     this.fbLink = fbLink ?? "";
     this.orderList = orderList ?? null;
     this.payment = payment ?? null;
+    this.isDone = isDone ?? false;
   }
 
   get firestoreDoc() {
@@ -30,6 +31,7 @@ class Order {
     Object.assign(firestoreObj, this.email && { email: this.email });
     Object.assign(firestoreObj, this.fbLink && { fbLink: this.fbLink });
     Object.assign(firestoreObj, this.payment && { payment: this.payment });
+    Object.assign(firestoreObj, { isDone: this.isDone });
     Object.assign(
       firestoreObj,
       this.orderList && { orderList: this.orderList }
@@ -39,9 +41,6 @@ class Order {
   }
 
   get totalPrice() {
-    // FIXME: Causes null/undefined on Vue Template. Consider using Optional Chaining instead (?.)
-    // if (this.orderList == null) return 0; // Consider removing this if no errors are found.
-
     if (!this.orderList.length) return 0;
 
     return (
@@ -50,9 +49,6 @@ class Order {
   }
 
   get totalQty() {
-    // FIXME: Causes null/undefined on Vue Template. Consider using Optional Chaining instead (?.)
-    // if (this.orderList == null) return 0; // Consider removing this if no errors are found.
-
     if (!this.orderList.length) return 0;
 
     return this.orderList?.map((o) => o.qty).reduce((a, c) => a + c) ?? 0;

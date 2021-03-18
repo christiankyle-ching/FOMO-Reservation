@@ -15,7 +15,7 @@
       </small>
     </div>
 
-    <BatchOrders :batch="latestBatch" />
+    <BatchOrders :batch="latestBatch" isFinalized />
 
     <button
       @click="markLatestBatchAsDone()"

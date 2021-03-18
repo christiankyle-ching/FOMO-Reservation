@@ -72,7 +72,10 @@ class Batch {
       firestoreObj,
       this.order_limit && { order_limit: this.order_limit }
     );
-    Object.assign(firestoreObj, this.orders && { orders: this.orders });
+    Object.assign(
+      firestoreObj,
+      this.orders && { orders: this.orders.map((o) => o.firestoreDoc) }
+    );
     Object.assign(firestoreObj, { isDone: this.isDone });
 
     return firestoreObj;

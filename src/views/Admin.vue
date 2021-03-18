@@ -58,9 +58,13 @@ export default {
         return state.status?.batch == BATCH_STATUS.CLOSED;
       },
       isProcessing(state) {
+        console.log(state.status?.batch);
+        console.log(state.latestBatch?.isDone);
+        console.log(state.latestBatch?.locked_at);
         return (
           state.status?.batch == BATCH_STATUS.PENDING &&
-          state.latestBatch?.isDone == false
+          state.latestBatch?.isDone == false &&
+          state.latestBatch?.locked_at != null
         );
       },
     }),

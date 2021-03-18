@@ -9,7 +9,7 @@
     <div v-else>
       <!-- Search: Jump to Date -->
       <form @submit.prevent="jumpToDate()" class="card mb-5 sticky top-2 py-2">
-        <label class="p-0">Jump to Date (Started Processing):</label>
+        <label class="p-0">Jump to Date (Closed Reservation Date):</label>
         <input type="date" v-model="searchDate" required />
 
         <div class="text-right mt-3">
@@ -130,8 +130,8 @@ export default {
       _endDate.setDate(_endDate.getDate() + 1);
 
       const _dbBatches = this.$store.state.dbBatches
-        .where("locked_at", ">=", _startDate)
-        .where("locked_at", "<=", _endDate);
+        .where("closed_at", ">=", _startDate)
+        .where("closed_at", "<=", _endDate);
 
       const _batches = await _dbBatches.get();
       const cacheBatches = [];
