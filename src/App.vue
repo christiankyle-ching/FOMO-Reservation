@@ -15,23 +15,23 @@
           <h3>{{ $store.state.clientName }}</h3>
         </router-link>
 
-        <!-- Toggle: Dark Mode -->
-        <button
-          type="button"
-          class="button-icon button-icon-md button-transparent ml-2"
-          @click="toggleDarkMode()"
-        >
-          <transition name="fade" mode="out-in">
-            <div v-if="darkModeEnabled">
-              <span class="fas fa-sun text-lightPrimary"></span>
-            </div>
-            <div v-else>
-              <span class="fas fa-moon text-darkSecondary"></span>
-            </div>
-          </transition>
-        </button>
-
         <div class="ml-auto my-auto flex items-center">
+          <!-- Toggle: Dark Mode -->
+          <button
+            type="button"
+            class="button-icon button-icon-md button-transparent mr-3 md:mr-7"
+            @click="toggleDarkMode()"
+          >
+            <transition name="fade" mode="out-in">
+              <div v-if="darkModeEnabled">
+                <span class="fas fa-lightbulb text-lightPrimary"></span>
+              </div>
+              <div v-else>
+                <span class="fas fa-moon text-darkSecondary"></span>
+              </div>
+            </transition>
+          </button>
+
           <router-link :to="{ name: 'Admin' }" class="nav-link mr-5"
             >Admin</router-link
           >

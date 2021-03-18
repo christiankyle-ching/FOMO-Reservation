@@ -8,6 +8,8 @@ class Product {
   }
 
   addVariant(_name, _price) {
+    if (this.variants == null) this.variants = [];
+
     this.variants.push({ name: _name, price: +_price });
   }
 
@@ -16,6 +18,8 @@ class Product {
   }
 
   addAddOn(_name, _price) {
+    if (this.addons == null) this.addons = [];
+
     this.addons.push({ name: _name, price: +_price });
   }
 

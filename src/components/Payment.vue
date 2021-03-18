@@ -15,8 +15,10 @@
           <strong
             >If you are charged but has not received your Payment ID</strong
           >, please contact us on
-          <a :href="$store.state.clientUrl" class="link" target="_blank">Facebook</a> to verify
-          your payment.
+          <a :href="$store.state.clientUrl" class="link" target="_blank"
+            >Facebook</a
+          >
+          to verify your payment.
         </p>
       </div>
 
@@ -26,7 +28,7 @@
 
     <div v-else>
       <div v-if="!fetchingLink">
-        <h2 class="text-center pb-5">Payment Options</h2>
+        <h2 class="text-center pb-3">Payment Options</h2>
 
         <div
           class="flex justify-center items-center mx-auto flex-col sm:flex-row"
@@ -34,14 +36,14 @@
           <!-- GCash -->
           <button
             @click="payWithEwallet('gcash')"
-            class="button overflow-hidden p-0 m-2"
+            class="button overflow-hidden p-0 my-2 mx-5 shadow-md"
           >
             <img src="@/assets/icons/gcash.png" alt="GCash" class="w-32" />
           </button>
           <!-- GrabPay -->
           <button
             @click="payWithEwallet('grab_pay')"
-            class="button overflow-hidden p-0 m-2"
+            class="button overflow-hidden p-0 my-2 mx-5 shadow-md"
           >
             <img src="@/assets/icons/grabpay.png" alt="GrabPay" class="w-32" />
           </button>

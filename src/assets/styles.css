@@ -180,8 +180,9 @@
 
   label.checkbox input[type="checkbox"] {
     @apply appearance-none border-2 border-lightSecondary checked:bg-primary;
-    @apply checked:border-primary transition-colors h-6 w-6 bg-contain m-0
+    @apply checked:border-primary transition-colors h-6 w-6  bg-contain m-0
       cursor-pointer;
+    min-width: 1.5rem;
   }
 
   label.checkbox input[type="checkbox"]:checked {
@@ -196,7 +197,7 @@
   }
 
   .modal {
-    @apply fixed left-0 top-0 w-screen h-screen flex z-10;
+    @apply fixed left-0 top-0 w-screen h-screen flex z-20;
   }
 
   .modal__backdrop {
@@ -321,7 +322,7 @@
   }
 
   /* DARK MODE */
-  html.dark > body {
+  .dark > body {
     @apply bg-dark3 text-darkText;
 
     nav {

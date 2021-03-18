@@ -26,8 +26,10 @@ const store = createStore({
     products: null, // Product()[]
     status: null, // {}
     unsubscribeStatus: null, // method()
-    openBatch: null, // Batch()
-    unsubscribeBatch: null, // method()
+    openBatch: null, // {} - Can be used in Batch()
+    unsubscribeOpenBatch: null, // method()
+    latestBatch: null, // Batch()
+    unsubscribeLatestBatch: null, // method()
     alerts: [],
     maxAllowedOrderQty: 8, // TODO: Fetch this from DB Options
     // Firebase Refs
@@ -64,7 +66,6 @@ const store = createStore({
 
     // #region ADMIN
     formProducts: [], // Product()[]
-    latestBatch: null, // Batch()
     previousBatches: null, // Batch()[]
     formNewBatch: {
       name: "",
@@ -159,6 +160,7 @@ const store = createStore({
         console.log("---LOGGED IN---");
 
         dispatch("fetchProducts");
+        dispatch("listenLatestBatch");
 
         // Customer DB References
         commit(
@@ -186,7 +188,6 @@ const store = createStore({
         // TODO: Conditional data fetch based on privileges
         const isAdmin = true;
         if (isAdmin) {
-          dispatch("fetchLatestBatch");
           dispatch("fetchBatches");
           dispatch("listenPendingOrders");
 
@@ -206,6 +207,7 @@ const store = createStore({
         commit("DB_SET_RESERVATION", null);
 
         // Detach Listeners
+        dispatch("detachLatestBatch");
         dispatch("detachOpenBatch");
         dispatch("detachStatus");
         dispatch("detachCounters");
@@ -290,22 +292,28 @@ const store = createStore({
     },
 
     // Batches
-    async fetchLatestBatch({ state, commit }) {
-      console.log("fetchLatestBatch");
+    async listenLatestBatch({ state, commit }) {
+      console.log("listenLatestBatch");
 
-      const batch = await state.dbLatestBatch.get();
+      state.unsubscribeLatestBatch = state.dbLatestBatch.onSnapshot(
+        (latest) => {
+          if (!latest.empty) {
+            const data = latest.docs[0].data();
 
-      if (!batch.empty) {
-        const data = batch.docs[0].data();
+            commit(
+              "SET_LATEST_BATCH",
+              new Batch({
+                id: latest.docs[0].id,
+                ...data,
+              })
+            );
+          }
+        }
+      );
+    },
 
-        commit(
-          "SET_LATEST_BATCH",
-          new Batch({
-            id: batch.docs[0].id,
-            ...data,
-          })
-        );
-      }
+    detachLatestBatch({ state }) {
+      if (state.unsubscribeLatestBatch) state.unsubscribeLatestBatch();
     },
 
     async fetchBatches({ state, commit }) {
@@ -424,7 +432,7 @@ const store = createStore({
 
     async closeCurrentBatch({ state, dispatch }) {
       // TODO: Do in a WriteBatch
-      
+
       console.log("closeCurrentBatch");
 
       const curBatch = state.openBatch;
@@ -454,7 +462,6 @@ const store = createStore({
 
       // Save Batch in Batches, Awaiting Finalize to Copy Orders
       await state.dbBatches.add(closedBatch.firestoreDoc);
-      dispatch("fetchLatestBatch"); // Fetch the updated latest batch
 
       // Update Batch Status
       dispatch("status_updateBatch", BATCH_STATUS.CLOSED);
@@ -525,9 +532,6 @@ const store = createStore({
 
       // Change status to BATCH_STATUS.PENDING again
       dispatch("status_updateBatch", BATCH_STATUS.PENDING);
-
-      // Fetch Latest Batch again
-      dispatch("fetchLatestBatch");
 
       // Alert
       dispatch("alert", {
@@ -710,24 +714,26 @@ const store = createStore({
     async listenOpenBatch({ state, commit }) {
       console.log("Listen: open_batch");
 
-      state.unsubscribeBatch = state.dbOpenBatch.onSnapshot(async (batch) => {
-        if (batch.exists) {
-          commit("SET_OPEN_BATCH", batch.data());
+      state.unsubscribeOpenBatch = state.dbOpenBatch.onSnapshot(
+        async (batch) => {
+          if (batch.exists) {
+            commit("SET_OPEN_BATCH", batch.data());
 
-          const reservationExists = (await state.dbReservation.get()).exists;
-          // Update if Reservation is allowed
-          commit("SET_RESERVATION_EXISTS", reservationExists);
-        } else {
-          commit("SET_OPEN_BATCH", null);
-          commit("SET_RESERVATION_EXISTS", null);
+            const reservationExists = (await state.dbReservation.get()).exists;
+            // Update if Reservation is allowed
+            commit("SET_RESERVATION_EXISTS", reservationExists);
+          } else {
+            commit("SET_OPEN_BATCH", null);
+            commit("SET_RESERVATION_EXISTS", null);
+          }
         }
-      });
+      );
     },
 
     detachOpenBatch({ state }) {
       console.log("Detach: open_batch");
 
-      if (state.unsubscribeBatch) state.unsubscribeBatch();
+      if (state.unsubscribeOpenBatch) state.unsubscribeOpenBatch();
     },
     // #endregion
   },
