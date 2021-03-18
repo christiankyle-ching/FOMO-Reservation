@@ -1,90 +1,100 @@
 <template>
   <div class="batch-history">
-    <h1 class="text-center mb-5 sm:mb-10">Batch History</h1>
+    <!-- Search: Jump to Date -->
+    <form
+      @submit.prevent="jumpToDate()"
+      class="sticky top-0 p-5 bg-dark2 border-b-2 border-dark3 shadow-md"
+    >
+      <label class="p-0">Jump to Date (Closed Reservation Date):</label>
+      <input
+        type="date"
+        v-model="searchDate"
+        class="input-suppress-invalid"
+        required
+      />
 
-    <!-- a: Loading -->
-    <LoadingSpinner v-if="previousBatches == null" class="m-auto" />
+      <div class="text-right mt-3">
+        <button
+          @click="resetSearch()"
+          type="button"
+          class="button button-secondary"
+          :disabled="!searchDate"
+        >
+          Reset
+        </button>
+        <button
+          type="submit"
+          class="button button-primary ml-5"
+          :disabled="!searchDate"
+        >
+          Search Date
+        </button>
+      </div>
+    </form>
 
-    <!-- b: Has Previous Batches -->
-    <div v-else>
-      <!-- Search: Jump to Date -->
-      <form @submit.prevent="jumpToDate()" class="card mb-5 sticky top-2 py-2">
-        <label class="p-0">Jump to Date (Closed Reservation Date):</label>
-        <input type="date" v-model="searchDate" required />
+    <div class="container mx-auto p-5 sm:p-10">
+      <h1 class="text-center mb-5 sm:mb-10">Batch History</h1>
 
-        <div class="text-right mt-3">
-          <button
-            @click="resetSearch()"
-            type="button"
-            class="button button-secondary"
-            :disabled="!searchDate"
-          >
-            Reset
-          </button>
-          <button
-            type="submit"
-            class="button button-primary ml-5"
-            :disabled="!searchDate"
-          >
-            Search Date
-          </button>
+      <!-- a: Loading -->
+      <LoadingSpinner v-if="previousBatches == null" class="m-auto" />
+
+      <!-- b: Has Previous Batches -->
+      <div v-else>
+        <!-- ForEach: Batches (Prioritize Searched Batches, then Previous/History)-->
+        <div v-if="searchBatches != null">
+          <LoadingSpinner v-if="isLoadingSearch" class="m-auto" />
+
+          <div v-if="searchBatches?.length">
+            <router-link
+              :to="{ name: 'Batch', params: { id: batch.id } }"
+              v-for="batch of searchBatches"
+              :key="batch"
+              class="card mb-5"
+            >
+              <BatchOrderListItem :batch="batch" />
+            </router-link>
+          </div>
+
+          <!-- c: No Previous Batches -->
+          <p v-else class="text-center font-medium">
+            No batch found for
+            {{
+              new Date(lastSearchedDate).toLocaleString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            }}...
+          </p>
         </div>
-      </form>
 
-      <!-- ForEach: Batches (Prioritize Searched Batches, then Previous/History)-->
-      <div v-if="searchBatches != null">
-        <LoadingSpinner v-if="isLoadingSearch" class="m-auto" />
-
-        <div v-if="searchBatches?.length">
+        <div v-else-if="previousBatches?.length">
           <router-link
             :to="{ name: 'Batch', params: { id: batch.id } }"
-            v-for="batch of searchBatches"
+            v-for="batch of previousBatches"
             :key="batch"
             class="card mb-5"
           >
             <BatchOrderListItem :batch="batch" />
           </router-link>
+
+          <LoadingSpinner v-if="isLoadingMore" class="m-auto" />
+
+          <button
+            v-else-if="dbBatchesCursor != null"
+            @click="fetchNextBatches()"
+            type="button"
+            class="button button-block button-secondary mt-3"
+          >
+            <span class="fas fa-sync-alt"></span>
+            Load More...
+          </button>
         </div>
 
         <!-- c: No Previous Batches -->
-        <p v-else class="text-center font-medium">
-          No batch found for
-          {{
-            new Date(searchDate).toLocaleString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          }}...
-        </p>
+        <p v-else class="text-center font-medium">No batch to show...</p>
       </div>
-
-      <div v-else-if="previousBatches?.length">
-        <router-link
-          :to="{ name: 'Batch', params: { id: batch.id } }"
-          v-for="batch of previousBatches"
-          :key="batch"
-          class="card mb-5"
-        >
-          <BatchOrderListItem :batch="batch" />
-        </router-link>
-
-        <LoadingSpinner v-if="isLoadingMore" class="m-auto" />
-
-        <button
-          v-else-if="dbBatchesCursor != null"
-          @click="fetchNextBatches()"
-          type="button"
-          class="button button-block button-secondary mt-3"
-        >
-          <span class="fas fa-sync-alt"></span>
-          Load More...
-        </button>
-      </div>
-
-      <!-- c: No Previous Batches -->
-      <p v-else class="text-center font-medium">No batch to show...</p>
     </div>
   </div>
 </template>
@@ -101,6 +111,7 @@ export default {
   data() {
     return {
       searchDate: null,
+      lastSearchedDate: null,
       searchBatches: null,
       isLoadingSearch: false,
 
@@ -145,8 +156,8 @@ export default {
       });
 
       this.isLoadingSearch = false;
-
       this.searchBatches = cacheBatches;
+      this.lastSearchedDate = new Date(this.searchDate);
     },
     resetSearch() {
       this.searchBatches = null;

@@ -59,7 +59,7 @@
           <button
             type="button"
             @click="deleteVariant(variantIndex)"
-            class="button-icon button-icon-sm button-danger ml-3 mt-auto"
+            class="button-icon button-icon-sm button-danger ml-3 mb-1 mt-auto"
           >
             <span class="fas fa-times"></span>
           </button>
@@ -125,10 +125,7 @@
 
     <!-- Toggle: Variants -->
     <div class="col-span-1">
-      <label
-        class="checkbox m-0"
-        :for="product.name + '-enableVariant'"
-      >
+      <label class="checkbox m-0" :for="product.name + '-enableVariant'">
         <span>Use Variants? (for example: Serving sizes, 16oz, 22oz...)</span>
 
         <input
@@ -141,7 +138,7 @@
     </div>
 
     <!-- Remove Product -->
-    <div class="col-span-1 text-right">
+    <div class="col-span-1 text-right" v-if="!isAdding">
       <button
         class="button button-danger"
         type="button"
@@ -156,7 +153,7 @@
 
 <script>
 export default {
-  props: { product: Object, categories: Set },
+  props: { product: Object, categories: Set, isAdding: Boolean },
   emits: ["remove"],
   inheritAttrs: false,
   methods: {

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="text-center mt-3" v-if="$route.query.status == 'auth'">
-      <h6 class="font-medium text-darkSuccess">
+      <h6 class="font-medium text-success">
         Please wait while we process your order transaction...
       </h6>
 
@@ -50,7 +50,7 @@
         </div>
 
         <p
-          class="font-medium text-darkDanger text-center mt-3"
+          class="font-medium text-danger text-center mt-3"
           v-if="$route.query.status == 'fail'"
         >
           Payment aborted or unsuccessful. Please try again.

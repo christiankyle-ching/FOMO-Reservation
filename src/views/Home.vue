@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="home container mx-auto p-5 sm:p-10">
     <h1 class="text-center mb-5 sm:mb-10">
       {{ $store.state.clientName }}'s Waitlist
     </h1>
@@ -42,7 +42,7 @@
         <Receipt :order="orderFromLatestBatch" :batch="latestBatch" inProcess />
       </div>
 
-      <Reserve v-else />
+      <Reserve v-else class="mt-20"/>
     </div>
   </div>
 </template>

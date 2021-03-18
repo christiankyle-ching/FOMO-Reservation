@@ -1,7 +1,6 @@
 <template>
-  <!-- TODO: Might be better in Modal -->
-  <div class="import-products card">
-    <h6>Select a templated file:</h6>
+  <div class="import-products">
+    <label>Select a templated file:</label>
     <input
       type="file"
       accept=".csv"
@@ -21,16 +20,18 @@
     <div class="flex justify-around mt-5">
       <button
         @click="replaceProducts(tempProducts)"
-        class="button button-primary"
+        class="button button-primary button-block mx-2"
         :disabled="!tempProducts.length"
       >
+        <span class="fas fa-sync"></span>
         Replace All in Menu
       </button>
       <button
         @click="appendToProducts(tempProducts)"
-        class="button button-primary"
+        class="button button-primary button-block mx-2"
         :disabled="!tempProducts.length"
       >
+        <span class="fas fa-layer-group"></span>
         Add to Existing Menu
       </button>
     </div>
@@ -49,6 +50,7 @@
 <script>
 import { Product } from "@/models/Product";
 import { mapState } from "vuex";
+import { ALERT_TYPE } from "../models/Alert";
 
 export default {
   data() {
@@ -70,6 +72,7 @@ export default {
     async onFileChange(event) {
       const selectedFile = event.target.files[0];
 
+      // If no selected file
       if (!selectedFile) {
         this.tempProducts = [];
         this.updateMessage();
@@ -78,7 +81,16 @@ export default {
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.parseCSVToProducts(e.target.result);
+        try {
+          this.parseCSVToProducts(e.target.result);
+        } catch (err) {
+          this.$store.dispatch("alert", {
+            message: "Invalid template file.",
+            type: ALERT_TYPE.DANGER,
+          });
+
+          event.target.value = null;
+        }
       };
       reader.readAsText(selectedFile);
     },

@@ -3,6 +3,10 @@
     <div ref="receipt">
       <!-- Payment and Order Details -->
       <div class="text-sm sm:text-base mb-3">
+        <div class="print-only">
+          <h1 class="text-center pb-5">Gringo's</h1>
+        </div>
+
         <div
           v-if="order.oid && inProcess"
           class="grid grid-cols-1 sm:grid-cols-2"
@@ -12,7 +16,7 @@
             <span v-if="order.payment" class="text-success font-medium"
               >Paid</span
             >
-            <span v-else class="text-darkDanger font-medium">Pending</span>
+            <span v-else class="text-danger font-medium">Pending</span>
           </span>
 
           <span class="font-medium" v-if="batch != null">Batch: </span>
@@ -41,7 +45,7 @@
       <table class="table-auto w-full text-sm sm:text-base">
         <thead>
           <tr class="text-left">
-            <th class="w-full">Item</th>
+            <th>Item</th>
             <th></th>
             <th>Price</th>
             <th v-if="!inProcess"></th>
@@ -157,10 +161,7 @@ export default {
           printWindow.print();
         }, 250);
       } catch (err) {
-        this.$store.dispatch("alert", {
-          message: "Something went wrong in printing.",
-          type: ALERT_TYPE.DANGER,
-        });
+        console.error(err);
       }
     },
 
@@ -169,10 +170,20 @@ export default {
       const _originalDarkMode = !!this.$store.state.darkModeEnabled;
       this.$store.dispatch("toggleDarkMode", false);
 
+      // Clone Receipt
+      const receipt = this.$refs.receipt.cloneNode(true);
+
+      // Add padding
       const receiptContainer = document.createElement("div");
       receiptContainer.classList.add("p-5", "print-container");
-      const receipt = this.$refs.receipt.cloneNode(true);
       receiptContainer.appendChild(receipt);
+
+      // Show print-only elements
+      receipt
+        .querySelectorAll(".print-only")
+        .forEach((e) => e.classList.remove("print-only"));
+
+      // Append to document to be referenced
       document.body.appendChild(receiptContainer);
 
       window.scrollTo(0, 0); // html2canvas Bug: Image Cropped when window is scrolled

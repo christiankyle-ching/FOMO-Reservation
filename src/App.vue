@@ -66,7 +66,7 @@
     </div>
   </div>
 
-  <router-view class="container mx-auto min-h-screen p-5 sm:p-10" />
+  <router-view class="min-h-screen" />
 </template>
 
 <script>

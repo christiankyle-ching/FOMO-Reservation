@@ -27,6 +27,8 @@ module.exports = {
       lightDanger: colors.red[300],
 
       light: colors.white,
+      light1: colors.gray[50],
+      light2: colors.gray[100],
       darkText: colors.gray[200],
       dark1: colors.gray[700],
       dark2: colors.gray[800],

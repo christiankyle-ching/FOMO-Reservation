@@ -1,5 +1,5 @@
 <template>
-  <div class="admin">
+  <div class="admin container mx-auto p-5 sm:p-10">
     <h1 class="text-center mb-5 sm:mb-10">
       Manage {{ $store.state.clientName }}
     </h1>
@@ -58,9 +58,6 @@ export default {
         return state.status?.batch == BATCH_STATUS.CLOSED;
       },
       isProcessing(state) {
-        console.log(state.status?.batch);
-        console.log(state.latestBatch?.isDone);
-        console.log(state.latestBatch?.locked_at);
         return (
           state.status?.batch == BATCH_STATUS.PENDING &&
           state.latestBatch?.isDone == false &&
