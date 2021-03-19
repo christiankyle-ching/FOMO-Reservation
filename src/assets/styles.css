@@ -170,7 +170,7 @@
   }
 
   .card {
-    @apply shadow-lg rounded-3xl border-2 border-lightSecondary p-5 bg-white;
+    @apply shadow-lg rounded-3xl border-2 border-lightSecondary p-5 bg-white max-w-xl mx-auto;
   }
 
   .fab-container {
@@ -213,7 +213,7 @@
   }
 
   .modal__backdrop {
-    @apply bg-black w-full h-full opacity-60 absolute;
+    @apply bg-black w-full h-full opacity-60 absolute cursor-pointer;
   }
 
   .modal__dialog {
@@ -366,11 +366,11 @@
     }
 
     .button-primary {
-      @apply bg-darkPrimary hover:bg-nightPrimary;
+      @apply bg-primary hover:bg-darkPrimary;
     }
 
     .button-secondary {
-      @apply bg-dark2 ring-darkPrimary hover:bg-nightPrimary;
+      @apply bg-dark2 ring-darkPrimary hover:bg-darkPrimary;
     }
 
     .button-transparent {

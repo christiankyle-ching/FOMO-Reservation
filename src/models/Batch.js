@@ -1,5 +1,5 @@
 import "firebase/firestore";
-import { localeDateTimeOpts } from "../utils";
+import { localeDateTimeOpts } from "@/utils";
 import { Order } from "@/models/Order";
 
 const BATCH_STATUS = Object.freeze({

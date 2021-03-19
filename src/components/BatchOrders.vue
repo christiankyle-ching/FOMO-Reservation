@@ -3,13 +3,16 @@
   <transition name="fade">
     <Modal v-if="showModal" @close="closeOrderModal">
       <template v-slot:header>
-        <div class="flex items-center justify-start">
-          <h3 class="font-medium">{{ orderShown.name }}</h3>
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="font-medium">{{ orderShown.name }}</h3>
+            <p>Phone: {{ orderShown.phoneNumber }}</p>
+          </div>
           <!-- FB Link -->
           <a
             :href="orderShown.fbLink"
             target="_blank"
-            class="button-icon button-icon-md text-info"
+            class="button-icon button-icon-md button-transparent mx-5"
           >
             <span class="fab fa-facebook-square"></span>
           </a>
@@ -46,36 +49,33 @@
     <table class="table-auto w-full mt-3" v-if="batch?.orders?.length">
       <thead>
         <tr>
-          <th class="hidden md:table-cell">Order #</th>
+          <th class="hidden lg:table-cell">Order #</th>
           <th>Facebook Name</th>
+          <th class="hidden md:table-cell">Phone Number</th>
           <th>Amount</th>
           <th>View</th>
+          <th>Paid</th>
           <th>Done</th>
         </tr>
       </thead>
 
       <tbody>
-        <tr v-for="(order, index) in filteredOrders" :key="order">
-          <td class="hidden md:table-cell">
+        <tr v-for="order in filteredOrders" :key="order">
+          <!-- OID -->
+          <td class="hidden lg:table-cell">
             <small>{{ order.oid }}</small>
           </td>
+          <!-- Facebook Name & Link -->
           <td class="w-full">
-            <div class="flex items-start justify-between">
-              <span>{{ order.name }}</span>
-
-              <!-- FB Link -->
-              <a
-                :href="order.fbLink"
-                target="_blank"
-                class="button p-0 text-info"
-              >
-                <span class="fab fa-facebook-square"></span>
-              </a>
-            </div>
+            {{ order.name }}
           </td>
-
+          <!-- Phone Number -->
+          <td class="whitespace-nowrap hidden md:table-cell">
+            {{ order.phoneNumber }}
+          </td>
+          <!-- Amount -->
           <td>{{ order.totalPrice?.toLocaleString() }} PHP</td>
-
+          <!-- Receipt -->
           <td>
             <!-- Show Modal: Receipt -->
             <button
@@ -85,8 +85,23 @@
               <span class="fas fa-receipt"></span>
             </button>
           </td>
+          <!-- Paid Status -->
           <td class="text-center">
-            <!-- Update Done Status -->
+            <label
+              class="checkbox inline-block m-auto"
+              :for="order.uid + '-paid'"
+            >
+              <input
+                type="checkbox"
+                :id="order.uid + '-paid'"
+                :checked="!!order.payment"
+                @click.prevent
+                style="cursor: default !important"
+              />
+            </label>
+          </td>
+          <!-- Done Status -->
+          <td class="text-center">
             <label
               class="checkbox inline-block m-auto"
               :for="order.uid + '-done'"
@@ -94,11 +109,9 @@
               <input
                 type="checkbox"
                 :id="order.uid + '-done'"
-                v-model="batch.orders[index].isDone"
+                v-model="order.isDone"
                 @change="
-                  isFinalized
-                    ? updateLatestBatch()
-                    : updatePendingOrder(batch.orders[index])
+                  isFinalized ? updateLatestBatch() : updatePendingOrder(order)
                 "
               />
             </label>
@@ -133,7 +146,7 @@ export default {
   computed: {
     filteredOrders() {
       return this.batch.orders
-        .filter((o) => o.payment)
+        .filter((o) => o.orderList)
         .filter(
           (o) =>
             o.name.toLowerCase().includes(this.searchKey) ||

@@ -7,7 +7,11 @@
         <h3>Add a Food</h3>
       </template>
       <template v-slot:content>
-        <ProductItemForm :product="formNewProduct" :categories="categories" isAdding />
+        <ProductItemForm
+          :product="formNewProduct"
+          :categories="categories"
+          isAdding
+        />
       </template>
       <template v-slot:buttons>
         <button
@@ -49,6 +53,7 @@
             <ProductItemForm
               :product="product"
               :categories="categories"
+              :count="index + 1"
               @remove="removeProduct(index)"
             />
           </div>
@@ -165,5 +170,4 @@ export default {
 </script>
 
 <style>
-
 </style>

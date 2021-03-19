@@ -35,6 +35,7 @@ const routes = [
     component: Admin,
     meta: {
       title: "Admin",
+      authRequired: true,
     },
   },
   {
@@ -43,6 +44,7 @@ const routes = [
     component: Products,
     meta: {
       title: "Manage Menu",
+      authRequired: true,
     },
   },
   {
@@ -52,6 +54,7 @@ const routes = [
     component: Batch,
     meta: {
       title: "Batch",
+      authRequired: true,
     },
   },
   {
@@ -60,6 +63,7 @@ const routes = [
     component: BatchHistory,
     meta: {
       title: "Batch History",
+      authRequired: true,
     },
   },
 ];
@@ -67,14 +71,24 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    return { left: 0, top: 0, behavior: "smooth" };
+  },
 });
 
 router.afterEach((to, from) => {
   nextTick(() => {
+    // HTML Title Tag
     document.title = to.meta.title
       ? `${to.meta.title} - ${process.env.VUE_APP_TITLE}`
       : process.env.VUE_APP_TITLE;
   });
+});
+
+router.beforeEach((to, from, next) => {
+  console.log(to.matched.meta.authRequired);
+
+  next();
 });
 
 export default router;

@@ -5,13 +5,26 @@
       <div class="text-sm sm:text-base mb-3">
         <div class="print-only">
           <h1 class="text-center pb-5">Gringo's</h1>
+
+          <div
+            v-if="order.oid && inProcess"
+            class="grid grid-cols-1 sm:grid-cols-2"
+          >
+            <b>Customer: </b>
+            <span class="mb-1 sm:mb-0">
+              {{ order?.name }}
+            </span>
+
+            <b>Contact Number:</b>
+            <span class="mb-1 sm:mb-0">{{ order?.phoneNumber }}</span>
+          </div>
         </div>
 
         <div
           v-if="order.oid && inProcess"
           class="grid grid-cols-1 sm:grid-cols-2"
         >
-          <span class="font-medium">Status: </span>
+          <b>Status: </b>
           <span class="mb-1 sm:mb-0">
             <span v-if="order.payment" class="text-success font-medium"
               >Paid</span
@@ -24,18 +37,18 @@
             >{{ batch?.closedAtString }} ({{ batch?.name }})</span
           >
 
-          <span class="font-medium">Order #: </span>
+          <b>Order #: </b>
           <span class="mb-1 sm:mb-0"> {{ order.oid }}</span>
         </div>
 
         <div v-if="order.payment" class="grid grid-cols-1 sm:grid-cols-2">
-          <span class="font-medium">Paid At: </span>
+          <b>Paid At: </b>
           <span class="mb-1 sm:mb-0"> {{ order.paidAtDateTime }}</span>
 
-          <span class="font-medium">Payment ID: </span>
+          <b>Payment ID: </b>
           <span class="mb-1 sm:mb-0"> {{ order?.payment.id }}</span>
 
-          <span class="font-medium">Amount Paid: </span>
+          <b>Amount Paid: </b>
           <span class="mb-1 sm:mb-0">
             {{ order?.paymentAmount.toLocaleString() }} PHP</span
           >
@@ -46,7 +59,7 @@
         <thead>
           <tr class="text-left">
             <th>Item</th>
-            <th></th>
+            <th>Qty</th>
             <th>Price</th>
             <th v-if="!inProcess"></th>
           </tr>
@@ -110,7 +123,7 @@
 
 <script>
 import html2canvas from "html2canvas";
-import { ALERT_TYPE } from "../models/Alert";
+import { ALERT_TYPE } from "@/models/Alert";
 
 export default {
   name: "Receipt",

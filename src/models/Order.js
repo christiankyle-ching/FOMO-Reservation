@@ -1,7 +1,17 @@
 import { localeDateTimeOpts } from "@/utils";
 
 class Order {
-  constructor({ uid, oid, name, email, fbLink, orderList, payment, isDone }) {
+  constructor({
+    uid,
+    oid,
+    name,
+    email,
+    fbLink,
+    phoneNumber,
+    orderList,
+    payment,
+    isDone,
+  }) {
     const rgxOnlyNums = /\D/g;
 
     this.uid = uid ?? null;
@@ -17,6 +27,7 @@ class Order {
     this.name = name ?? "";
     this.email = email ?? "";
     this.fbLink = fbLink ?? "";
+    this.phoneNumber = phoneNumber ?? "";
     this.orderList = orderList ?? null;
     this.payment = payment ?? null;
     this.isDone = isDone ?? false;
@@ -30,6 +41,10 @@ class Order {
     Object.assign(firestoreObj, this.name && { name: this.name });
     Object.assign(firestoreObj, this.email && { email: this.email });
     Object.assign(firestoreObj, this.fbLink && { fbLink: this.fbLink });
+    Object.assign(
+      firestoreObj,
+      this.phoneNumber && { phoneNumber: this.phoneNumber }
+    );
     Object.assign(firestoreObj, this.payment && { payment: this.payment });
     Object.assign(firestoreObj, { isDone: this.isDone });
     Object.assign(
@@ -41,7 +56,7 @@ class Order {
   }
 
   get totalPrice() {
-    if (!this.orderList.length) return 0;
+    if (!this.orderList?.length) return 0;
 
     return (
       this.orderList?.map((o) => o.total_price).reduce((a, c) => a + c) ?? 0
@@ -49,7 +64,7 @@ class Order {
   }
 
   get totalQty() {
-    if (!this.orderList.length) return 0;
+    if (!this.orderList?.length) return 0;
 
     return this.orderList?.map((o) => o.qty).reduce((a, c) => a + c) ?? 0;
   }

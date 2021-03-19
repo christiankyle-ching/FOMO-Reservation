@@ -3,12 +3,25 @@
     <LoadingSpinner v-if="batch == null" class="m-auto mt-10" />
 
     <div v-else>
-      <div class="mb-5">
+      <div class="my-5 mb-10">
         <h1>Batch Name: {{ batch.name }}</h1>
-        <p class="text-sm mt-2"><strong>Batch ID: </strong>{{ id }}</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 mt-3">
+          <b>Batch ID: </b>
+          <span class="mb-1 sm:mb-0">{{ id }}</span>
+
+          <b>Created At: </b>
+          <span class="mb-1 sm:mb-0">{{ batch.createdAtString }}</span>
+
+          <b>Closed At: </b>
+          <span class="mb-1 sm:mb-0">{{ batch.closedAtString }}</span>
+
+          <b>Started Processing At: </b>
+          <span class="mb-1 sm:mb-0">{{ batch.lockedAtString }}</span>
+        </div>
       </div>
 
-      <BatchOrders :batch="batch" :isFinalized="batch.locked_at" />
+      <BatchOrders :batch="batch" :isFinalized="!!batch.locked_at" />
     </div>
   </div>
 </template>

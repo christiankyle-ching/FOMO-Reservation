@@ -1,6 +1,6 @@
 <template>
   <div class="admin container mx-auto p-5 sm:p-10">
-    <h1 class="text-center mb-5 sm:mb-10">
+    <h1 class="text-center my-5 sm:my-10">
       Manage {{ $store.state.clientName }}
     </h1>
 
@@ -12,7 +12,7 @@
 
     <!-- Admin Actions -->
     <div class="card mt-5">
-      <h2 class="pb-5 text-center">Actions</h2>
+      <h2 class="pb-5 text-center">More Options</h2>
       <span
         :title="
           isTakingOrders ? 'Cannot adjust prices when taking orders' : null

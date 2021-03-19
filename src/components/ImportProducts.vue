@@ -50,7 +50,7 @@
 <script>
 import { Product } from "@/models/Product";
 import { mapState } from "vuex";
-import { ALERT_TYPE } from "../models/Alert";
+import { ALERT_TYPE } from "@/models/Alert";
 
 export default {
   data() {

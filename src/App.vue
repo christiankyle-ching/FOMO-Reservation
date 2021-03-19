@@ -19,7 +19,7 @@
           <!-- Toggle: Dark Mode -->
           <button
             type="button"
-            class="button-icon button-icon-md button-transparent mr-3 md:mr-7"
+            class="button-icon button-icon-sm button-transparent mr-3 md:mr-7"
             @click="toggleDarkMode()"
           >
             <transition name="fade" mode="out-in">
@@ -32,8 +32,10 @@
             </transition>
           </button>
 
-          <router-link :to="{ name: 'Admin' }" class="nav-link mr-5"
-            >Admin</router-link
+          <router-link
+            :to="{ name: 'Home' }"
+            class="button button-transparent mr-2"
+            >Home</router-link
           >
 
           <button

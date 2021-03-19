@@ -3,37 +3,44 @@
     <!-- Search: Jump to Date -->
     <form
       @submit.prevent="jumpToDate()"
-      class="sticky top-0 p-5 bg-dark2 border-b-2 border-dark3 shadow-md"
+      class="sticky top-0 border-b-2 bg-white dark:bg-dark2 dark:border-dark3 shadow-md"
     >
-      <label class="p-0">Jump to Date (Closed Reservation Date):</label>
-      <input
-        type="date"
-        v-model="searchDate"
-        class="input-suppress-invalid"
-        required
-      />
+      <div class="container p-5 mx-auto">
+        <label class="p-0">Jump to Date (Closed Reservation Date):</label>
+        <input
+          type="date"
+          v-model="searchDate"
+          class="input-suppress-invalid"
+          required
+        />
 
-      <div class="text-right mt-3">
-        <button
-          @click="resetSearch()"
-          type="button"
-          class="button button-secondary"
-          :disabled="!searchDate"
-        >
-          Reset
-        </button>
-        <button
-          type="submit"
-          class="button button-primary ml-5"
-          :disabled="!searchDate"
-        >
-          Search Date
-        </button>
+        <div class="text-right mt-3">
+          <button
+            @click="resetSearch()"
+            type="button"
+            class="button button-secondary"
+            :disabled="!searchDate"
+          >
+            Reset
+          </button>
+          <button
+            type="submit"
+            class="button button-primary ml-5"
+            :disabled="!searchDate"
+          >
+            Search Date
+          </button>
+        </div>
       </div>
     </form>
 
     <div class="container mx-auto p-5 sm:p-10">
-      <h1 class="text-center mb-5 sm:mb-10">Batch History</h1>
+      <h1 class="text-center mb-5 sm:mb-10">
+        Batch History
+        <span v-if="lastSearchedDateString"
+          >({{ lastSearchedDateString }})</span
+        >
+      </h1>
 
       <!-- a: Loading -->
       <LoadingSpinner v-if="previousBatches == null" class="m-auto" />
@@ -58,14 +65,7 @@
           <!-- c: No Previous Batches -->
           <p v-else class="text-center font-medium">
             No batch found for
-            {{
-              new Date(lastSearchedDate).toLocaleString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })
-            }}...
+            {{ lastSearchedDateString }}...
           </p>
         </div>
 
@@ -96,6 +96,19 @@
         <p v-else class="text-center font-medium">No batch to show...</p>
       </div>
     </div>
+
+    <div class="fab-container">
+      <transition name="fade">
+        <button
+          type="button"
+          class="button-icon button-icon-lg button-rounded button-primary"
+          v-if="showBackToTop"
+          @click="scrollToTop"
+        >
+          <span class="fas fa-chevron-up"></span>
+        </button>
+      </transition>
+    </div>
   </div>
 </template>
 
@@ -116,6 +129,7 @@ export default {
       isLoadingSearch: false,
 
       isLoadingMore: false,
+      showBackToTop: false,
     };
   },
   computed: {
@@ -123,8 +137,19 @@ export default {
       previousBatches: "previousBatches",
       dbBatchesCursor: "dbBatchesCursor",
     }),
+    lastSearchedDateString() {
+      return this.lastSearchedDate
+        ? new Date(this.lastSearchedDate).toLocaleString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : "";
+    },
   },
   methods: {
+    // Batches
     fetchNextBatches() {
       this.isLoadingMore = true;
 
@@ -162,7 +187,22 @@ export default {
     resetSearch() {
       this.searchBatches = null;
       this.searchDate = null;
+      this.lastSearchedDate = null;
     },
+
+    handleScroll() {
+      this.showBackToTop =
+        document.documentElement.scrollTop >= window.innerHeight;
+    },
+    scrollToTop() {
+      window.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+    },
+  },
+  mounted() {
+    window.addEventListener("scroll", this.handleScroll);
+  },
+  unmounted() {
+    window.removeEventListener("scroll", this.handleScroll);
   },
 };
 </script>

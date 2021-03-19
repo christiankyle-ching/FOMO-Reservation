@@ -8,7 +8,10 @@
           <slot name="header"></slot>
         </div>
         <!-- Close Button -->
-        <button @click="$emit('close')" class="button-icon button-icon-md">
+        <button
+          @click="$emit('close')"
+          class="button-icon button-icon-md button-transparent"
+        >
           <span class="fas fa-times"></span>
         </button>
       </div>

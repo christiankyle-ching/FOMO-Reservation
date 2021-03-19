@@ -10,6 +10,7 @@
 import "@/firebase";
 import firebase from "firebase/app";
 import "firebaseui";
+import { UserProfile } from "@/models/UserProfile";
 
 const ui = new firebaseui.auth.AuthUI(firebase.auth());
 
@@ -35,11 +36,15 @@ export default {
           const apiRes = await (await fetch(reqUrl)).json();
 
           const uid = result.user.uid;
+
           await firebase
             .firestore()
-            .collection("user-links")
+            .collection("user-profiles")
             .doc(uid)
-            .set({ fb: apiRes.link });
+            .set(
+              new UserProfile({ uid: uid, fbLink: apiRes.link }).firestoreDoc,
+              { merge: true }
+            );
 
           // Redirect to Home
           this.$router.push({ name: "Home" });

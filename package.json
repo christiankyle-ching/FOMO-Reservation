@@ -13,6 +13,7 @@
     "firebase": "^8.2.9",
     "firebaseui": "^4.7.3",
     "html2canvas": "1.0.0-rc.7",
+    "libphonenumber-js": "^1.9.13",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
     "vuex": "^4.0.0-0"

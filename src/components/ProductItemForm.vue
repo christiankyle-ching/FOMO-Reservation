@@ -1,6 +1,8 @@
 <template>
   <div class="grid grid-cols-2 gap-5">
-    <h4 class="col-span-2">{{ product.name }}</h4>
+    <h4 class="col-span-2">{{ count }}: {{ product.name }}</h4>
+
+    <!-- TODO: Collapsible -->
     <!-- Name & Category -->
     <div class="col-span-1">
       <label>Name: </label>
@@ -106,7 +108,7 @@
             <button
               type="button"
               @click="removeAddOn(addonIndex)"
-              class="button-icon button-icon-sm button-danger ml-3 mt-auto"
+              class="button-icon button-icon-sm button-danger ml-3 mb-1 mt-auto"
             >
               <span class="fas fa-times"></span>
             </button>
@@ -153,7 +155,7 @@
 
 <script>
 export default {
-  props: { product: Object, categories: Set, isAdding: Boolean },
+  props: { product: Object, categories: Set, isAdding: Boolean, count: Number },
   emits: ["remove"],
   inheritAttrs: false,
   methods: {

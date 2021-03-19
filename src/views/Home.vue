@@ -1,6 +1,6 @@
 <template>
   <div class="home container mx-auto p-5 sm:p-10">
-    <h1 class="text-center mb-5 sm:mb-10">
+    <h1 class="text-center my-5 sm:mb-10">
       {{ $store.state.clientName }}'s Waitlist
     </h1>
     <div v-if="user">
@@ -42,7 +42,8 @@
         <Receipt :order="orderFromLatestBatch" :batch="latestBatch" inProcess />
       </div>
 
-      <Reserve v-else class="mt-20"/>
+      <!-- Default: Show Reservation Module -->
+      <Reserve v-else class="mt-10" />
     </div>
   </div>
 </template>
@@ -53,10 +54,11 @@ import Order from "@/components/Order.vue";
 import Receipt from "@/components/Receipt.vue";
 import Reserve from "@/components/Reserve.vue";
 import Payment from "@/components/Payment.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "Home",
-  components: { Order, Reserve, Payment, Receipt },
+  components: { Order, Reserve, Payment, Receipt, LoadingSpinner },
   data() {
     return { orderFromLatestBatch: null };
   },
@@ -67,13 +69,10 @@ export default {
       orderAllowed: "orderAllowed",
       orderDone: "orderDone",
       latestBatch: "latestBatch",
-      // status: "status",
     }),
   },
   watch: {
     latestBatch() {
-      console.log(this.latestBatch);
-
       if (this.latestBatch != null && !this.latestBatch.isDone) {
         return (this.orderFromLatestBatch =
           this.latestBatch.orders?.find(
