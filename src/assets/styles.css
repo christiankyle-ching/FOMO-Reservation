@@ -197,7 +197,7 @@
     background-image: url("~@/assets/icons/check-white.svg");
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 1rem;
+    background-size: 1.25rem;
   }
 
   label.checkbox > :not(:first-child) {
