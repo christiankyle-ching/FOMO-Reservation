@@ -53,6 +53,7 @@ import { mapState } from "vuex";
 import { ALERT_TYPE } from "@/models/Alert";
 
 export default {
+  emits: ["close"],
   data() {
     return {
       search: "",
@@ -169,6 +170,7 @@ export default {
       this.updateMessage();
     },
 
+    // Message: Stats about Selected Template
     updateMessage() {
       let statsMessage = [];
 
@@ -190,11 +192,14 @@ export default {
       this.$store.dispatch("replaceProducts", this.tempProducts);
       this.$refs.inputTemplate.value = null;
       this.tempProducts = [];
+      this.$emit("close");
     },
+
     appendToProducts() {
       this.$store.dispatch("appendToProducts", this.tempProducts);
       this.$refs.inputTemplate.value = null;
       this.tempProducts = [];
+      this.$emit("close");
     },
   },
 };

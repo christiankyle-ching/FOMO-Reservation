@@ -14,7 +14,7 @@
 
       <label># of Orders (Limit)</label>
       <div class="input__number">
-        <button type="button" @click="decrement()">
+        <button type="button" @click="decrementOrderLimit()">
           <span class="fas fa-minus"></span>
         </button>
         <input
@@ -24,7 +24,24 @@
           v-model="formNewBatch.order_limit"
           required
         />
-        <button type="button" @click="increment()">
+        <button type="button" @click="incrementOrderLimit()">
+          <span class="fas fa-plus"></span>
+        </button>
+      </div>
+
+      <label>Maximum allowed number of items per person:</label>
+      <div class="input__number">
+        <button type="button" @click="decrementMaxAllowed()">
+          <span class="fas fa-minus"></span>
+        </button>
+        <input
+          type="number"
+          min="1"
+          placeholder="0"
+          v-model="formNewBatch.maxAllowedOrderQty"
+          required
+        />
+        <button type="button" @click="incrementMaxAllowed()">
           <span class="fas fa-plus"></span>
         </button>
       </div>
@@ -152,11 +169,20 @@ export default {
     }),
 
     // Input: For order_limit
-    increment() {
+    incrementOrderLimit() {
       this.formNewBatch.order_limit++;
     },
-    decrement() {
-      if (this.formNewBatch.order_limit > 0) this.formNewBatch.order_limit--;
+    decrementOrderLimit() {
+      if (this.formNewBatch.order_limit > 1) this.formNewBatch.order_limit--;
+    },
+
+    // Input: Max Allowed Order Qty
+    incrementMaxAllowed() {
+      this.formNewBatch.maxAllowedOrderQty++;
+    },
+    decrementMaxAllowed() {
+      if (this.formNewBatch.maxAllowedOrderQty > 1)
+        this.formNewBatch.maxAllowedOrderQty--;
     },
   },
 };

@@ -173,16 +173,16 @@ export default {
     },
     // Counters
     orderRemainingAllowed() {
-      return this.maxAllowedOrderQty - this.order.totalQty;
+      return this.latestBatch.maxAllowedOrderQty - this.order.totalQty;
     },
     ...mapState({
       products: "products",
+      latestBatch: "latestBatch",
       categories: (state) => [
         ...new Set(
           state.products.map((p) => (p.category ? p.category : "Uncategorized"))
         ),
       ],
-      maxAllowedOrderQty: "maxAllowedOrderQty",
     }),
   },
   methods: {
@@ -219,7 +219,7 @@ export default {
     saveOrder() {
       this.$store.dispatch("saveOrder", this.order.orderList);
 
-      this.$router.replace(this.$route.path); // Remove status from payment
+      this.$router.replace(this.$route.path); // Remove query params from payment
     },
 
     // Input Functions

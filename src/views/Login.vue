@@ -27,6 +27,9 @@ export default {
       ],
 
       callbacks: {
+        uiShown: () => {
+          this.$router.replace(this.$route.path);
+        },
         signInSuccessWithAuthResult: async (result, __) => {
           // Fetch FB Link with FB API
           const fbUid = result.user.providerData[0].uid;
@@ -47,7 +50,7 @@ export default {
             );
 
           // Redirect to Home
-          this.$router.push({ name: "Home" });
+          this.$router.push({ name: "Home", query: {} });
         },
       },
     });

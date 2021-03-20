@@ -33,6 +33,14 @@
           </button>
 
           <router-link
+            v-if="isAdmin"
+            :to="{ name: 'Admin' }"
+            class="button button-transparent mr-2"
+            >Admin</router-link
+          >
+
+          <router-link
+            v-else
             :to="{ name: 'Home' }"
             class="button button-transparent mr-2"
             >Home</router-link
@@ -91,6 +99,7 @@ export default {
   computed: {
     ...mapState({
       user: "user",
+      isAdmin: "isAdmin",
       alerts: "alerts",
       isOnline: "isOnline",
       darkModeEnabled: "darkModeEnabled",

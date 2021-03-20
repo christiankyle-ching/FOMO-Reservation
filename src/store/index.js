@@ -10,6 +10,7 @@ import { Product } from "@/models/Product";
 import { Batch, BATCH_STATUS } from "@/models/Batch";
 import { Alert, ALERT_TYPE } from "@/models/Alert";
 import { UserProfile } from "@/models/UserProfile";
+import { AdminSettings } from "../models/AdminSettings";
 
 const _user = firebase.auth().currentUser;
 const _db = firebase.firestore();
@@ -23,6 +24,11 @@ const store = createStore({
     clientUrl: process.env.VUE_APP_CLIENT_LINK,
     darkModeEnabled: null,
 
+    // USER
+    user: _user,
+    isAdmin: false,
+    userProfile: null, // UserProfile()
+
     // #region SHARED
     products: null, // Product()[]
     status: null, // {}
@@ -32,7 +38,7 @@ const store = createStore({
     latestBatch: null, // Batch()
     unsubscribeLatestBatch: null, // method()
     alerts: [],
-    maxAllowedOrderQty: 8, // TODO: Fetch this from DB Options
+    // maxAllowedOrderQty: 8, // TODO: Fetch this from DB Options
     // Firebase Refs
     dbStatus: _db.collection("PUBLIC_READ").doc("status"),
     dbProducts: _db.collection("PUBLIC_READ").doc("products"),
@@ -51,8 +57,6 @@ const store = createStore({
     // #endregion
 
     // #region CUSTOMER
-    user: _user,
-    userProfile: null, // UserProfile()
     pendingOrder: null, // Order()
     unsubscribePendingOrder: null, // method()
     // Status Tracking of Customer Order
@@ -69,20 +73,18 @@ const store = createStore({
     // #region ADMIN
     formProducts: [], // Product()[]
     previousBatches: null, // Batch()[]
-    formNewBatch: {
-      name: "",
-      order_limit: 50, // TODO: Set Default from DB Option: 50
-    },
+    formNewBatch: null, // { name, order_limit, maxAllowedOrderQty}
     counters: null, // {}
     unsubscribeCounters: null, // method()
     pendingOrders: [],
     unsubscribePendingOrders: null, // method()
+    adminSettings: null,
     // Firebase Refs
     dbPendingOrders: _db.collection("PUBLIC_ORDERS"),
     dbBatches: _db.collection("batches"),
     dbBatchesCursor: null, // For Pagination
-
     dbReservations: _db.collection("PUBLIC_RESERVATIONS"),
+    dbAdminSettings: _db.collection("PRIVATE").doc("settings"),
     // #endregion
   },
   mutations: {
@@ -96,6 +98,10 @@ const store = createStore({
     SET_USER(state, value) {
       console.log("SET_USER");
       state.user = value;
+    },
+    SET_IS_ADMIN(state, value) {
+      console.log("SET_IS_ADMIN");
+      state.isAdmin = value;
     },
     SET_STATUS(state, value) {
       console.log("SET_STATUS");
@@ -126,6 +132,11 @@ const store = createStore({
     SET_COUNTERS(state, value) {
       console.log("SET_COUNTERS");
       state.counters = value;
+    },
+    SET_ADMIN_SETTINGS(state, value) {
+      console.log("SET_ADMIN_SETTINGS");
+
+      state.adminSettings = value;
     },
 
     // CUSTOMER
@@ -161,6 +172,8 @@ const store = createStore({
   actions: {
     // GLOBAL
     async initApp({ dispatch, commit }, user) {
+      console.log("initApp");
+
       // App
       if (localStorage.darkMode == "true") dispatch("toggleDarkMode", true);
 
@@ -197,9 +210,13 @@ const store = createStore({
         );
         // #endregion
 
-        // TODO: Conditional data fetch based on privileges
-        const isAdmin = true;
+        const token = await user.getIdTokenResult();
+        const isAdmin = !!token.claims.admin;
+
         if (isAdmin) {
+          commit("SET_IS_ADMIN", true);
+
+          dispatch("fetchAdminSettings");
           dispatch("fetchBatches");
           dispatch("listenPendingOrders");
 
@@ -215,9 +232,11 @@ const store = createStore({
       } else {
         console.log("---LOGGED OUT---");
 
+        // TODO: Do I need to reset all values (i.e. products)
         // Reset values set above when logged in
         commit("DB_SET_PENDING_ORDER", null);
         commit("DB_SET_RESERVATION", null);
+        commit("SET_IS_ADMIN", false);
 
         // Detach Listeners
         dispatch("detachLatestBatch");
@@ -464,6 +483,7 @@ const store = createStore({
           new Batch({
             name: data.name,
             order_limit: data.order_limit,
+            maxAllowedOrderQty: data.maxAllowedOrderQty,
             created_at: firebase.firestore.FieldValue.serverTimestamp(),
           }).firestoreDoc
         );
@@ -483,7 +503,8 @@ const store = createStore({
 
         // Reset Form
         data.name = "";
-        data.order_limit = 50; // TODO: Get Default from DB Options (already in $store.state)
+        data.order_limit = state.adminSettings.order_limit;
+        data.maxAllowedOrderQty = state.adminSettings.maxAllowedOrderQty;
       } catch (err) {
         console.error(err);
 
@@ -700,6 +721,60 @@ const store = createStore({
 
       if (state.unsubscribeCounters) state.unsubscribeCounters();
     },
+
+    // Admin Settings
+    async fetchAdminSettings({ state, commit }) {
+      console.log("fetchAdminSettings");
+
+      // Set default settings, or get from DB if existing
+      const settings = await state.dbAdminSettings.get();
+      const newSettings = settings.exists
+        ? new AdminSettings({ ...settings.data() })
+        : new AdminSettings({}).firestoreDoc;
+
+      // If does not exists, update DB
+      if (!settings.exists) {
+        settings.ref.set({ ...newSettings });
+      }
+
+      commit("SET_ADMIN_SETTINGS", new AdminSettings({ ...newSettings }));
+
+      // Update formNewBatch to reflect settings
+      state.formNewBatch = {
+        name: "",
+        order_limit: newSettings.order_limit,
+        maxAllowedOrderQty: newSettings.maxAllowedOrderQty,
+      };
+    },
+
+    async saveAdminSettings({ state, commit, dispatch }, _adminSettings) {
+      console.log("saveAdminSettings");
+
+      try {
+        state.dbAdminSettings.set(_adminSettings.firestoreDoc);
+        commit("SET_ADMIN_SETTINGS", _adminSettings);
+
+        dispatch("alert", {
+          message: "Updated settings.",
+          type: ALERT_TYPE.SUCCESS,
+        });
+      } catch (err) {
+        console.error(err);
+
+        dispatch("alert", {
+          message: "Something went wrong in saving settings.",
+          type: ALERT_TYPE.DANGER,
+        });
+      } finally {
+        // Update formNewBatch to reflect settings
+        state.formNewBatch = {
+          name: "",
+          order_limit: state.adminSettings.order_limit,
+          maxAllowedOrderQty: state.adminSettings.maxAllowedOrderQty,
+        };
+      }
+    },
+
     // #endregion
 
     // #region CUSTOMER
@@ -816,7 +891,6 @@ const store = createStore({
       state.unsubscribeOpenBatch = state.dbOpenBatch.onSnapshot(
         async (batch) => {
           if (batch.exists) {
-            // FIXME: Can be a Batch() Object
             commit("SET_OPEN_BATCH", new Batch({ ...batch.data() }));
 
             const reservationExists = (await state.dbReservation.get()).exists;
@@ -840,15 +914,32 @@ const store = createStore({
   modules: {},
 });
 
+// User Getter
+const getCurrentUser = () => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+      unsubscribe();
+
+      console.log("AuthChanged");
+
+      if (user) {
+        const token = await user.getIdTokenResult();
+        const isAdmin = !!token.claims.admin;
+        resolve({ user, isAdmin });
+      } else {
+        resolve({ user: null, isAdmin: false });
+      }
+    });
+  });
+};
+
 // User Observer
 firebase.auth().onAuthStateChanged((user) => {
-  console.log("AuthChanged");
+  console.log("Test: AuthChanged");
 
-  console.log(user);
-  // console.log(user.getIdToken().then((token) => console.log(token)));
-
-  // Setup User
+  // Setup App with User only on real Auth Change
   store.dispatch("initApp", user);
 });
 
 export default store;
+export { getCurrentUser };

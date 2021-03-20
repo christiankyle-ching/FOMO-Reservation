@@ -2,7 +2,7 @@
 <template>
   <!-- Modal: Add Product -->
   <transition name="fade">
-    <Modal v-if="isAdding" @close="closeAddModal">
+    <Modal v-if="isAdding" @close="closeAddModal()">
       <template v-slot:header>
         <h3>Add a Food</h3>
       </template>
@@ -27,10 +27,10 @@
 
   <!-- Modal: Use Template -->
   <transition name="fade">
-    <Modal v-if="isUsingTemplate" @close="closeTemplateModal">
+    <Modal v-if="isUsingTemplate" @close="closeTemplateModal()">
       <template v-slot:header><h3>Use a Template</h3></template>
       <template v-slot:content>
-        <ImportProducts />
+        <ImportProducts @close="closeTemplateModal()" />
       </template>
       <template v-slot:buttons> </template>
     </Modal>
@@ -48,7 +48,7 @@
           <div
             v-for="(product, index) in products"
             :key="'product' + index"
-            class="card"
+            class="card w-full"
           >
             <ProductItemForm
               :product="product"
@@ -92,11 +92,6 @@
         </button>
       </div>
     </form>
-
-    <!-- Use Template CSV -->
-    <div id="import-template">
-      <ImportProducts />
-    </div>
   </div>
 </template>
 
@@ -121,18 +116,26 @@ export default {
       // Modal: Add Product
       isAdding: false,
       formNewProduct: new Product({}),
+      categories: new Set(),
 
       // Modal: Use Template
       isUsingTemplate: false,
+
+      // Categories
+      loadedCategories: false,
     };
   },
   computed: {
     ...mapState({
       products: "products",
-      categories(state) {
-        return new Set(state.products.map((p) => p.category));
-      },
     }),
+  },
+  watch: {
+    products() {
+      if (!this.loadedCategories) {
+        this.categories = new Set(this.products?.map((p) => p.category));
+      }
+    },
   },
   methods: {
     ...mapActions({
@@ -165,7 +168,6 @@ export default {
       this.isUsingTemplate = false;
     },
   },
-  watch: {},
 };
 </script>
 

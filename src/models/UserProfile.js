@@ -19,10 +19,6 @@ class UserProfile {
     return firestoreObj;
   }
 
-  clone() {
-    return new UserProfile({ ...this });
-  }
-
   get isPhoneValid() {
     return isValidPhoneNumber(this.phoneNumber, "PH");
   }
@@ -33,6 +29,10 @@ class UserProfile {
     } catch (err) {
       return "";
     }
+  }
+
+  clone() {
+    return new UserProfile({ ...this });
   }
 }
 

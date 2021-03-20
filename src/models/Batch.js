@@ -1,6 +1,9 @@
 import "firebase/firestore";
 import { localeDateTimeOpts } from "@/utils";
 import { Order } from "@/models/Order";
+import { AdminSettings } from "@/models/AdminSettings.js";
+
+const DEFAULT_ADMIN_SETTINGS = new AdminSettings({});
 
 const BATCH_STATUS = Object.freeze({
   OPEN: "open",
@@ -18,6 +21,7 @@ class Batch {
     closed_at,
     locked_at,
     order_limit,
+    maxAllowedOrderQty,
     orders,
     isDone,
   }) {
@@ -26,7 +30,9 @@ class Batch {
     this.created_at = created_at ?? null;
     this.closed_at = closed_at ?? null;
     this.locked_at = locked_at ?? null;
-    this.order_limit = order_limit ?? null; // TODO: Get default in DB Options
+    this.order_limit = order_limit ?? null;
+    this.maxAllowedOrderQty =
+      maxAllowedOrderQty ?? DEFAULT_ADMIN_SETTINGS.maxAllowedOrderQty;
     this.orders = orders?.map((o) => new Order({ ...o })) ?? null;
     this.isDone = isDone ?? false;
   }
@@ -71,6 +77,10 @@ class Batch {
     Object.assign(
       firestoreObj,
       this.order_limit && { order_limit: this.order_limit }
+    );
+    Object.assign(
+      firestoreObj,
+      this.maxAllowedOrderQty && { maxAllowedOrderQty: this.maxAllowedOrderQty }
     );
     Object.assign(
       firestoreObj,

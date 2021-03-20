@@ -79,6 +79,10 @@ class Order {
       localeDateTimeOpts
     );
   }
+
+  clone() {
+    return new Order({ ...this });
+  }
 }
 
 export { Order };

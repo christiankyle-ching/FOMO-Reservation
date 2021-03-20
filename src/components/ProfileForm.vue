@@ -4,14 +4,14 @@
     <input
       type="tel"
       v-model="formUserProfile.phoneNumber"
-      placeholder="Please enter your phone number"
+      placeholder="Enter your phone number..."
       class="mt-2"
       required
     />
-    <small v-if="formUserProfile.isPhoneValid"
-      >{{ formUserProfile.formattedPhoneNumber }}</small
+    <small v-if="formUserProfile.isPhoneValid" class="text-success"
+      >Valid phone number ({{ formUserProfile.formattedPhoneNumber }})</small
     >
-    <small class="italic text-danger" v-else>Invalid Phone Number</small>
+    <small class="text-danger" v-else>Please enter a valid phone number</small>
 
     <div class="text-right mt-3">
       <button
@@ -33,7 +33,8 @@ export default {
   methods: {
     saveUserProfile(userProfile) {
       this.$store.dispatch("saveUserProfile", userProfile);
-      this.formUserProfile.phoneNumber = this.formUserProfile.formattedPhoneNumber;
+
+      this.formUserProfile.phoneNumber = this.formUserProfile.formattedPhoneNumber; // Input sanitation
     },
   },
 };

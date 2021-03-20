@@ -1,17 +1,29 @@
+import store, { getCurrentUser } from "@/store";
+
 import { createRouter, createWebHistory } from "vue-router";
 
-import "@/firebase";
-import "firebase/auth";
-
 import { nextTick } from "vue";
+import { ALERT_TYPE } from "@/models/Alert";
+
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
 import Admin from "@/views/Admin.vue";
 import Batch from "@/views/Batch.vue";
 import BatchHistory from "@/views/BatchHistory.vue";
 import Products from "@/views/Products.vue";
+import AdminSettings from "@/views/AdminSettings.vue";
+// Default Views
+import PageNotFound from "@/views/default/PageNotFound.vue";
 
 const routes = [
+  {
+    path: "/login",
+    name: "Login",
+    component: Login,
+    meta: {
+      title: "Login",
+    },
+  },
   {
     path: "/",
     name: "Home",
@@ -22,20 +34,21 @@ const routes = [
     },
   },
   {
-    path: "/login",
-    name: "Login",
-    component: Login,
-    meta: {
-      title: "Login",
-    },
-  },
-  {
     path: "/admin",
     name: "Admin",
     component: Admin,
     meta: {
       title: "Admin",
-      authRequired: true,
+      adminRequired: true,
+    },
+  },
+  {
+    path: "/admin/options",
+    name: "AdminSettings",
+    component: AdminSettings,
+    meta: {
+      title: "Admin Options",
+      adminRequired: true,
     },
   },
   {
@@ -44,7 +57,7 @@ const routes = [
     component: Products,
     meta: {
       title: "Manage Menu",
-      authRequired: true,
+      adminRequired: true,
     },
   },
   {
@@ -54,7 +67,7 @@ const routes = [
     component: Batch,
     meta: {
       title: "Batch",
-      authRequired: true,
+      adminRequired: true,
     },
   },
   {
@@ -63,7 +76,17 @@ const routes = [
     component: BatchHistory,
     meta: {
       title: "Batch History",
-      authRequired: true,
+      adminRequired: true,
+    },
+  },
+
+  // Default Views
+  {
+    path: "/:pathMatch(.*)*",
+    name: "PageNotFound",
+    component: PageNotFound,
+    meta: {
+      title: "Page Not Found",
     },
   },
 ];
@@ -85,8 +108,45 @@ router.afterEach((to, from) => {
   });
 });
 
-router.beforeEach((to, from, next) => {
-  console.log(to.matched.meta.authRequired);
+// PERMISSIONS
+router.beforeEach(async (to, from, next) => {
+  const { user, isAdmin } = await getCurrentUser();
+
+  // Auth Required
+  if (to.matched.some((route) => route.meta.authRequired)) {
+    if (!user)
+      next({ name: "Login", query: { redirectReason: "authRequired" } });
+    else next();
+  }
+
+  // Admin Required
+  else if (to.matched.some((route) => route.meta.adminRequired)) {
+    if (!(isAdmin && !!user)) {
+      next({ name: "Home", query: { redirectReason: "adminRequired" } });
+    } else {
+      next();
+    }
+  }
+
+  // No permissions required
+  else {
+    next();
+  }
+});
+
+// QUERY PARAMS
+router.beforeResolve((to, from, next) => {
+  switch (to.query.redirectReason) {
+    case "authRequired":
+      store.dispatch("alert", { message: "Please login first." });
+      break;
+    case "adminRequired":
+      store.dispatch("alert", {
+        message: "You don't have enough permissions to access that.",
+        type: ALERT_TYPE.DANGER,
+      });
+      break;
+  }
 
   next();
 });

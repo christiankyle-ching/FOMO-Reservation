@@ -38,6 +38,10 @@ class Product {
 
     return firestoreObj;
   }
+
+  clone() {
+    return new Product({ ...this });
+  }
 }
 
 export { Product };

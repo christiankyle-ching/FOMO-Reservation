@@ -29,7 +29,7 @@
       </div>
 
       <div class="card" v-if="userProfile != null">
-        <h4 class="mb-3">Edit Profile, {{ user.displayName }}</h4>
+        <h4 class="mb-3">Edit Your Profile, {{ user.displayName }}</h4>
         <ProfileForm />
       </div>
     </div>

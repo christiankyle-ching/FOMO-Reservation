@@ -32,8 +32,16 @@
         :to="{ name: 'BatchHistory' }"
         class="button button-primary button-block mt-5"
       >
-        <span class="fas fa-history icon-sm"></span>
+        <span class="fas fa-history"></span>
         View Batch History
+      </router-link>
+
+      <router-link
+        :to="{ name: 'AdminSettings' }"
+        class="button button-primary button-block mt-5"
+      >
+        <span class="fas fa-cogs"></span>
+        Settings
       </router-link>
     </div>
   </div>

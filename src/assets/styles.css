@@ -16,6 +16,11 @@
     @apply bg-lightSecondary rounded-full;
   }
 
+  /* Selection */
+  ::selection {
+    @apply bg-primary;
+  }
+
   h1 {
     @apply text-4xl font-medium;
   }
