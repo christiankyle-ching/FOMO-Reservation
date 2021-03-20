@@ -15,6 +15,12 @@ import AdminSettings from "@/views/AdminSettings.vue";
 // Default Views
 import PageNotFound from "@/views/default/PageNotFound.vue";
 
+const REDIRECT_REASON = Object.freeze({
+  authRequired: "authRequired",
+  adminRequired: "adminRequired",
+  loggedInAlready: "loggedInAlready",
+});
+
 const routes = [
   {
     path: "/login",
@@ -22,6 +28,13 @@ const routes = [
     component: Login,
     meta: {
       title: "Login",
+    },
+    beforeEnter: (to, from) => {
+      if (!!store.state.user)
+        router.replace({
+          name: store.state.isAdmin ? "Admin" : "Home",
+          query: { redirectReason: REDIRECT_REASON.loggedInAlready },
+        });
     },
   },
   {
@@ -31,6 +44,9 @@ const routes = [
     meta: {
       title: "Home",
       authRequired: true,
+    },
+    beforeEnter: (to, from) => {
+      if (store.state.isAdmin) router.replace({ name: "Admin" });
     },
   },
   {
@@ -115,14 +131,20 @@ router.beforeEach(async (to, from, next) => {
   // Auth Required
   if (to.matched.some((route) => route.meta.authRequired)) {
     if (!user)
-      next({ name: "Login", query: { redirectReason: "authRequired" } });
+      next({
+        name: "Login",
+        query: { redirectReason: REDIRECT_REASON.authRequired },
+      });
     else next();
   }
 
   // Admin Required
   else if (to.matched.some((route) => route.meta.adminRequired)) {
     if (!(isAdmin && !!user)) {
-      next({ name: "Home", query: { redirectReason: "adminRequired" } });
+      next({
+        name: "Home",
+        query: { redirectReason: REDIRECT_REASON.authRequired },
+      });
     } else {
       next();
     }
@@ -136,19 +158,32 @@ router.beforeEach(async (to, from, next) => {
 
 // QUERY PARAMS
 router.beforeResolve((to, from, next) => {
+  // Show Alert Messages
   switch (to.query.redirectReason) {
-    case "authRequired":
+    case REDIRECT_REASON.authRequired:
       store.dispatch("alert", { message: "Please login first." });
       break;
-    case "adminRequired":
+    case REDIRECT_REASON.adminRequired:
       store.dispatch("alert", {
         message: "You don't have enough permissions to access that.",
         type: ALERT_TYPE.DANGER,
       });
       break;
+    case REDIRECT_REASON.loggedInAlready:
+      store.dispatch("alert", {
+        message: "You are already logged in.",
+      });
+      break;
   }
 
+  // next(removeQueryParams(to));
   next();
 });
+
+// Helper Functions
+function removeQueryParams(to) {
+  if (Object.keys(to.query).length)
+    return { path: to.path, query: {}, hash: to.hash };
+}
 
 export default router;

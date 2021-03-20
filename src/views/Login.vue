@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <div class="flex h-screen m-auto">
-      <div id="firebaseui-auth-container" class="flex m-auto"></div>
+      <div id="firebaseui-auth-container" class="m-auto"></div>
     </div>
   </div>
 </template>
@@ -28,7 +28,7 @@ export default {
 
       callbacks: {
         uiShown: () => {
-          this.$router.replace(this.$route.path);
+          this.$router.replace(this.$route.path); // Remove query params
         },
         signInSuccessWithAuthResult: async (result, __) => {
           // Fetch FB Link with FB API

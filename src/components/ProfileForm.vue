@@ -15,8 +15,16 @@
 
     <div class="text-right mt-3">
       <button
+        @click="resetProfile()"
+        type="button"
+        class="button button-secondary"
+      >
+        Reset
+      </button>
+
+      <button
         type="submit"
-        class="button button-primary"
+        class="button button-primary ml-3"
         :disabled="!formUserProfile.isPhoneValid"
       >
         Save
@@ -31,6 +39,10 @@ export default {
     return { formUserProfile: this.$store.state.userProfile.clone() };
   },
   methods: {
+    resetProfile() {
+      this.formUserProfile = this.$store.state.userProfile.clone();
+    },
+
     saveUserProfile(userProfile) {
       this.$store.dispatch("saveUserProfile", userProfile);
 

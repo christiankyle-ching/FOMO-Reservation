@@ -83,8 +83,5 @@ export default {
       this.orderFromLatestBatch = null;
     },
   },
-  mounted() {
-    if (this.$store.state.isAdmin) this.$router.replace({ name: "Admin" });
-  },
 };
 </script>

@@ -4,6 +4,8 @@ import router from "./router";
 import store from "./store";
 
 import "@/assets/styles.css";
+
+// FIXME: Use Vue Component
 import "@fortawesome/fontawesome-free/css/all.css";
 import "@fortawesome/fontawesome-free/js/all.js";
 

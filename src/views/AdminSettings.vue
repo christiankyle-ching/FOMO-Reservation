@@ -1,15 +1,15 @@
 <template>
   <div class="container p-5 sm:p-10 mx-auto">
-    <div v-if="!!formAdminSettings">
-      <h1 class="mb-10">Settings</h1>
+    <h1 class="mb-10">Settings</h1>
 
+    <div v-if="!!formAdminSettings">
       <!-- Batch Defaults -->
       <form @submit.prevent="saveAdminSettings()" class="card my-5">
         <h3>New Batches</h3>
 
         <!-- Order Limit -->
         <div class="flex items-center mt-2">
-          <label class="flex-grow">Default Order Limit:</label>
+          <label class="flex-grow">Default Reservation Limit Per Batch:</label>
           <div class="input__number">
             <button
               @click="formAdminSettings.decrementOrderLimit()"
@@ -62,8 +62,8 @@
         </div>
       </form>
     </div>
-    <div v-else class="m-auto">
-      <LoadingSpinner />
+    <div v-else class="mt-20">
+      <LoadingSpinner class="m-auto" />
     </div>
   </div>
 </template>

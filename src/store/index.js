@@ -519,13 +519,13 @@ const store = createStore({
       console.log("closeCurrentBatch");
 
       const batchWrite = _db.batch();
-      const curBatch = state.openBatch;
+      const currentOpenBatch = state.openBatch;
 
       try {
         const reservations = await _db
           .collection("PUBLIC_RESERVATIONS")
           .orderBy("datetime", "asc")
-          .limit(curBatch.order_limit)
+          .limit(currentOpenBatch.order_limit)
           .get();
 
         // Set Reserved Users for Pending Orders
@@ -538,11 +538,12 @@ const store = createStore({
         // Save Open Batch to Batches
         const closedBatch = new Batch({
           id: null,
-          name: curBatch.name,
-          created_at: curBatch.created_at,
+          name: currentOpenBatch.name,
+          created_at: currentOpenBatch.created_at,
           closed_at: firebase.firestore.FieldValue.serverTimestamp(),
           locked_at: null,
-          order_limit: curBatch.order_limit,
+          order_limit: currentOpenBatch.order_limit,
+          maxAllowedOrderQty: currentOpenBatch.maxAllowedOrderQty,
           orders: null,
           isDone: false,
         });
@@ -816,10 +817,12 @@ const store = createStore({
         orderList: orderList,
       });
 
+      console.log(orderObj, state.latestBatch);
+
       // Only Allow Orders of > 100 PHP
       if (
         orderObj.totalPrice > 100 &&
-        orderObj.totalQty <= state.maxAllowedOrderQty
+        orderObj.totalQty <= state.latestBatch.maxAllowedOrderQty
       ) {
         // Update DB
         state.dbPendingOrder.set(orderObj.firestoreDoc);
@@ -830,7 +833,7 @@ const store = createStore({
         });
       } else {
         dispatch("alert", {
-          message: `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.maxAllowedOrderQty} item/s`,
+          message: `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.latestBatch.maxAllowedOrderQty} item/s`,
           type: ALERT_TYPE.DANGER,
         });
       }

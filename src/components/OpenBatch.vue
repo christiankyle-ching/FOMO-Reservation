@@ -12,7 +12,7 @@
       <label>Name</label>
       <input type="text" v-model="formNewBatch.name" required />
 
-      <label># of Orders (Limit)</label>
+      <label># of Reservations to Accept (Limit):</label>
       <div class="input__number">
         <button type="button" @click="decrementOrderLimit()">
           <span class="fas fa-minus"></span>
