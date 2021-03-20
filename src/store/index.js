@@ -38,7 +38,6 @@ const store = createStore({
     latestBatch: null, // Batch()
     unsubscribeLatestBatch: null, // method()
     alerts: [],
-    // maxAllowedOrderQty: 8, // TODO: Fetch this from DB Options
     // Firebase Refs
     dbStatus: _db.collection("PUBLIC_READ").doc("status"),
     dbProducts: _db.collection("PUBLIC_READ").doc("products"),

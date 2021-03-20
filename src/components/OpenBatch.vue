@@ -15,7 +15,18 @@
       <label># of Reservations to Accept (Limit):</label>
       <div class="input__number">
         <button type="button" @click="decrementOrderLimit()">
-          <span class="fas fa-minus"></span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <!-- Icon: minus-sm -->
+            <path
+              fill-rule="evenodd"
+              d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </button>
         <input
           type="number"
@@ -25,14 +36,36 @@
           required
         />
         <button type="button" @click="incrementOrderLimit()">
-          <span class="fas fa-plus"></span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <!-- Icon: plus-sm -->
+            <path
+              fill-rule="evenodd"
+              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </button>
       </div>
 
       <label>Maximum allowed number of items per person:</label>
       <div class="input__number">
         <button type="button" @click="decrementMaxAllowed()">
-          <span class="fas fa-minus"></span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <!-- Icon: minus-sm -->
+            <path
+              fill-rule="evenodd"
+              d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </button>
         <input
           type="number"
@@ -42,12 +75,34 @@
           required
         />
         <button type="button" @click="incrementMaxAllowed()">
-          <span class="fas fa-plus"></span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <!-- Icon: plus-sm -->
+            <path
+              fill-rule="evenodd"
+              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
         </button>
       </div>
 
       <button type="submit" class="button button-block button-primary mt-3">
-        <span class="fas fa-clock"></span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <!-- Icon: clock-sm -->
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+            clip-rule="evenodd"
+          />
+        </svg>
         Open a New Batch
       </button>
     </form>
@@ -66,7 +121,18 @@
         @click="closeCurrentBatch()"
         class="button button-danger button-block"
       >
-        <span class="fas fa-door-closed"></span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <!-- Icon: lock-sm -->
+          <path
+            fill-rule="evenodd"
+            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+            clip-rule="evenodd"
+          />
+        </svg>
         Close Batch
       </button>
     </div>

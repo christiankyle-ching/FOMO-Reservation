@@ -120,7 +120,6 @@ class Batch {
   }
 
   clone() {
-    // TODO: Do I need to edit saved batches?
     return new Batch({ ...this });
   }
 }

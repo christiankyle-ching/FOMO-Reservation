@@ -90,7 +90,7 @@
   }
 
   .button {
-    @apply text-center px-3 py-2 rounded-lg  max-w-md transition-colors;
+    @apply inline-flex items-center justify-center px-3 py-2 rounded-lg max-w-md transition-colors;
   }
 
   .button-rounded {
@@ -98,11 +98,11 @@
   }
 
   .button > svg {
-    @apply mr-1;
+    @apply mr-1 icon-sm inline-block;
   }
 
   .button-block {
-    @apply w-full block m-auto;
+    @apply w-full m-auto;
   }
 
   .button-primary {
@@ -165,17 +165,8 @@
     @apply icon-sm;
   }
 
-  .button-icon-xs {
-    @apply h-5 w-5;
-    min-width: 1.25rem;
-  }
-
-  .button-icon-sm svg {
-    @apply icon-xs;
-  }
-
   .card {
-    @apply shadow-lg rounded-3xl border-2 border-lightSecondary p-5 bg-white max-w-xl mx-auto;
+    @apply shadow-lg rounded-3xl border-2 border-lightSecondary p-5 bg-white max-w-screen-md mx-auto;
   }
 
   .fab-container {
@@ -267,12 +258,8 @@
     @apply focus:border-primary;
   }
 
-  .icon-xs {
-    @apply h-3 w-3 !important;
-  }
-
   .icon-sm {
-    @apply h-4 w-4 !important;
+    @apply h-5 w-5 !important;
   }
 
   .icon-md {
@@ -313,7 +300,7 @@
   }
 
   .input__search > svg {
-    @apply text-darkSecondary mr-3;
+    @apply text-darkSecondary mr-3 icon-sm;
   }
 
   select {
