@@ -8,14 +8,6 @@
             <h3 class="font-medium">{{ orderShown.name }}</h3>
             <p>Phone: {{ orderShown.phoneNumber }}</p>
           </div>
-          <!-- FB Link -->
-          <a
-            :href="orderShown.fbLink"
-            target="_blank"
-            class="button-icon button-icon-md button-transparent mx-5"
-          >
-            <span class="fab fa-facebook-square"></span>
-          </a>
         </div>
       </template>
       <template v-slot:content>

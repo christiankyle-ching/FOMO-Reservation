@@ -82,7 +82,6 @@
 </template>
 
 <script>
-import "@/firebase";
 import firebase from "firebase/app";
 import { ALERT_TYPE } from "../models/Alert";
 import { mapState } from "vuex";

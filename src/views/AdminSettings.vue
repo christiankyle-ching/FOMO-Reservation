@@ -15,32 +15,40 @@
               @click="formAdminSettings.decrementOrderLimit()"
               type="button"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-  <!-- Icon: minus-sm -->
-  <path
-    fill-rule="evenodd"
-    d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-    clip-rule="evenodd"
-  />
-</svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <!-- Icon: minus-sm -->
+                <path
+                  fill-rule="evenodd"
+                  d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
             </button>
             <input
               type="number"
               min="1"
-              v-model="formAdminSettings.order_limit"
+              v-model.number="formAdminSettings.order_limit"
             />
             <button
               @click="formAdminSettings.incrementOrderLimit()"
               type="button"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-  <!-- Icon: plus-sm -->
-  <path
-    fill-rule="evenodd"
-    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-    clip-rule="evenodd"
-  />
-</svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <!-- Icon: plus-sm -->
+                <path
+                  fill-rule="evenodd"
+                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
             </button>
           </div>
         </div>
@@ -55,32 +63,40 @@
               @click="formAdminSettings.decrementMaxAllowed()"
               type="button"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-  <!-- Icon: minus-sm -->
-  <path
-    fill-rule="evenodd"
-    d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-    clip-rule="evenodd"
-  />
-</svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <!-- Icon: minus-sm -->
+                <path
+                  fill-rule="evenodd"
+                  d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
             </button>
             <input
               type="number"
               min="1"
-              v-model="formAdminSettings.maxAllowedOrderQty"
+              v-model.number="formAdminSettings.maxAllowedOrderQty"
             />
             <button
               @click="formAdminSettings.incrementMaxAllowed()"
               type="button"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-  <!-- Icon: plus-sm -->
-  <path
-    fill-rule="evenodd"
-    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-    clip-rule="evenodd"
-  />
-</svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <!-- Icon: plus-sm -->
+                <path
+                  fill-rule="evenodd"
+                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
             </button>
           </div>
         </div>

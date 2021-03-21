@@ -213,11 +213,13 @@
     @apply ml-2 !important;
   }
 
-  .modal {
+  .modal,
+  .sidebar {
     @apply fixed left-0 top-0 w-screen h-screen flex z-20;
   }
 
-  .modal__backdrop {
+  .modal__backdrop,
+  .sidebar__backdrop {
     @apply bg-black w-full h-full opacity-60 absolute cursor-pointer;
   }
 
@@ -314,6 +316,27 @@
 
   select {
     @apply p-1 mt-1 rounded-md shadow-sm border-2 focus:outline-none w-full cursor-pointer;
+  }
+
+  /* Sidebar */
+  .sidebar.active {
+    @apply pointer-events-auto;
+  }
+
+  .sidebar:not(.active) {
+    @apply pointer-events-none;
+  }
+
+  .sidebar__content {
+    @apply w-2/3 max-w-xs bg-white h-full z-10;
+  }
+
+  .sidebar-link {
+    @apply flex items-center w-full text-2xl bg-light hover:bg-darkPrimary hover:text-light transition-colors py-5 px-10;
+  }
+
+  .sidebar-link > svg {
+    @apply icon-md mr-2;
   }
 
   th,
@@ -415,6 +438,14 @@
 
     .input__search > svg {
       @apply text-lightSecondary;
+    }
+
+    .sidebar__content {
+      @apply bg-dark2;
+    }
+
+    .sidebar-link {
+      @apply bg-dark2 hover:bg-dark1;
     }
 
     th,

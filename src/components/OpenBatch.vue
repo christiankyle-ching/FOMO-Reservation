@@ -32,7 +32,7 @@
           type="number"
           min="1"
           placeholder="0"
-          v-model="formNewBatch.order_limit"
+          v-model.number="formNewBatch.order_limit"
           required
         />
         <button type="button" @click="incrementOrderLimit()">
@@ -71,7 +71,7 @@
           type="number"
           min="1"
           placeholder="0"
-          v-model="formNewBatch.maxAllowedOrderQty"
+          v-model.number="formNewBatch.maxAllowedOrderQty"
           required
         />
         <button type="button" @click="incrementMaxAllowed()">

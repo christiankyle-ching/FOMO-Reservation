@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import "@/firebase";
 import firebase from "firebase/app";
 
 import "firebaseui";

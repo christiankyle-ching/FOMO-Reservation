@@ -129,7 +129,7 @@
         </div>
         <div v-else class="col-span-2">
           <label>Price:</label>
-          <input type="number" v-model="product.price" min="0" required />
+          <input type="number" v-model.number="product.price" min="0" required />
         </div>
 
         <!-- Any Additionals -->

@@ -4,7 +4,7 @@ module.exports = {
   },
   pluginOptions: {
     webpackBundleAnalyzer: {
-      openAnalyzer: false,
+      openAnalyzer: true,
     },
   },
 };
