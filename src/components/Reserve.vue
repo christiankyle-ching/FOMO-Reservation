@@ -9,8 +9,8 @@
           batch!
         </div>
 
-        <!-- If Phone Number Set -->
-        <div v-if="userProfile?.phoneNumber">
+        <!-- Profile Set: Allowed to Reserve -->
+        <div v-if="user.phoneNumber">
           <button
             @click="reserve()"
             class="button button-block button-primary mt-3"
@@ -33,15 +33,8 @@
 
         <!-- Else: Number is required -->
         <div v-else class="my-5">
-          <h5 class="text-center text-danger">
-            Phone Number is required to make a reservation.
-          </h5>
+          <h5 class="text-center text-danger">Please complete your profile.</h5>
         </div>
-      </div>
-
-      <div class="card" v-if="userProfile != null">
-        <h4 class="mb-3">Edit Your Profile, {{ user.displayName }}</h4>
-        <ProfileForm />
       </div>
     </div>
 
@@ -61,12 +54,11 @@
 </template>
 
 <script>
-import ProfileForm from "@/components/ProfileForm.vue";
 import { mapActions, mapState } from "vuex";
 
 export default {
   name: "Reserve",
-  components: { ProfileForm },
+
   methods: {
     ...mapActions({
       reserve: "reserve",
@@ -79,7 +71,6 @@ export default {
       orderDone: "orderDone",
       orderAllowed: "orderAllowed",
       reservationExists: "reservationExists",
-      userProfile: "userProfile",
     }),
   },
 };

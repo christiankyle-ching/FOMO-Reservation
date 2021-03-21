@@ -5,9 +5,8 @@ class Order {
     uid,
     oid,
     name,
-    email,
-    fbLink,
     phoneNumber,
+    email,
     orderList,
     payment,
     isDone,
@@ -25,9 +24,8 @@ class Order {
         .concat(Math.floor(Math.random() * 999) + 100);
 
     this.name = name ?? "";
-    this.email = email ?? "";
-    this.fbLink = fbLink ?? "";
     this.phoneNumber = phoneNumber ?? "";
+    this.email = email ?? "";
     this.orderList = orderList ?? null;
     this.payment = payment ?? null;
     this.isDone = isDone ?? false;
@@ -40,7 +38,6 @@ class Order {
     Object.assign(firestoreObj, this.oid && { oid: this.oid });
     Object.assign(firestoreObj, this.name && { name: this.name });
     Object.assign(firestoreObj, this.email && { email: this.email });
-    Object.assign(firestoreObj, this.fbLink && { fbLink: this.fbLink });
     Object.assign(
       firestoreObj,
       this.phoneNumber && { phoneNumber: this.phoneNumber }

@@ -9,11 +9,10 @@ import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { Batch, BATCH_STATUS } from "@/models/Batch";
 import { Alert, ALERT_TYPE } from "@/models/Alert";
-import { UserProfile } from "@/models/UserProfile";
 import { AdminSettings } from "../models/AdminSettings";
 
-const _user = firebase.auth().currentUser;
 const _db = firebase.firestore();
+firebase.auth().languageCode = "ph";
 
 const store = createStore({
   state: {
@@ -25,9 +24,9 @@ const store = createStore({
     darkModeEnabled: null,
 
     // USER
-    user: _user,
+    _userKey: 0, // For forcedRerender
+    user: null,
     isAdmin: false,
-    userProfile: null, // UserProfile()
 
     // #region SHARED
     products: null, // Product()[]
@@ -66,7 +65,6 @@ const store = createStore({
     // Firebase Refs
     dbReservation: null, // Pending Reservation
     dbPendingOrder: null,
-    dbUserProfile: null,
     // #endregion
 
     // #region ADMIN
@@ -97,6 +95,7 @@ const store = createStore({
     SET_USER(state, value) {
       console.log("SET_USER");
       state.user = value;
+      state._userKey++;
     },
     SET_IS_ADMIN(state, value) {
       console.log("SET_IS_ADMIN");
@@ -147,10 +146,6 @@ const store = createStore({
       console.log("SET_PENDING_ORDER");
       state.pendingOrder = value;
     },
-    SET_USER_PROFILE(state, value) {
-      console.log("DB_SET_USER_PROFILE");
-      state.userProfile = value;
-    },
     DB_SET_RESERVATION(state, value) {
       console.log("DB_SET_RESERVATION");
       state.dbReservation = value;
@@ -163,10 +158,6 @@ const store = createStore({
       console.log("DB_SET_PENDING_ORDER");
       state.dbPendingOrder = value;
     },
-    DB_SET_USER_PROFILE(state, value) {
-      console.log("DB_SET_USER_PROFILE");
-      state.dbUserProfile = value;
-    },
   },
   actions: {
     // GLOBAL
@@ -177,7 +168,7 @@ const store = createStore({
       if (localStorage.darkMode == "true") dispatch("toggleDarkMode", true);
 
       // Set User whether logged in or not
-      dispatch("setUser", user);
+      commit("SET_USER", user);
 
       if (user) {
         console.log("---LOGGED IN---");
@@ -200,13 +191,7 @@ const store = createStore({
             .collection("PUBLIC_ORDERS")
             .doc(user.uid)
         );
-        commit(
-          "DB_SET_USER_PROFILE",
-          firebase
-            .firestore()
-            .collection("user-profiles")
-            .doc(user.uid)
-        );
+
         // #endregion
 
         const token = await user.getIdTokenResult();
@@ -224,7 +209,6 @@ const store = createStore({
         }
 
         // Fetch / Listeners
-        dispatch("fetchUserProfile");
         dispatch("listenOpenBatch");
         dispatch("listenStatus");
         dispatch("listenCustomerPendingOrder");
@@ -261,48 +245,6 @@ const store = createStore({
     },
     removeAlert({ state }, index) {
       state.alerts.splice(index, 1);
-    },
-
-    // USER
-    setUser({ commit }, user) {
-      console.log("setUser");
-
-      commit("SET_USER", user);
-    },
-
-    async fetchUserProfile({ commit, state }) {
-      console.log("fetchUserProfile");
-
-      const userProfile = await state.dbUserProfile.get();
-      const data = userProfile.data();
-      commit(
-        "SET_USER_PROFILE",
-        new UserProfile({ uid: state.user.uid, ...data })
-      );
-    },
-    async saveUserProfile({ state, commit, dispatch }, _userProfile) {
-      console.log("saveUserProfile");
-
-      try {
-        await state.dbUserProfile.set(
-          { ..._userProfile.firestoreDoc },
-          { merge: true }
-        );
-
-        commit("SET_USER_PROFILE", _userProfile);
-
-        dispatch("alert", {
-          message: "Successfully saved your profile.",
-          type: ALERT_TYPE.SUCCESS,
-        });
-      } catch (err) {
-        console.error(err);
-
-        dispatch("alert", {
-          message: "Something went wrong in saving your profile.",
-          type: ALERT_TYPE.DANGER,
-        });
-      }
     },
 
     // #region ADMIN
@@ -805,18 +747,21 @@ const store = createStore({
       console.log("saveOrder");
 
       const user = state.user;
-      const userProfile = state.userProfile;
+
+      if (!user.phoneNumber) {
+        return dispatch("alert", {
+          message: "Please provide your mobile phone number.",
+          type: ALERT_TYPE.DANGER,
+        });
+      }
 
       const orderObj = new Order({
         uid: user.uid,
+        phoneNumber: user.phoneNumber,
         name: user.displayName,
         email: user.email,
-        fbLink: userProfile.fbLink,
-        phoneNumber: userProfile.phoneNumber,
         orderList: orderList,
       });
-
-      console.log(orderObj, state.latestBatch);
 
       // Only Allow Orders of > 100 PHP
       if (
@@ -921,8 +866,6 @@ const getCurrentUser = () => {
   return new Promise((resolve, reject) => {
     const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
       unsubscribe();
-
-      console.log("AuthChanged");
 
       if (user) {
         const token = await user.getIdTokenResult();

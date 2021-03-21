@@ -21,6 +21,15 @@
     @apply bg-primary;
   }
 
+  /* FirebaseUI */
+  input.firebaseui-input {
+    background: unset !important;
+  }
+
+  label.firebaseui-label {
+    padding: 0 !important;
+  }
+
   h1 {
     @apply text-4xl font-medium;
   }
@@ -90,7 +99,7 @@
   }
 
   .button {
-    @apply inline-flex items-center justify-center px-3 py-2 rounded-lg max-w-md transition-colors;
+    @apply inline-block text-center px-3 py-2 rounded-lg max-w-md transition-colors;
   }
 
   .button-rounded {
@@ -102,7 +111,7 @@
   }
 
   .button-block {
-    @apply w-full m-auto;
+    @apply block w-full mx-auto;
   }
 
   .button-primary {
@@ -250,12 +259,12 @@
     @apply border-danger;
   }
 
-  .input-suppress-invalid {
-    @apply border-lightSecondary !important;
-  }
-
   input:required:valid {
     @apply focus:border-primary;
+  }
+
+  .input-suppress-invalid {
+    @apply border-lightSecondary !important;
   }
 
   .icon-sm {
@@ -396,12 +405,12 @@
       @apply border-darkDanger;
     }
 
-    .input-suppress-invalid {
-      @apply border-dark1 !important;
-    }
-
     input:required:valid {
       @apply focus:border-darkPrimary;
+    }
+
+    .input-suppress-invalid {
+      @apply border-dark1 !important;
     }
 
     .input__search > svg {

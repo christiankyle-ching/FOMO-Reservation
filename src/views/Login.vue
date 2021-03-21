@@ -1,56 +1,30 @@
 <template>
   <div class="login">
-    <div class="flex h-screen m-auto">
-      <div id="firebaseui-auth-container" class="m-auto"></div>
-    </div>
+    <div id="firebaseui-auth-container" class="mt-20 mx-auto p-5"></div>
   </div>
 </template>
 
 <script>
 import "@/firebase";
 import firebase from "firebase/app";
-import "firebaseui";
-import { UserProfile } from "@/models/UserProfile";
 
+import "firebaseui";
 const ui = new firebaseui.auth.AuthUI(firebase.auth());
 
 export default {
   name: "Login",
   mounted() {
     ui.start("#firebaseui-auth-container", {
-      signInOptions: [
-        {
-          provider: "facebook.com",
-          providerName: "Facebook",
-          scopes: ["user_link"],
-        },
-      ],
+      signInOptions: [firebase.auth.EmailAuthProvider.PROVIDER_ID],
+      siteName: this.$store.state.clientName,
+      signInSuccessUrl: this.$router.resolve({ name: "Home" }).href,
 
+      // TODO: Terms of Service & Privacy Policy
+      tosUrl: "",
+      privacyPolicyUrl: "",
       callbacks: {
         uiShown: () => {
           this.$router.replace(this.$route.path); // Remove query params
-        },
-        signInSuccessWithAuthResult: async (result, __) => {
-          // Fetch FB Link with FB API
-          const fbUid = result.user.providerData[0].uid;
-          const token = result.credential.accessToken;
-          const reqUrl = `https://graph.facebook.com/${fbUid}?fields=link&access_token=${token}`;
-
-          const apiRes = await (await fetch(reqUrl)).json();
-
-          const uid = result.user.uid;
-
-          await firebase
-            .firestore()
-            .collection("user-profiles")
-            .doc(uid)
-            .set(
-              new UserProfile({ uid: uid, fbLink: apiRes.link }).firestoreDoc,
-              { merge: true }
-            );
-
-          // Redirect to Home
-          this.$router.push({ name: "Home", query: {} });
         },
       },
     });

@@ -3,7 +3,7 @@
     <h1 class="text-center my-5 sm:mb-10">
       {{ $store.state.clientName }}'s Waitlist
     </h1>
-    <div v-if="user">
+    <div v-if="!!user">
       <!-- a: Order Allowed -->
       <Order v-if="orderAllowed" />
 
@@ -29,7 +29,7 @@
       </div>
 
       <!-- d: Latest Batch is not done. Check if you are included -->
-      <div v-else-if="orderFromLatestBatch != null" class="card">
+      <div v-else-if="!!orderFromLatestBatch" class="card">
         <h3 class="text-center">
           Batch "{{ latestBatch?.name }}" is in process.
         </h3>
@@ -43,7 +43,16 @@
       </div>
 
       <!-- Default: Show Reservation Module -->
-      <Reserve v-else class="mt-10" />
+      <Reserve v-else class="mt-10" :key="_userKey" />
+
+      <!-- Phone Number Registration -->
+      <div class="card mt-20">
+        <div class="mb-5">
+          <h3>Your Profile, {{ user.displayName }}</h3>
+          <p>{{ user.email }}</p>
+        </div>
+        <LinkPhoneNumber />
+      </div>
     </div>
   </div>
 </template>
@@ -55,16 +64,25 @@ import Receipt from "@/components/Receipt.vue";
 import Reserve from "@/components/Reserve.vue";
 import Payment from "@/components/Payment.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import LinkPhoneNumber from "@/components/LinkPhoneNumber.vue";
 
 export default {
   name: "Home",
-  components: { Order, Reserve, Payment, Receipt, LoadingSpinner },
+  components: {
+    Order,
+    Reserve,
+    Payment,
+    Receipt,
+    LoadingSpinner,
+    LinkPhoneNumber,
+  },
   data() {
     return { orderFromLatestBatch: null };
   },
   computed: {
     ...mapState({
       user: "user",
+      _userKey: "_userKey",
       pendingOrder: "pendingOrder",
       orderAllowed: "orderAllowed",
       orderDone: "orderDone",

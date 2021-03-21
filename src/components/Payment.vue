@@ -85,6 +85,16 @@ export default {
   methods: {
     async payWithEwallet(sourceType) {
       const url = `${process.env.VUE_APP_BACKEND_URL}/api/payment`;
+      const redirectBaseUrl =
+        window.location.origin + this.$router.resolve({ name: "Home" }).path;
+
+      // Redirect Url Params
+      const successQueryParams = new URLSearchParams({
+        status: "auth",
+      }).toString();
+      const failedQueryParams = new URLSearchParams({
+        status: "fail",
+      }).toString();
 
       const options = {
         method: "POST",
@@ -95,8 +105,13 @@ export default {
           uid: this.pendingOrder.uid,
           name: this.pendingOrder.name,
           email: this.pendingOrder.email,
+          phoneNumber: this.pendingOrder.phoneNumber,
           totalPrice: this.pendingOrder.totalPrice,
           sourceType: sourceType,
+          redirect: {
+            successUrl: `${redirectBaseUrl}?${successQueryParams}`,
+            failedUrl: `${redirectBaseUrl}?${failedQueryParams}`,
+          },
         }),
       };
 
