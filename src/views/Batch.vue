@@ -55,7 +55,7 @@ export default {
           ...data,
         });
       })
-      .catch();
+      .catch((err) => console.error("Batch mounted: ", err));
   },
 };
 </script>

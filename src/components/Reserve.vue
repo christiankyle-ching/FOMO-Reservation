@@ -1,7 +1,7 @@
 <template>
   <div class="reserve px-5">
     <!-- a: Reservation Open -->
-    <div v-if="openBatch && !reservationExists">
+    <div v-if="openBatch && !reservation">
       <div class="my-20">
         <div class="text-center">
           <h2>{{ openBatch.name }}</h2>
@@ -39,11 +39,12 @@
     </div>
 
     <!-- b: Reserved Already -->
-    <div v-else-if="reservationExists">
-      <h3 class="text-center">
+    <div v-else-if="reservation" class="text-center">
+      <h3>
         Reservation request already sent! Please wait for confirmation if you
         are lucky to get into the limit.
       </h3>
+      <p class="mt-5">Reservation Date & Time: {{ reservationDateTime }}</p>
     </div>
 
     <!-- No Open Batches, Wait for future batches -->
@@ -55,6 +56,7 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
+import { localeDateTimeOpts } from "../utils";
 
 export default {
   name: "Reserve",
@@ -70,7 +72,12 @@ export default {
       openBatch: "openBatch",
       orderDone: "orderDone",
       orderAllowed: "orderAllowed",
-      reservationExists: "reservationExists",
+      reservation: "reservation",
+      reservationDateTime(state) {
+        return state.reservation.datetime
+          .toDate()
+          .toLocaleString("en-US", localeDateTimeOpts);
+      },
     }),
   },
 };

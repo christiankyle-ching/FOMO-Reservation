@@ -59,7 +59,7 @@ const store = createStore({
     // Status Tracking of Customer Order
     orderAllowed: null, // bool
     orderDone: null, // bool
-    reservationExists: null, // bool
+    reservation: null,
     paymentReceived: null, // bool
     // Firebase Refs
     dbReservation: null, // Pending Reservation
@@ -137,9 +137,9 @@ const store = createStore({
     },
 
     // CUSTOMER
-    SET_RESERVATION_EXISTS(state, value) {
-      console.log("SET_RESERVATION_EXISTS");
-      state.reservationExists = value;
+    SET_RESERVATION(state, value) {
+      console.log("SET_RESERVATION");
+      state.reservation = value;
     },
     SET_PENDING_ORDER(state, value) {
       console.log("SET_PENDING_ORDER");
@@ -178,17 +178,11 @@ const store = createStore({
         // #region Customer DB References
         commit(
           "DB_SET_RESERVATION",
-          firebase
-            .firestore()
-            .collection("PUBLIC_RESERVATIONS")
-            .doc(user.uid)
+          _db.collection("PUBLIC_RESERVATIONS").doc(user.uid)
         );
         commit(
           "DB_SET_PENDING_ORDER",
-          firebase
-            .firestore()
-            .collection("PUBLIC_ORDERS")
-            .doc(user.uid)
+          _db.collection("PUBLIC_ORDERS").doc(user.uid)
         );
 
         // #endregion
@@ -251,15 +245,19 @@ const store = createStore({
     async fetchProducts({ state, commit }) {
       console.log("fetchProducts");
 
-      const products = (await state.dbProducts.get()).data().products;
+      try {
+        const products = (await state.dbProducts.get()).data().products;
 
-      const cacheProducts = [];
+        const cacheProducts = [];
 
-      products.forEach((p) => {
-        cacheProducts.push(new Product({ ...p }));
-      });
+        products.forEach((p) => {
+          cacheProducts.push(new Product({ ...p }));
+        });
 
-      commit("SET_PRODUCTS", cacheProducts);
+        commit("SET_PRODUCTS", cacheProducts);
+      } catch (err) {
+        console.error("fetchProducts: ", err);
+      }
     },
 
     clearProducts({ commit }) {
@@ -317,6 +315,9 @@ const store = createStore({
               })
             );
           }
+        },
+        (error) => {
+          console.error("Latest Batch: ", error);
         }
       );
     },
@@ -328,33 +329,37 @@ const store = createStore({
     async fetchBatches({ state, commit }) {
       console.log("fetchBatches");
 
-      const batches = await state.dbBatches
-        .orderBy("created_at", "desc")
-        .limit(5)
-        .get();
-
-      const cacheBatches = [];
-      batches.forEach((batch) => {
-        const data = batch.data();
-        cacheBatches.push(
-          new Batch({
-            id: batch.id,
-            ...data,
-          })
-        );
-      });
-
-      const _last = batches.docs[batches.docs.length - 1];
-
-      // Save cursor to fetch next batch
-      if (_last != undefined) {
-        state.dbBatchesCursor = state.dbBatches
+      try {
+        const batches = await state.dbBatches
           .orderBy("created_at", "desc")
-          .startAfter(_last)
-          .limit(5);
-      }
+          .limit(5)
+          .get();
 
-      commit("SET_BATCHES", cacheBatches);
+        const cacheBatches = [];
+        batches.forEach((batch) => {
+          const data = batch.data();
+          cacheBatches.push(
+            new Batch({
+              id: batch.id,
+              ...data,
+            })
+          );
+        });
+
+        const _last = batches.docs[batches.docs.length - 1];
+
+        // Save cursor to fetch next batch
+        if (_last != undefined) {
+          state.dbBatchesCursor = state.dbBatches
+            .orderBy("created_at", "desc")
+            .startAfter(_last)
+            .limit(5);
+        }
+
+        commit("SET_BATCHES", cacheBatches);
+      } catch (err) {
+        console.error("fetchBatches", err);
+      }
     },
 
     async fetchNextBatches({ state, commit }) {
@@ -405,6 +410,9 @@ const store = createStore({
           });
 
           commit("SET_PENDING_ORDERS", cachePendingOrders);
+        },
+        (error) => {
+          console.error("Pending Orders: ", error);
         }
       );
     },
@@ -524,7 +532,7 @@ const store = createStore({
           type: ALERT_TYPE.INFO,
         });
       } catch (err) {
-        console.error(err);
+        console.error("closeCurrentBatch: ", err);
 
         // Alert
         dispatch("alert", {
@@ -590,7 +598,7 @@ const store = createStore({
           type: ALERT_TYPE.INFO,
         });
       } catch (err) {
-        console.error(err);
+        console.error("finalizeBatch", err);
 
         dispatch("alert", {
           message:
@@ -627,14 +635,18 @@ const store = createStore({
     async updateLatestBatch({ state }) {
       console.log("updateLatestBatch");
 
-      const batchRef = (await state.dbLatestBatch.get()).docs[0].ref;
+      try {
+        const batchRef = (await state.dbLatestBatch.get()).docs[0].ref;
 
-      if (!batchRef.empty) {
-        const data = state.latestBatch;
+        if (!batchRef.empty) {
+          const data = state.latestBatch;
 
-        const updatedBatch = new Batch({ ...data });
+          const updatedBatch = new Batch({ ...data });
 
-        await batchRef.update(updatedBatch.firestoreDoc);
+          await batchRef.update(updatedBatch.firestoreDoc);
+        }
+      } catch (err) {
+        console.error("updateLatestBatch", err);
       }
     },
 
@@ -656,9 +668,14 @@ const store = createStore({
     async listenCounters({ state, commit }) {
       console.log("Listen: Counters");
 
-      state.unsubscribeCounters = state.dbCounters.onSnapshot((counter) => {
-        commit("SET_COUNTERS", counter.data());
-      });
+      state.unsubscribeCounters = state.dbCounters.onSnapshot(
+        (counter) => {
+          commit("SET_COUNTERS", counter.data());
+        },
+        (error) => {
+          console.error("PUBLIC_WRITE: ", error);
+        }
+      );
     },
 
     detachCounters({ state }) {
@@ -671,25 +688,29 @@ const store = createStore({
     async fetchAdminSettings({ state, commit }) {
       console.log("fetchAdminSettings");
 
-      // Set default settings, or get from DB if existing
-      const settings = await state.dbAdminSettings.get();
-      const newSettings = settings.exists
-        ? new AdminSettings({ ...settings.data() })
-        : new AdminSettings({}).firestoreDoc;
+      try {
+        // Set default settings, or get from DB if existing
+        const settings = await state.dbAdminSettings.get();
+        const newSettings = settings.exists
+          ? new AdminSettings({ ...settings.data() })
+          : new AdminSettings({}).firestoreDoc;
 
-      // If does not exists, update DB
-      if (!settings.exists) {
-        settings.ref.set({ ...newSettings });
+        // If does not exists, update DB
+        if (!settings.exists) {
+          settings.ref.set({ ...newSettings });
+        }
+
+        commit("SET_ADMIN_SETTINGS", new AdminSettings({ ...newSettings }));
+
+        // Update formNewBatch to reflect settings
+        state.formNewBatch = {
+          name: "",
+          order_limit: newSettings.order_limit,
+          maxAllowedOrderQty: newSettings.maxAllowedOrderQty,
+        };
+      } catch (err) {
+        console.error("fetchAdminSettings", err);
       }
-
-      commit("SET_ADMIN_SETTINGS", new AdminSettings({ ...newSettings }));
-
-      // Update formNewBatch to reflect settings
-      state.formNewBatch = {
-        name: "",
-        order_limit: newSettings.order_limit,
-        maxAllowedOrderQty: newSettings.maxAllowedOrderQty,
-      };
     },
 
     async saveAdminSettings({ state, commit, dispatch }, _adminSettings) {
@@ -727,23 +748,24 @@ const store = createStore({
     async reserve({ state, commit }) {
       console.log("reserve");
 
-      const reservation = await state.dbReservation.get();
+      try {
+        const reservation = await state.dbReservation.get();
 
-      if (!reservation.exists) {
-        state.dbReservation.set({
-          datetime: firebase.firestore.FieldValue.serverTimestamp(),
-        });
+        if (!reservation.exists) {
+          state.dbReservation.set({
+            datetime: firebase.firestore.FieldValue.serverTimestamp(),
+          });
 
-        // Update reservationExists
-        commit("SET_RESERVATION_EXISTS", true);
-
-        // Increment Reservation Count
-        state.dbCounters.set(
-          {
-            reservations: firebase.firestore.FieldValue.increment(1),
-          },
-          { merge: true }
-        );
+          // Increment Reservation Count
+          state.dbCounters.set(
+            {
+              reservations: firebase.firestore.FieldValue.increment(1),
+            },
+            { merge: true }
+          );
+        }
+      } catch (err) {
+        console.error("reserve", err);
       }
     },
 
@@ -809,6 +831,9 @@ const store = createStore({
             pendingOrder.exists && !!orderObj.orderList && !orderObj.payment;
 
           state.paymentReceived = pendingOrder.exists && !!orderObj.payment;
+        },
+        (error) => {
+          console.error("PUBLIC_ORDERS/uid: ", error);
         }
       );
     },
@@ -823,9 +848,14 @@ const store = createStore({
     listenStatus({ commit, state, dispatch }) {
       console.log("Listen: Status");
 
-      state.unsubscribeStatus = state.dbStatus.onSnapshot((status) => {
-        commit("SET_STATUS", status.data());
-      });
+      state.unsubscribeStatus = state.dbStatus.onSnapshot(
+        (status) => {
+          commit("SET_STATUS", status.data());
+        },
+        (error) => {
+          console.error("PUBLIC_READ/status: ", error);
+        }
+      );
     },
 
     detachStatus({ state }) {
@@ -842,13 +872,21 @@ const store = createStore({
           if (batch.exists) {
             commit("SET_OPEN_BATCH", new Batch({ ...batch.data() }));
 
-            const reservationExists = (await state.dbReservation.get()).exists;
-            // Update if Reservation is allowed
-            commit("SET_RESERVATION_EXISTS", reservationExists);
+            try {
+              const reservation = (await state.dbReservation.get()).data();
+
+              // Update if Reservation is allowed
+              commit("SET_RESERVATION", reservation);
+            } catch (err) {
+              console.error("reservation", err);
+            }
           } else {
             commit("SET_OPEN_BATCH", null);
-            commit("SET_RESERVATION_EXISTS", null);
+            commit("SET_RESERVATION", null);
           }
+        },
+        (error) => {
+          console.error("PUBLIC_READ/open_batch: ", error);
         }
       );
     },

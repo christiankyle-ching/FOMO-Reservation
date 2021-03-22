@@ -137,9 +137,12 @@ export default {
     },
   },
   async mounted() {
-    const adminSettings = await this.$store.state.dbAdminSettings.get();
-
-    this.formAdminSettings = new AdminSettings({ ...adminSettings.data() });
+    try {
+      const adminSettings = await this.$store.state.dbAdminSettings.get();
+      this.formAdminSettings = new AdminSettings({ ...adminSettings.data() });
+    } catch (err) {
+      console.error("AdminSettings mounted: ", err);
+    }
   },
 };
 </script>

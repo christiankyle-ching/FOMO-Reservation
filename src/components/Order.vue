@@ -150,7 +150,7 @@
       </form>
       <p v-else class="text-center my-5">
         You reached the maximum allowed number of order in the menu ({{
-          maxAllowedOrderQty
+          latestBatch.maxAllowedOrderQty
         }}
         items).
         <br />

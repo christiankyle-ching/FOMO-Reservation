@@ -28,24 +28,6 @@ class Order {
   get firestoreDoc() {
     const firestoreObj = {};
 
-    // Object.assign(firestoreObj, this.uid && { uid: this.uid });
-    // Object.assign(firestoreObj, this.oid && { oid: this.oid });
-    // Object.assign(firestoreObj, this.name && { name: this.name });
-    // Object.assign(firestoreObj, this.email && { email: this.email });
-    // Object.assign(
-    //   firestoreObj,
-    //   this.phoneNumber && { phoneNumber: this.phoneNumber }
-    // );
-    // Object.assign(firestoreObj, this.payment && { payment: this.payment });
-    // Object.assign(firestoreObj, { isDone: this.isDone });
-    // Object.assign(
-    //   firestoreObj,
-    //   this.orderList && { orderList: this.orderList }
-    // );
-
-    // return firestoreObj;
-
-    // Filter out undefined and null
     return removeUndefined(this);
   }
 
