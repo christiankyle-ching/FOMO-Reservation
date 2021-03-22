@@ -6,7 +6,10 @@
       v-if="!isAdding"
       @click="toggleCollapse()"
     >
-      <h4>{{ count }}: {{ product.category }} | {{ product.name }}</h4>
+      <div>
+        <h4>{{ product.name }}</h4>
+        <p>{{ product.category }}</p>
+      </div>
 
       <!-- Collapse Button -->
       <button type="button" class="button-icon button-icon-md">
@@ -75,12 +78,12 @@
         </div>
 
         <!-- Price or Variants? -->
-        <div v-if="product.variants != null" class="col-span-2">
+        <div v-if="!!product.variants" class="col-span-2">
           <!-- Variants ForEach -->
           <h6>Variants</h6>
           <div
             v-for="(variant, variantIndex) in product.variants"
-            :key="'variant' + variantIndex"
+            :key="variant"
             class="grid grid-cols-2 gap-5"
           >
             <div class="col-span-1">
@@ -129,7 +132,12 @@
         </div>
         <div v-else class="col-span-2">
           <label>Price:</label>
-          <input type="number" v-model.number="product.price" min="0" required />
+          <input
+            type="number"
+            v-model.number="product.price"
+            min="0"
+            required
+          />
         </div>
 
         <!-- Any Additionals -->
@@ -198,7 +206,7 @@
               type="checkbox"
               :id="product.name + '-enableVariant'"
               @change="toggleVariant()"
-              :checked="product.variants != null"
+              :checked="!!product.variants"
             />
           </label>
         </div>
@@ -232,7 +240,7 @@
 
 <script>
 export default {
-  props: { product: Object, categories: Set, isAdding: Boolean, count: Number },
+  props: { product: Object, categories: Set, isAdding: Boolean },
   emits: ["remove"],
   inheritAttrs: false,
   data() {

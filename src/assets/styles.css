@@ -21,7 +21,7 @@
     @apply bg-primary;
   }
 
-  /* FirebaseUI */
+  /* purgecss start ignore */
   input.firebaseui-input {
     background: unset !important;
   }
@@ -29,6 +29,7 @@
   label.firebaseui-label {
     padding: 0 !important;
   }
+  /* purgecss end ignore */
 
   h1 {
     @apply text-4xl font-medium;
@@ -310,8 +311,10 @@
     @apply flex-grow border-0 m-0;
   }
 
-  .input__search > svg {
-    @apply text-darkSecondary mr-3 icon-sm;
+  .input__search::after {
+    content: url("~@/assets/icons/search.svg");
+    filter: contrast(80%);
+    @apply mr-3 icon-sm;
   }
 
   select {
@@ -339,6 +342,19 @@
     @apply icon-md mr-2;
   }
 
+  /* Toolbar */
+  .toolbar {
+    @apply sticky top-0 border-b-2 bg-white dark:bg-dark2 dark:border-dark3 shadow-md z-10;
+  }
+
+  .toolbar > .container {
+    @apply mx-auto p-3;
+  }
+
+  .toolbar__header {
+    @apply flex items-center justify-between;
+  }
+
   th,
   td {
     @apply px-2 py-1 sm:px-4 sm:py-2;
@@ -354,6 +370,7 @@
     display: none;
   }
 
+  /* purgecss start ignore */
   /* Animations */
   .fade-enter-from,
   .fade-leave-to {
@@ -364,6 +381,18 @@
   .fade-leave-active {
     @apply transition-opacity;
   }
+
+  .slide-enter-from,
+  .slide-leave-to {
+    transform: translateX(-100%) !important;
+  }
+
+  .slide-enter-active,
+  .slide-leave-active {
+    @apply transition-transform !important;
+  }
+
+  /* purgecss end ignore */
 
   /* DARK MODE */
   .dark {

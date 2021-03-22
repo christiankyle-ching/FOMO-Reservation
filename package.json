@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "dev:build": "npm run build && serve -s dist",
+    "dev:lt": "lt --port 5000 --subdomain gringo-test-2"
   },
   "dependencies": {
     "core-js": "^3.6.5",

@@ -193,7 +193,7 @@ export default {
         });
       },
       paidOrders(state) {
-        return state.pendingOrders.filter((o) => o.payment != null);
+        return state.pendingOrders.filter((o) => !!o.payment);
       },
       status: "status",
       counters: "counters",

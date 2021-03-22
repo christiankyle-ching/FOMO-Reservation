@@ -91,7 +91,7 @@ export default {
   },
   watch: {
     latestBatch() {
-      if (this.latestBatch != null && !this.latestBatch.isDone) {
+      if (!!this.latestBatch && !this.latestBatch.isDone) {
         return (this.orderFromLatestBatch =
           this.latestBatch.orders?.find(
             (o) => o.email === this.$store.state.user.email

@@ -25,14 +25,4 @@ export default {
 </script>
 
 <style>
-.slide-enter-active,
-.slide-leave-active {
-  @apply transition-transform;
-}
-
-.slide-enter,
-.slide-leave-to {
-  transform: translateX(-100%);
-  @apply transition-transform;
-}
 </style>

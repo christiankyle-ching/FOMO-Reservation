@@ -32,8 +32,8 @@
             <span v-else class="text-danger font-medium">Pending</span>
           </span>
 
-          <span class="font-medium" v-if="batch != null">Batch: </span>
-          <span class="mb-1 sm:mb-0" v-if="batch != null"
+          <b class="font-medium" v-if="!!batch">Batch: </b>
+          <span class="mb-1 sm:mb-0" v-if="!!batch"
             >{{ batch?.closedAtString }} ({{ batch?.name }})</span
           >
 
@@ -66,10 +66,7 @@
         </thead>
 
         <tbody>
-          <tr
-            v-for="(product, index) in order.orderList"
-            :key="index + product.name"
-          >
+          <tr v-for="(product, index) in order.orderList" :key="product">
             <td>{{ product.name }}</td>
             <td class="text-right">
               {{ product.unit_price.toLocaleString() }} PHP x{{ product.qty }}

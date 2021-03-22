@@ -1,3 +1,5 @@
+import { removeUndefined } from "@/utils";
+
 class AdminSettings {
   constructor({ order_limit, maxAllowedOrderQty }) {
     this.order_limit = order_limit ?? 20; // Safety default to prevent null values
@@ -23,18 +25,20 @@ class AdminSettings {
   }
 
   get firestoreDoc() {
-    const firestoreObj = {};
+    // const firestoreObj = {};
 
-    Object.assign(
-      firestoreObj,
-      this.order_limit && { order_limit: this.order_limit }
-    );
-    Object.assign(
-      firestoreObj,
-      this.maxAllowedOrderQty && { maxAllowedOrderQty: this.maxAllowedOrderQty }
-    );
+    // Object.assign(
+    //   firestoreObj,
+    //   this.order_limit && { order_limit: this.order_limit }
+    // );
+    // Object.assign(
+    //   firestoreObj,
+    //   this.maxAllowedOrderQty && { maxAllowedOrderQty: this.maxAllowedOrderQty }
+    // );
 
-    return firestoreObj;
+    // return firestoreObj;
+
+    return removeUndefined(this);
   }
 
   clone() {

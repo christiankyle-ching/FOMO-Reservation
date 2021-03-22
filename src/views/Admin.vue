@@ -101,7 +101,7 @@ export default {
         return (
           state.status?.batch == BATCH_STATUS.PENDING &&
           state.latestBatch?.isDone == false &&
-          state.latestBatch?.locked_at != null
+          !!state.latestBatch?.locked_at
         );
       },
     }),

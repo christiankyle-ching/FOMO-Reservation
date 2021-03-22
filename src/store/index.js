@@ -262,6 +262,10 @@ const store = createStore({
       commit("SET_PRODUCTS", cacheProducts);
     },
 
+    clearProducts({ commit }) {
+      commit("SET_PRODUCTS", []);
+    },
+
     // Product Form
     async updateProducts({ state, dispatch }) {
       console.log("updateProducts");
@@ -373,7 +377,7 @@ const store = createStore({
         const _last = nextBatches.docs[nextBatches.docs.length - 1];
 
         // Save cursor to fetch next batch
-        if (_last != undefined && state.dbBatchesCursor != null) {
+        if (_last != undefined && !!state.dbBatchesCursor) {
           state.dbBatchesCursor = state.dbBatches
             .orderBy("created_at", "desc")
             .startAfter(_last)
@@ -734,9 +738,11 @@ const store = createStore({
         commit("SET_RESERVATION_EXISTS", true);
 
         // Increment Reservation Count
-        state.dbCounters.update(
-          "reservations",
-          firebase.firestore.FieldValue.increment(1)
+        state.dbCounters.set(
+          {
+            reservations: firebase.firestore.FieldValue.increment(1),
+          },
+          { merge: true }
         );
       }
     },
@@ -800,12 +806,9 @@ const store = createStore({
             orderObj.payment == null;
 
           state.orderDone =
-            pendingOrder.exists &&
-            orderObj.orderList != null &&
-            orderObj.payment == null;
+            pendingOrder.exists && !!orderObj.orderList && !orderObj.payment;
 
-          state.paymentReceived =
-            pendingOrder.exists && orderObj.payment != null;
+          state.paymentReceived = pendingOrder.exists && !!orderObj.payment;
         }
       );
     },
@@ -877,7 +880,7 @@ const getCurrentUser = () => {
   });
 };
 
-// User Observer
+// User Observer for initApp Only
 firebase.auth().onAuthStateChanged((user) => {
   console.log("Test: AuthChanged");
 

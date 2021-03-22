@@ -1,3 +1,5 @@
+import { removeUndefined } from "@/utils";
+
 class Product {
   constructor({ name, category, price, variants, addons }) {
     this.name = name ?? "";
@@ -28,15 +30,16 @@ class Product {
   }
 
   get firestoreDoc() {
-    const firestoreObj = {};
+    // const firestoreObj = {};
 
-    Object.assign(firestoreObj, this.name && { name: this.name });
-    Object.assign(firestoreObj, this.category && { category: this.category });
-    Object.assign(firestoreObj, this.price && { price: this.price });
-    Object.assign(firestoreObj, this.variants && { variants: this.variants });
-    Object.assign(firestoreObj, this.addons && { addons: this.addons });
+    // Object.assign(firestoreObj, this.name && { name: this.name });
+    // Object.assign(firestoreObj, this.category && { category: this.category });
+    // Object.assign(firestoreObj, this.price && { price: this.price });
+    // Object.assign(firestoreObj, this.variants && { variants: this.variants });
+    // Object.assign(firestoreObj, this.addons && { addons: this.addons });
 
-    return firestoreObj;
+    // return firestoreObj;
+    return removeUndefined(this);
   }
 
   clone() {

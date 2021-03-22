@@ -1,4 +1,4 @@
-import { localeDateTimeOpts } from "@/utils";
+import { localeDateTimeOpts, removeUndefined } from "@/utils";
 
 class Order {
   constructor({
@@ -11,17 +11,11 @@ class Order {
     payment,
     isDone,
   }) {
-    const rgxOnlyNums = /\D/g;
-
     this.uid = uid ?? null;
 
     // Generate Random Order ID if there's no existing from DB
     this.oid =
-      oid ??
-      new Date()
-        .toISOString()
-        .replaceAll(rgxOnlyNums, "")
-        .concat(Math.floor(Math.random() * 999) + 100);
+      oid ?? `${new Date().getTime()}${Math.floor(Math.random() * 999) + 100}`;
 
     this.name = name ?? "";
     this.phoneNumber = phoneNumber ?? "";
@@ -34,22 +28,25 @@ class Order {
   get firestoreDoc() {
     const firestoreObj = {};
 
-    Object.assign(firestoreObj, this.uid && { uid: this.uid });
-    Object.assign(firestoreObj, this.oid && { oid: this.oid });
-    Object.assign(firestoreObj, this.name && { name: this.name });
-    Object.assign(firestoreObj, this.email && { email: this.email });
-    Object.assign(
-      firestoreObj,
-      this.phoneNumber && { phoneNumber: this.phoneNumber }
-    );
-    Object.assign(firestoreObj, this.payment && { payment: this.payment });
-    Object.assign(firestoreObj, { isDone: this.isDone });
-    Object.assign(
-      firestoreObj,
-      this.orderList && { orderList: this.orderList }
-    );
+    // Object.assign(firestoreObj, this.uid && { uid: this.uid });
+    // Object.assign(firestoreObj, this.oid && { oid: this.oid });
+    // Object.assign(firestoreObj, this.name && { name: this.name });
+    // Object.assign(firestoreObj, this.email && { email: this.email });
+    // Object.assign(
+    //   firestoreObj,
+    //   this.phoneNumber && { phoneNumber: this.phoneNumber }
+    // );
+    // Object.assign(firestoreObj, this.payment && { payment: this.payment });
+    // Object.assign(firestoreObj, { isDone: this.isDone });
+    // Object.assign(
+    //   firestoreObj,
+    //   this.orderList && { orderList: this.orderList }
+    // );
 
-    return firestoreObj;
+    // return firestoreObj;
+
+    // Filter out undefined and null
+    return removeUndefined(this);
   }
 
   get totalPrice() {

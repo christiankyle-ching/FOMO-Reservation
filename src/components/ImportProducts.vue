@@ -1,6 +1,6 @@
 <template>
   <div class="import-products">
-    <label>Select a templated file:</label>
+    <label class="p-0">Select a templated file:</label>
     <input
       type="file"
       accept=".csv"
@@ -8,14 +8,8 @@
       ref="inputTemplate"
     />
 
-    <div v-if="tempProducts.length" class="px-5 mt-5">
-      <div v-for="(message, index) in statsMessages" :key="index + message">
-        <p class="flex justify-between">
-          <span class="font-medium">{{ message.category }}: </span>
-          <span>{{ message.count }}</span>
-        </p>
-      </div>
-    </div>
+    <!-- Stats Messages -->
+    <ProductStats :products="tempProducts" class="mt-5" />
 
     <div class="flex justify-around mt-5">
       <button
@@ -80,19 +74,17 @@
 </template>
 
 <script>
-import { Product } from "@/models/Product";
 import { mapState } from "vuex";
 import { ALERT_TYPE } from "@/models/Alert";
+import { Product } from "@/models/Product";
+import ProductStats from "@/components/ProductStats";
 
 export default {
   emits: ["close"],
+  components: { ProductStats },
   data() {
     return {
-      search: "",
-
       tempProducts: [],
-      statsMessages: [],
-
       templateUrl: `${process.env.BASE_URL}pricelist_template.xlsx`,
     };
   },
@@ -108,7 +100,6 @@ export default {
       // If no selected file
       if (!selectedFile) {
         this.tempProducts = [];
-        this.updateMessage();
         return;
       }
 
@@ -197,26 +188,6 @@ export default {
       });
 
       this.tempProducts = cacheProducts;
-
-      // Message about template statistics
-      this.updateMessage();
-    },
-
-    // Message: Stats about Selected Template
-    updateMessage() {
-      let statsMessage = [];
-
-      const categories = new Set(this.tempProducts.map((p) => p.category));
-      categories.forEach((c) => {
-        statsMessage.push({
-          category: c,
-          count: this.tempProducts.filter((_c) => _c.category == c).length,
-        });
-      });
-
-      statsMessage.push({ category: "Total", count: this.tempProducts.length });
-
-      this.statsMessages = statsMessage;
     },
 
     // Actions

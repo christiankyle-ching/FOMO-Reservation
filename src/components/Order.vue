@@ -28,8 +28,8 @@
         <label>Category:</label>
         <select v-model="formCategory">
           <option
-            v-for="(category, index) in categories"
-            :key="index + category"
+            v-for="category in categories"
+            :key="category"
             :value="category"
           >
             {{ category }}
@@ -41,8 +41,8 @@
           <label>Choose a menu item:</label>
           <select v-model="formProduct">
             <option
-              v-for="(product, index) in filteredProducts"
-              :key="index + product.name"
+              v-for="product in filteredProducts"
+              :key="product"
               :value="product"
             >
               {{ product.name }}
@@ -55,8 +55,8 @@
           <label>Choose a variant (i.e. size):</label>
           <select v-model="formVariant">
             <option
-              v-for="(variant, index) in formProduct.variants"
-              :key="index + variant.name"
+              v-for="variant in formProduct.variants"
+              :key="variant"
               :value="variant.name"
             >
               {{ variant.name }}
@@ -109,10 +109,7 @@
           <!-- Add Ons -->
           <div v-if="formProduct.addons">
             <label>Add-Ons:</label>
-            <div
-              v-for="addon in formProduct.addons"
-              :key="formProduct.name + addon.name"
-            >
+            <div v-for="addon in formProduct.addons" :key="addon">
               <label class="checkbox">
                 <input type="checkbox" v-model="addon.selected" />
                 <span>

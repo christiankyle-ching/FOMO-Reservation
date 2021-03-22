@@ -3,7 +3,7 @@
     <!-- Search: Jump to Date -->
     <form
       @submit.prevent="jumpToDate()"
-      class="sticky top-0 border-b-2 bg-white dark:bg-dark2 dark:border-dark3 shadow-md"
+      class="toolbar"
     >
       <div class="container p-5 mx-auto">
         <label class="p-0">Jump to Date (Closed Reservation Date):</label>
@@ -48,7 +48,7 @@
       <!-- b: Has Previous Batches -->
       <div v-else>
         <!-- ForEach: Batches (Prioritize Searched Batches, then Previous/History)-->
-        <div v-if="searchBatches != null">
+        <div v-if="!!searchBatches">
           <LoadingSpinner v-if="isLoadingSearch" class="m-auto" />
 
           <div v-if="searchBatches?.length">
@@ -82,7 +82,7 @@
           <LoadingSpinner v-if="isLoadingMore" class="m-auto" />
 
           <button
-            v-else-if="dbBatchesCursor != null"
+            v-else-if="!!dbBatchesCursor"
             @click="fetchNextBatches()"
             type="button"
             class="button button-block button-secondary mt-3"
