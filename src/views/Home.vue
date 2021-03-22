@@ -10,11 +10,11 @@
       <!-- b: Order Done, Wait for Payment -->
       <div v-else-if="orderDone">
         <Payment class="mb-10" />
-        <Receipt :order="pendingOrder" :batch="latestBatch" inProcess />
+        <Receipt :order="pendingOrder" :batch="openBatch" inProcess />
       </div>
 
       <!-- c: Payment Done - Details -->
-      <div v-else-if="pendingOrder?.payment">
+      <div v-else-if="!!pendingOrder?.payment">
         <h4 class="text-center">
           <span class="text-success"> We received your payment.</span>
           Please wait for our confirmation on
@@ -24,23 +24,11 @@
         </h4>
         <div class="pt-10">
           <h3 class="text-center pb-5">Payment Details</h3>
-          <Receipt :order="pendingOrder" :batch="latestBatch" inProcess />
+          <Receipt :order="pendingOrder" :batch="openBatch" inProcess />
         </div>
       </div>
 
-      <!-- d: Latest Batch is not done. Check if you are included -->
-      <div v-else-if="!!orderFromLatestBatch" class="card">
-        <h3 class="text-center">
-          Batch "{{ latestBatch?.name }}" is in process.
-        </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 my-3">
-          <span class="font-medium">Batch Date (Closed Reservations):</span>
-          <span> {{ latestBatch.closedAtString }}</span>
-        </div>
-
-        <h5 class="text-center mb-3">Your Order</h5>
-        <Receipt :order="orderFromLatestBatch" :batch="latestBatch" inProcess />
-      </div>
+      <!-- TODO: d: Check history of paid orders from paid-orders -->
 
       <!-- Default: Show Reservation Module -->
       <Reserve v-else class="mt-10" :key="_userKey" />
@@ -76,9 +64,6 @@ export default {
     LoadingSpinner,
     LinkPhoneNumber,
   },
-  data() {
-    return { orderFromLatestBatch: null };
-  },
   computed: {
     ...mapState({
       user: "user",
@@ -86,20 +71,8 @@ export default {
       pendingOrder: "pendingOrder",
       orderAllowed: "orderAllowed",
       orderDone: "orderDone",
-      latestBatch: "latestBatch",
+      openBatch: "openBatch",
     }),
-  },
-  watch: {
-    latestBatch() {
-      if (!!this.latestBatch && !this.latestBatch.isDone) {
-        return (this.orderFromLatestBatch =
-          this.latestBatch.orders?.find(
-            (o) => o.email === this.$store.state.user.email
-          ) ?? null);
-      }
-
-      this.orderFromLatestBatch = null;
-    },
   },
 };
 </script>

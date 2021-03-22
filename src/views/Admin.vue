@@ -4,10 +4,9 @@
       Manage {{ $store.state.clientName }}
     </h1>
 
-    <div v-if="status == null" class="flex h-32">
+    <div v-if="!status" class="flex h-32">
       <LoadingSpinner class="m-auto" />
     </div>
-    <LatestBatch v-else-if="isProcessing" />
     <OpenBatch v-else />
 
     <!-- Admin Actions -->
@@ -84,25 +83,17 @@ import { mapState } from "vuex";
 import { BATCH_STATUS } from "@/models/Batch";
 
 import OpenBatch from "@/components/OpenBatch";
-import LatestBatch from "@/components/LatestBatch";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "Admin",
 
-  components: { OpenBatch, LatestBatch, LoadingSpinner },
+  components: { OpenBatch, LoadingSpinner },
   computed: {
     ...mapState({
       status: "status",
       isTakingOrders(state) {
         return state.status?.batch == BATCH_STATUS.CLOSED;
-      },
-      isProcessing(state) {
-        return (
-          state.status?.batch == BATCH_STATUS.PENDING &&
-          state.latestBatch?.isDone == false &&
-          !!state.latestBatch?.locked_at
-        );
       },
     }),
   },

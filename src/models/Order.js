@@ -14,8 +14,7 @@ class Order {
     this.uid = uid ?? null;
 
     // Generate Random Order ID if there's no existing from DB
-    this.oid =
-      oid ?? `${new Date().getTime()}${Math.floor(Math.random() * 999) + 100}`;
+    this.oid = oid ?? Math.floor(Math.random() * Math.pow(10, 15));
 
     this.name = name ?? "";
     this.phoneNumber = phoneNumber ?? "";

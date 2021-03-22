@@ -150,7 +150,7 @@
       </form>
       <p v-else class="text-center my-5">
         You reached the maximum allowed number of order in the menu ({{
-          latestBatch.maxAllowedOrderQty
+          openBatch.maxAllowedOrderQty
         }}
         items).
         <br />
@@ -184,6 +184,16 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      products: "products",
+      openBatch: "openBatch",
+      categories: (state) => [
+        ...new Set(
+          state.products.map((p) => (p.category ? p.category : "Uncategorized"))
+        ),
+      ],
+    }),
+
     selectedAddOns() {
       return this.formProduct.addons
         ? this.formProduct.addons.filter((a) => a.selected)
@@ -191,17 +201,8 @@ export default {
     },
     // Counters
     orderRemainingAllowed() {
-      return this.latestBatch.maxAllowedOrderQty - this.order.totalQty;
+      return this.openBatch?.maxAllowedOrderQty - this.order.totalQty;
     },
-    ...mapState({
-      products: "products",
-      latestBatch: "latestBatch",
-      categories: (state) => [
-        ...new Set(
-          state.products.map((p) => (p.category ? p.category : "Uncategorized"))
-        ),
-      ],
-    }),
   },
   methods: {
     // Order Functions

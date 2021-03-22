@@ -31,10 +31,8 @@ const store = createStore({
     products: null, // Product()[]
     status: null, // {}
     unsubscribeStatus: null, // method()
-    openBatch: null, // {} - Can be used in Batch()
+    openBatch: null, // Batch()
     unsubscribeOpenBatch: null, // method()
-    latestBatch: null, // Batch()
-    unsubscribeLatestBatch: null, // method()
     alerts: [],
     // Firebase Refs
     dbStatus: _db.collection("PUBLIC_READ").doc("status"),
@@ -47,10 +45,6 @@ const store = createStore({
       .firestore()
       .collection("PUBLIC_WRITE")
       .doc("counters"),
-    dbLatestBatch: _db
-      .collection("batches")
-      .orderBy("created_at", "desc")
-      .limit(1),
     // #endregion
 
     // #region CUSTOMER
@@ -68,6 +62,7 @@ const store = createStore({
 
     // #region ADMIN
     formProducts: [], // Product()[]
+    latestBatch: null,
     previousBatches: null, // Batch()[]
     formNewBatch: null, // { name, order_limit, maxAllowedOrderQty}
     counters: null, // {}
@@ -81,6 +76,10 @@ const store = createStore({
     dbBatchesCursor: null, // For Pagination
     dbReservations: _db.collection("PUBLIC_RESERVATIONS"),
     dbAdminSettings: _db.collection("PRIVATE").doc("settings"),
+    dbLatestBatch: _db
+      .collection("batches")
+      .orderBy("created_at", "desc")
+      .limit(1),
     // #endregion
   },
   mutations: {
@@ -118,10 +117,6 @@ const store = createStore({
       console.log("SET_BATCHES");
       state.previousBatches = value;
     },
-    SET_LATEST_BATCH(state, value) {
-      console.log("SET_LATEST_BATCH");
-      state.latestBatch = value;
-    },
     SET_PENDING_ORDERS(state, value) {
       console.log("SET_PENDING_ORDERS");
       state.pendingOrders = value;
@@ -134,6 +129,10 @@ const store = createStore({
       console.log("SET_ADMIN_SETTINGS");
 
       state.adminSettings = value;
+    },
+    SET_LATEST_BATCH(state, value) {
+      console.log("SET_LATEST_BATCH");
+      state.latestBatch = value;
     },
 
     // CUSTOMER
@@ -172,9 +171,6 @@ const store = createStore({
       if (user) {
         console.log("---LOGGED IN---");
 
-        dispatch("fetchProducts");
-        dispatch("listenLatestBatch");
-
         // #region Customer DB References
         commit(
           "DB_SET_RESERVATION",
@@ -194,6 +190,7 @@ const store = createStore({
           commit("SET_IS_ADMIN", true);
 
           dispatch("fetchAdminSettings");
+          dispatch("fetchLatestBatch");
           dispatch("fetchBatches");
           dispatch("listenPendingOrders");
 
@@ -202,6 +199,7 @@ const store = createStore({
         }
 
         // Fetch / Listeners
+        dispatch("fetchProducts");
         dispatch("listenOpenBatch");
         dispatch("listenStatus");
         dispatch("listenCustomerPendingOrder");
@@ -215,7 +213,6 @@ const store = createStore({
         commit("SET_IS_ADMIN", false);
 
         // Detach Listeners
-        dispatch("detachLatestBatch");
         dispatch("detachOpenBatch");
         dispatch("detachStatus");
         dispatch("detachCounters");
@@ -295,104 +292,6 @@ const store = createStore({
       dispatch("alert", {
         message: "Added products in template to existing products.",
         type: ALERT_TYPE.INFO,
-      });
-    },
-
-    // Batches
-    async listenLatestBatch({ state, commit }) {
-      console.log("listenLatestBatch");
-
-      state.unsubscribeLatestBatch = state.dbLatestBatch.onSnapshot(
-        (latest) => {
-          if (!latest.empty) {
-            const data = latest.docs[0].data();
-
-            commit(
-              "SET_LATEST_BATCH",
-              new Batch({
-                id: latest.docs[0].id,
-                ...data,
-              })
-            );
-          }
-        },
-        (error) => {
-          console.error("Latest Batch: ", error);
-        }
-      );
-    },
-
-    detachLatestBatch({ state }) {
-      if (state.unsubscribeLatestBatch) state.unsubscribeLatestBatch();
-    },
-
-    async fetchBatches({ state, commit }) {
-      console.log("fetchBatches");
-
-      try {
-        const batches = await state.dbBatches
-          .orderBy("created_at", "desc")
-          .limit(5)
-          .get();
-
-        const cacheBatches = [];
-        batches.forEach((batch) => {
-          const data = batch.data();
-          cacheBatches.push(
-            new Batch({
-              id: batch.id,
-              ...data,
-            })
-          );
-        });
-
-        const _last = batches.docs[batches.docs.length - 1];
-
-        // Save cursor to fetch next batch
-        if (_last != undefined) {
-          state.dbBatchesCursor = state.dbBatches
-            .orderBy("created_at", "desc")
-            .startAfter(_last)
-            .limit(5);
-        }
-
-        commit("SET_BATCHES", cacheBatches);
-      } catch (err) {
-        console.error("fetchBatches", err);
-      }
-    },
-
-    async fetchNextBatches({ state, commit }) {
-      console.log("fetchNextBatches");
-
-      return new Promise(async (resolve, _) => {
-        const nextBatches = await state.dbBatchesCursor.get();
-
-        const cacheBatches = [];
-        nextBatches.forEach((batch) => {
-          const data = batch.data();
-          cacheBatches.push(
-            new Batch({
-              id: batch.id,
-              ...data,
-            })
-          );
-        });
-
-        const _last = nextBatches.docs[nextBatches.docs.length - 1];
-
-        // Save cursor to fetch next batch
-        if (_last != undefined && !!state.dbBatchesCursor) {
-          state.dbBatchesCursor = state.dbBatches
-            .orderBy("created_at", "desc")
-            .startAfter(_last)
-            .limit(5);
-        } else {
-          state.dbBatchesCursor = null;
-        }
-
-        commit("SET_BATCHES", state.previousBatches.concat(cacheBatches));
-        resolve();
       });
     },
 
@@ -487,7 +386,7 @@ const store = createStore({
           batchWrite.set(orderRef, {});
         });
 
-        // Save Open Batch to Batches
+        // Update Open Batch
         const closedBatch = new Batch({
           id: null,
           name: currentOpenBatch.name,
@@ -500,18 +399,14 @@ const store = createStore({
           isDone: false,
         });
 
-        // Save Batch in Batches, Awaiting Finalize to Copy Orders
-        batchWrite.set(
-          _db.collection("batches").doc(),
+        batchWrite.update(
+          _db.collection("PUBLIC_READ").doc("open_batch"),
           closedBatch.firestoreDoc
         );
 
         // Update Batch Status
         const statusRef = _db.collection("PUBLIC_READ").doc("status");
         batchWrite.update(statusRef, { batch: BATCH_STATUS.CLOSED });
-
-        // Remove Open Batch
-        batchWrite.delete(_db.collection("PUBLIC_READ").doc("open_batch"));
 
         // Clear Unaccepted Reservations
         (await _db.collection("PUBLIC_RESERVATIONS").get()).forEach((r) => {
@@ -549,7 +444,6 @@ const store = createStore({
       const batchWrite = _db.batch();
 
       try {
-        // Copy all data in PUBLIC_ORDERS to batch.orders for those who are paid (with Order.payment)
         const cacheOrders = [];
         (
           await _db
@@ -558,26 +452,34 @@ const store = createStore({
             .get()
         ).forEach((order) => {
           cacheOrders.push({ ...order.data() });
+
+          // Copy paid orders from customers for reference
+          const newOrderId = _db.collection("paid-orders").doc().id;
+          batchWrite.set(_db.collection("paid-orders").doc(newOrderId), {
+            ...order.data(),
+          });
         });
 
-        const queryLatest = await _db
-          .collection("batches")
-          .orderBy("created_at", "desc")
-          .limit(1)
+        const closedBatch = await _db
+          .collection("PUBLIC_READ")
+          .doc("open_batch")
           .get();
-        if (!queryLatest.empty) {
-          const latestBatch = queryLatest.docs[0].ref;
-          const data = (await latestBatch.get()).data();
 
-          if (!data.orders) {
-            // Safety check if orders is already copied
-            // Prevents erasure of orders
-
-            // Batch: Copy All Paid Orders
-            batchWrite.update(latestBatch, {
+        if (closedBatch.exists) {
+          // Safety check if orders is already copied, Prevents erasure of orders
+          if (!closedBatch.data().orders) {
+            const newBatch = {
+              ...closedBatch.data(),
               orders: cacheOrders,
               locked_at: firebase.firestore.FieldValue.serverTimestamp(),
-            });
+            };
+
+            // 1: Create a new batch in batchesCollection with the paidorders and locked_at
+            const newBatchId = _db.collection("batches").doc().id;
+            batchWrite.set(_db.collection("batches").doc(newBatchId), newBatch);
+
+            // 2: Remove open_batch
+            batchWrite.delete(closedBatch.ref);
           }
         }
 
@@ -591,6 +493,9 @@ const store = createStore({
 
         // Change status to BATCH_STATUS.PENDING again
         dispatch("status_updateBatch", BATCH_STATUS.PENDING);
+
+        // Fetch Latest Batch for Orders to Process
+        dispatch("fetchLatestBatch");
 
         // Alert
         dispatch("alert", {
@@ -613,14 +518,17 @@ const store = createStore({
 
       try {
         // Update dbLatestBatch isDone
-        state.dbBatches.doc(state.latestBatch.id).update({ isDone: true });
+        const latestBatch = await state.dbLatestBatch.get();
+        if (!latestBatch.empty) {
+          latestBatch.docs[0].ref.update({ isDone: true });
 
-        // Alert
-        dispatch("alert", {
-          message:
-            "Successfully finished the last batch. Ready to open another one.",
-          type: ALERT_TYPE.SUCCESS,
-        });
+          // Alert
+          dispatch("alert", {
+            message:
+              "Successfully finished the last batch. Ready to open another one.",
+            type: ALERT_TYPE.SUCCESS,
+          });
+        }
       } catch (err) {
         console.error(err);
 
@@ -632,22 +540,90 @@ const store = createStore({
       }
     },
 
-    async updateLatestBatch({ state }) {
-      console.log("updateLatestBatch");
+    async fetchLatestBatch({ state, commit }) {
+      console.log("fetchLatestBatch");
 
       try {
-        const batchRef = (await state.dbLatestBatch.get()).docs[0].ref;
+        const latestBatch = await state.dbLatestBatch.get();
 
-        if (!batchRef.empty) {
-          const data = state.latestBatch;
-
-          const updatedBatch = new Batch({ ...data });
-
-          await batchRef.update(updatedBatch.firestoreDoc);
+        if (!latestBatch.empty) {
+          const data = latestBatch.docs[0].data();
+          console.log(new Batch({ ...data }));
+          commit("SET_LATEST_BATCH", new Batch({ ...data }));
         }
       } catch (err) {
-        console.error("updateLatestBatch", err);
+        console.error(err);
       }
+    },
+
+    async fetchBatches({ state, commit }) {
+      console.log("fetchBatches");
+
+      try {
+        const batches = await state.dbBatches
+          .orderBy("created_at", "desc")
+          .limit(5)
+          .get();
+
+        const cacheBatches = [];
+        batches.forEach((batch) => {
+          const data = batch.data();
+          cacheBatches.push(
+            new Batch({
+              id: batch.id,
+              ...data,
+            })
+          );
+        });
+
+        const _last = batches.docs[batches.docs.length - 1];
+
+        // Save cursor to fetch next batch
+        if (_last != undefined) {
+          state.dbBatchesCursor = state.dbBatches
+            .orderBy("created_at", "desc")
+            .startAfter(_last)
+            .limit(5);
+        }
+
+        commit("SET_BATCHES", cacheBatches);
+      } catch (err) {
+        console.error("fetchBatches", err);
+      }
+    },
+
+    async fetchNextBatches({ state, commit }) {
+      console.log("fetchNextBatches");
+
+      return new Promise(async (resolve, _) => {
+        const nextBatches = await state.dbBatchesCursor.get();
+
+        const cacheBatches = [];
+        nextBatches.forEach((batch) => {
+          const data = batch.data();
+          cacheBatches.push(
+            new Batch({
+              id: batch.id,
+              ...data,
+            })
+          );
+        });
+
+        const _last = nextBatches.docs[nextBatches.docs.length - 1];
+
+        // Save cursor to fetch next batch
+        if (_last != undefined && !!state.dbBatchesCursor) {
+          state.dbBatchesCursor = state.dbBatches
+            .orderBy("created_at", "desc")
+            .startAfter(_last)
+            .limit(5);
+        } else {
+          state.dbBatchesCursor = null;
+        }
+
+        commit("SET_BATCHES", state.previousBatches.concat(cacheBatches));
+        resolve();
+      });
     },
 
     async updatePendingOrder({ state }, order) {
@@ -763,6 +739,12 @@ const store = createStore({
             },
             { merge: true }
           );
+
+          // Get reservation submitted
+          const reservation = await state.dbReservation.get();
+          if (reservation.exists) {
+            commit("SET_RESERVATION", reservation.data());
+          }
         }
       } catch (err) {
         console.error("reserve", err);
@@ -793,7 +775,7 @@ const store = createStore({
       // Only Allow Orders of > 100 PHP
       if (
         orderObj.totalPrice > 100 &&
-        orderObj.totalQty <= state.latestBatch.maxAllowedOrderQty
+        orderObj.totalQty <= state.openBatch.maxAllowedOrderQty
       ) {
         // Update DB
         state.dbPendingOrder.set(orderObj.firestoreDoc);
@@ -804,7 +786,7 @@ const store = createStore({
         });
       } else {
         dispatch("alert", {
-          message: `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.latestBatch.maxAllowedOrderQty} item/s`,
+          message: `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.openBatch.maxAllowedOrderQty} item/s`,
           type: ALERT_TYPE.DANGER,
         });
       }
@@ -817,20 +799,25 @@ const store = createStore({
       state.unsubscribePendingOrder = state.dbPendingOrder.onSnapshot(
         (pendingOrder) => {
           const data = pendingOrder.data();
-          const orderObj = new Order({ id: pendingOrder.id, ...data });
+          const orderObj = new Order({ ...data });
 
           commit("SET_PENDING_ORDER", orderObj);
 
           // Track Status of Ordering System based on order attributes
           state.orderAllowed =
+            !!state.openBatch &&
             pendingOrder.exists &&
-            orderObj.orderList == null &&
-            orderObj.payment == null;
+            !orderObj.orderList &&
+            !orderObj.payment;
 
           state.orderDone =
-            pendingOrder.exists && !!orderObj.orderList && !orderObj.payment;
+            !!state.openBatch &&
+            pendingOrder.exists &&
+            !!orderObj.orderList &&
+            !orderObj.payment;
 
-          state.paymentReceived = pendingOrder.exists && !!orderObj.payment;
+          state.paymentReceived =
+            !!state.openBatch && pendingOrder.exists && !!orderObj.payment;
         },
         (error) => {
           console.error("PUBLIC_ORDERS/uid: ", error);
@@ -870,7 +857,9 @@ const store = createStore({
       state.unsubscribeOpenBatch = state.dbOpenBatch.onSnapshot(
         async (batch) => {
           if (batch.exists) {
-            commit("SET_OPEN_BATCH", new Batch({ ...batch.data() }));
+            const currentOpenBatch = new Batch({ ...batch.data() });
+
+            commit("SET_OPEN_BATCH", currentOpenBatch);
 
             try {
               const reservation = (await state.dbReservation.get()).data();

@@ -1,7 +1,7 @@
 <template>
   <!-- Modal: Receipt -->
   <transition name="fade">
-    <Modal v-if="showModal" @close="closeOrderModal">
+    <Modal v-if="showModal" @close="closeOrderModal()">
       <template v-slot:header>
         <div class="flex items-start justify-between">
           <div>

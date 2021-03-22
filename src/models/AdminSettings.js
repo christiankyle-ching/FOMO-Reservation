@@ -25,19 +25,6 @@ class AdminSettings {
   }
 
   get firestoreDoc() {
-    // const firestoreObj = {};
-
-    // Object.assign(
-    //   firestoreObj,
-    //   this.order_limit && { order_limit: this.order_limit }
-    // );
-    // Object.assign(
-    //   firestoreObj,
-    //   this.maxAllowedOrderQty && { maxAllowedOrderQty: this.maxAllowedOrderQty }
-    // );
-
-    // return firestoreObj;
-
     return removeUndefined(this);
   }
 

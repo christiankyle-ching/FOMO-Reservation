@@ -30,15 +30,6 @@ class Product {
   }
 
   get firestoreDoc() {
-    // const firestoreObj = {};
-
-    // Object.assign(firestoreObj, this.name && { name: this.name });
-    // Object.assign(firestoreObj, this.category && { category: this.category });
-    // Object.assign(firestoreObj, this.price && { price: this.price });
-    // Object.assign(firestoreObj, this.variants && { variants: this.variants });
-    // Object.assign(firestoreObj, this.addons && { addons: this.addons });
-
-    // return firestoreObj;
     return removeUndefined(this);
   }
 

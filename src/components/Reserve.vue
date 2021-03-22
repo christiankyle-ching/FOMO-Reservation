@@ -75,7 +75,7 @@ export default {
       reservation: "reservation",
       reservationDateTime(state) {
         return state.reservation.datetime
-          .toDate()
+          ?.toDate()
           .toLocaleString("en-US", localeDateTimeOpts);
       },
     }),

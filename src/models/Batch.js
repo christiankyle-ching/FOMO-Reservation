@@ -60,37 +60,11 @@ class Batch {
   }
 
   get firestoreDoc() {
-    // const firestoreObj = {};
+    const firestoreDoc = removeUndefined(this);
 
-    // Object.assign(firestoreObj, this.name && { name: this.name });
-    // Object.assign(
-    //   firestoreObj,
-    //   this.created_at && { created_at: this.created_at }
-    // );
-    // Object.assign(
-    //   firestoreObj,
-    //   this.closed_at && { closed_at: this.closed_at }
-    // );
-    // Object.assign(
-    //   firestoreObj,
-    //   this.locked_at && { locked_at: this.locked_at }
-    // );
-    // Object.assign(
-    //   firestoreObj,
-    //   this.order_limit && { order_limit: this.order_limit }
-    // );
-    // Object.assign(
-    //   firestoreObj,
-    //   this.maxAllowedOrderQty && { maxAllowedOrderQty: this.maxAllowedOrderQty }
-    // );
-    // Object.assign(
-    //   firestoreObj,
-    //   this.orders && { orders: this.orders.map((o) => o.firestoreDoc) }
-    // );
-    // Object.assign(firestoreObj, { isDone: this.isDone });
+    delete firestoreDoc.id; // exclude for firestore create/updates
 
-    // return firestoreObj;
-    return removeUndefined(this);
+    return firestoreDoc;
   }
 
   get totalQty() {
