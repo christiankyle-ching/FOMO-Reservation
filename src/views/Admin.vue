@@ -1,5 +1,5 @@
 <template>
-  <div class="admin container mx-auto p-5 sm:p-10">
+  <div class="admin app-container">
     <h1 class="text-center my-5 sm:my-10">
       Manage {{ $store.state.clientName }}
     </h1>
@@ -12,6 +12,7 @@
     <!-- Admin Actions -->
     <div class="card mt-5">
       <h2 class="pb-5 text-center">More Options</h2>
+      <!-- Food Menu -->
       <span
         :title="
           isTakingOrders ? 'Cannot adjust prices when taking orders' : null
@@ -39,6 +40,7 @@
         </router-link>
       </span>
 
+      <!-- Batch History -->
       <router-link
         :to="{ name: 'BatchHistory' }"
         class="button button-primary button-block mt-5"
@@ -56,6 +58,7 @@
         View Batch History
       </router-link>
 
+      <!-- Default Settings -->
       <router-link
         :to="{ name: 'AdminSettings' }"
         class="button button-primary button-block mt-5"
@@ -73,6 +76,25 @@
           />
         </svg>
         Settings
+      </router-link>
+
+      <!-- SuperAdmin Only: Manage Admins -->
+      <router-link
+        :to="{ name: 'ManageAdmins' }"
+        class="button button-primary button-block mt-5"
+        v-if="isSuperAdmin"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <!-- Icon: user-group -->
+          <path
+            d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+          />
+        </svg>
+        Manage Admins
       </router-link>
     </div>
   </div>
@@ -92,6 +114,7 @@ export default {
   computed: {
     ...mapState({
       status: "status",
+      isSuperAdmin: "isSuperAdmin",
       isTakingOrders(state) {
         return state.status?.batch == BATCH_STATUS.CLOSED;
       },

@@ -34,7 +34,7 @@
       </div>
     </form>
 
-    <div class="container mx-auto p-5 sm:p-10">
+    <div class="app-container">
       <h1 class="text-center mb-5 sm:mb-10">
         Batch History
         <span v-if="lastSearchedDateString"

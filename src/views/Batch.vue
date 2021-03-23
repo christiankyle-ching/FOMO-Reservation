@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-5 sm:p-10">
+  <div class="app-container">
     <LoadingSpinner v-if="batch == null" class="m-auto mt-10" />
 
     <div v-else>

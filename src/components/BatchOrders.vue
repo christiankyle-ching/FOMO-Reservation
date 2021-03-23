@@ -32,7 +32,7 @@
       <input
         type="search"
         placeholder="Search for Payment ID, Order ID, or Name..."
-        v-model="searchKey"
+        v-model.trim="searchKey"
       />
     </div>
 

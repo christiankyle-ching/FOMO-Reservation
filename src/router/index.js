@@ -3,7 +3,6 @@ import store, { getCurrentUser } from "@/store";
 import { createRouter, createWebHistory } from "vue-router";
 
 import { nextTick } from "vue";
-import { ALERT_TYPE } from "@/models/Alert";
 
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
@@ -12,12 +11,14 @@ import Batch from "@/views/Batch.vue";
 import BatchHistory from "@/views/BatchHistory.vue";
 import Products from "@/views/Products.vue";
 import AdminSettings from "@/views/AdminSettings.vue";
+import UserProfile from "@/views/UserProfile.vue";
+import ManageAdmins from "@/views/ManageAdmins.vue";
 // Default Views
 import PageNotFound from "@/views/default/PageNotFound.vue";
 
 const REDIRECT_REASON = Object.freeze({
-  authRequired: "authRequired",
-  adminRequired: "adminRequired",
+  loginRequired: "loginRequired",
+  notEnoughPermissions: "notEnoughPermissions",
   loggedInAlready: "loggedInAlready",
 });
 
@@ -31,12 +32,16 @@ const routes = [
     },
     beforeEnter: (to, from) => {
       if (!!store.state.user)
+        // Conditional Redirect based on access
         router.replace({
-          name: store.state.isAdmin ? "Admin" : "Home",
+          name:
+            store.state.isAdmin || store.state.isSuperAdmin ? "Admin" : "Home",
           query: { redirectReason: REDIRECT_REASON.loggedInAlready },
         });
     },
   },
+
+  //#region CUSTOMER REGION
   {
     path: "/",
     name: "Home",
@@ -46,7 +51,30 @@ const routes = [
       authRequired: true,
     },
     beforeEnter: (to, from) => {
-      if (store.state.isAdmin) router.replace({ name: "Admin" });
+      if (store.state.isAdmin || store.state.isSuperAdmin)
+        router.replace({ name: "Admin" });
+    },
+  },
+  {
+    path: "/profile",
+    name: "UserProfile",
+    component: UserProfile,
+    meta: {
+      title: "Your Profile",
+      authRequired: true,
+    },
+  },
+  //#endregion
+
+  //#region ADMIN VIEWS
+  // superAdmin only
+  {
+    path: "/admins/manage",
+    name: "ManageAdmins",
+    component: ManageAdmins,
+    meta: {
+      title: "Manage Admins",
+      superAdminRequired: true,
     },
   },
   {
@@ -59,7 +87,7 @@ const routes = [
     },
   },
   {
-    path: "/admin/options",
+    path: "/admin/settings",
     name: "AdminSettings",
     component: AdminSettings,
     meta: {
@@ -95,6 +123,7 @@ const routes = [
       adminRequired: true,
     },
   },
+  //#endregion
 
   // Default Views
   {
@@ -126,24 +155,36 @@ router.afterEach((to, from) => {
 
 // PERMISSIONS
 router.beforeEach(async (to, from, next) => {
-  const { user, isAdmin } = await getCurrentUser();
+  const { user, isAdmin, isSuperAdmin } = await getCurrentUser();
 
   // Auth Required
   if (to.matched.some((route) => route.meta.authRequired)) {
     if (!user)
       next({
         name: "Login",
-        query: { redirectReason: REDIRECT_REASON.authRequired },
+        query: { redirectReason: REDIRECT_REASON.loginRequired },
       });
     else next();
   }
 
   // Admin Required
   else if (to.matched.some((route) => route.meta.adminRequired)) {
-    if (!(isAdmin && !!user)) {
+    if (!((isAdmin || isSuperAdmin) && !!user)) {
       next({
         name: "Home",
-        query: { redirectReason: REDIRECT_REASON.authRequired },
+        query: { redirectReason: REDIRECT_REASON.loginRequired },
+      });
+    } else {
+      next();
+    }
+  }
+
+  // Admin Required
+  else if (to.matched.some((route) => route.meta.superAdminRequired)) {
+    if (!(isSuperAdmin && !!user)) {
+      next({
+        name: "Home",
+        query: { redirectReason: REDIRECT_REASON.notEnoughPermissions },
       });
     } else {
       next();
@@ -160,23 +201,20 @@ router.beforeEach(async (to, from, next) => {
 router.beforeResolve((to, from, next) => {
   // Show Alert Messages
   switch (to.query.redirectReason) {
-    case REDIRECT_REASON.authRequired:
-      store.dispatch("alert", { message: "Please login first." });
+    case REDIRECT_REASON.loginRequired:
+      store.dispatch("alertInfo", "Please login first.");
       break;
-    case REDIRECT_REASON.adminRequired:
-      store.dispatch("alert", {
-        message: "You don't have enough permissions to access that.",
-        type: ALERT_TYPE.DANGER,
-      });
+    case REDIRECT_REASON.notEnoughPermissions:
+      store.dispatch(
+        "alertError",
+        "You don't have enough permissions to access that."
+      );
       break;
     case REDIRECT_REASON.loggedInAlready:
-      store.dispatch("alert", {
-        message: "You are already logged in.",
-      });
+      store.dispatch("alertInfo", "You are already logged in.");
       break;
   }
 
-  // next(removeQueryParams(to));
   next();
 });
 

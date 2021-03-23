@@ -10,8 +10,12 @@
 
     <transition name="slide">
       <div class="sidebar__content" v-show="active">
-        <div class="p-10"><slot name="header"></slot></div>
-        <slot name="content"></slot>
+        <div class="p-10" @click="$emit('close')">
+          <slot name="header"></slot>
+        </div>
+        <div @click="$emit('close')">
+          <slot name="content"></slot>
+        </div>
       </div>
     </transition>
   </div>

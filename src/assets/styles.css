@@ -55,6 +55,10 @@
     @apply text-base font-bold;
   }
 
+  .app-container {
+    @apply container mx-auto p-5 sm:p-10;
+  }
+
   *:disabled {
     @apply opacity-50 pointer-events-none;
   }
@@ -214,14 +218,21 @@
     @apply ml-2 !important;
   }
 
+  .fullscreen-overlay,
   .modal,
   .sidebar {
     @apply fixed left-0 top-0 w-screen h-screen flex z-20;
   }
 
+  .backdrop,
   .modal__backdrop,
   .sidebar__backdrop {
     @apply bg-black w-full h-full opacity-60 absolute cursor-pointer;
+  }
+
+  .modal__backdrop,
+  .sidebar__backdrop {
+    @apply cursor-pointer;
   }
 
   .modal__dialog {
@@ -251,6 +262,14 @@
 
   label {
     @apply pt-2 text-sm text-secondary;
+  }
+
+  .grid-padded > * {
+    @apply px-5 py-3;
+  }
+
+  .grid-separated > * {
+    @apply border-b-2 border-dark1;
   }
 
   input,

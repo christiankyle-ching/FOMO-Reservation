@@ -1,5 +1,5 @@
 <template>
-  <div class="container p-5 sm:p-10 mx-auto">
+  <div class="app-container">
     <h1 class="mb-10">Settings</h1>
 
     <div v-if="!!formAdminSettings">

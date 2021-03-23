@@ -127,11 +127,10 @@ export default {
         // Open Fetched Link Link
         open(result.checkout_url, "_self");
       } catch (err) {
-        this.$store.dispatch("alert", {
-          message:
-            "Something went wrong in generating your link. Please reload the page and try again.",
-          type: ALERT_TYPE.DANGER,
-        });
+        this.$store.dispatch(
+          "alertError",
+          "Something went wrong in generating your link. Please reload the page and try again."
+        );
       } finally {
         this.fetchingLink = false;
       }

@@ -6,11 +6,14 @@
         {{ statusMessage }}
       </p>
     </div>
-
+    
     <!-- 1: Open New Batch -->
-    <form @submit.prevent="openNewBatch" v-if="allowOpenNewBatch">
+    <form
+      @submit.prevent="openNewBatch"
+      v-if="allowOpenNewBatch && !!formNewBatch"
+    >
       <label>Name</label>
-      <input type="text" v-model="formNewBatch.name" required />
+      <input type="text" v-model.trim="formNewBatch.name" required />
 
       <label># of Reservations to Accept (Limit):</label>
       <div class="input__number">
@@ -226,6 +229,7 @@ export default {
   components: { BatchOrders },
   computed: {
     ...mapState({
+      adminSettings: "adminSettings",
       formNewBatch: "formNewBatch",
 
       openBatch: "openBatch",

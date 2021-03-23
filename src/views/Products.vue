@@ -94,7 +94,7 @@
     </div>
   </div>
 
-  <div class="products container mx-auto p-5 sm:p-10 pb-32">
+  <div class="products app-container pb-32">
     <h2 class="text-center mb-5 sm:mb-10">
       {{ $store.state.clientName }}'s Menu
     </h2>

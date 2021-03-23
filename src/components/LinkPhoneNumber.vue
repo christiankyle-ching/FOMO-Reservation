@@ -26,7 +26,12 @@
         <div class="col-span-1" v-if="isSMSSent">
           <!-- Code Input -->
           <label class="p-0">Verification Code:</label>
-          <input type="number" v-model="verificationCode" class="mt-2" />
+          <input
+            type="number"
+            v-model.trim="verificationCode"
+            class="mt-2"
+            maxlength="10"
+          />
         </div>
 
         <!-- Buttons -->
@@ -72,7 +77,7 @@
     <div v-show="!!user?.phoneNumber">
       <form @submit.prevent="unlinkPhoneNumber()" class="flex items-center">
         <div class="flex-grow">
-          <b>Linked Phone Number:</b>
+          <b>Phone Number:</b>
           <span class="ml-3">{{ user.phoneNumber }}</span>
         </div>
         <button type="submit" class="button button-danger">Unlink</button>
@@ -119,7 +124,8 @@ export default {
         .catch((error) => {
           console.error(error);
 
-          this.alertError(
+          this.$store.dispatch(
+            "alertError",
             "Cannot send SMS to that number. Please check the number and try again."
           );
 
@@ -142,11 +148,17 @@ export default {
         .then((result) => {
           this.$store.commit("SET_USER", result.user);
 
-          this.alertSuccess("Successfully linked your phone number.");
+          this.$store.dispatch(
+            "alertSuccess",
+            "Successfully linked your phone number."
+          );
         })
         .catch((err) => {
           console.error(err);
-          this.alertError("Unable to verify code. Please try again.");
+          this.$store.dispatch(
+            "alertError",
+            "Unable to verify code. Please try again."
+          );
 
           this.resetForm();
         });
@@ -172,7 +184,8 @@ export default {
         .then((user) => {
           this.$store.commit("SET_USER", user);
 
-          this.alertError(
+          this.$store.dispatch(
+            "alertError",
             "Successfully unlinked your phone number. Please provide one to be able to order."
           );
 
@@ -181,23 +194,11 @@ export default {
         .catch((err) => {
           console.error(err);
 
-          this.alertError("Something went wrong. Please try again later.");
+          this.$store.dispatch(
+            "alertError",
+            "Something went wrong. Please try again later."
+          );
         });
-    },
-
-    // Alerts
-    alertError(_message) {
-      this.$store.dispatch("alert", {
-        message: _message,
-        type: ALERT_TYPE.DANGER,
-      });
-    },
-
-    alertSuccess(_message) {
-      this.$store.dispatch("alert", {
-        message: _message,
-        type: ALERT_TYPE.SUCCESS,
-      });
     },
 
     // Form

@@ -51,7 +51,7 @@
           <label>Name: </label>
           <input
             type="text"
-            v-model="product.name"
+            v-model.trim="product.name"
             placeholder="Enter menu item..."
             required
           />
@@ -61,7 +61,7 @@
           <input
             list="product-categories"
             autocomplete=""
-            v-model="product.category"
+            v-model.trim="product.category"
             placeholder="Enter category, or choose one..."
             required
           />
@@ -90,7 +90,7 @@
               <label>Variant Label:</label>
               <input
                 type="text"
-                v-model="variant.name"
+                v-model.trim="variant.name"
                 placeholder="i.e. 22 oz, Large, Family Size"
                 required
               />
@@ -99,7 +99,7 @@
             <div class="col-span-1 flex">
               <div class="flex-grow">
                 <label>Price:</label>
-                <input type="text" v-model="variant.price" min="0" required />
+                <input type="text" v-model.number="variant.price" min="0" required />
               </div>
               <button
                 type="button"
@@ -153,7 +153,7 @@
                 <label>Add-On Label:</label>
                 <input
                   type="text"
-                  v-model="addon.name"
+                  v-model.trim="addon.name"
                   placeholder="i.e. Extra Rice, Nata..."
                   required
                 />
@@ -162,7 +162,7 @@
               <div class="col-span-1 flex">
                 <div class="flex-grow">
                   <label>Price:</label>
-                  <input type="text" v-model="addon.price" min="0" required />
+                  <input type="text" v-model.number="addon.price" min="0" required />
                 </div>
                 <button
                   type="button"

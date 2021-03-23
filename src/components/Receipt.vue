@@ -174,15 +174,15 @@ export default {
         downloadLink.setAttribute("download", `Order #${this.order.oid}.png`);
         downloadLink.click();
 
-        this.$store.dispatch("alert", {
-          message: `Downloaded receipt for Order #${this.order.oid}.`,
-          type: ALERT_TYPE.SUCCESS,
-        });
+        this.$store.dispatch(
+          "alertSuccess",
+          `Downloaded receipt for Order #${this.order.oid}.`
+        );
       } catch {
-        this.$store.dispatch("alert", {
-          message: "Something went wrong in saving your image.",
-          type: ALERT_TYPE.DANGER,
-        });
+        this.$store.dispatch(
+          "alertError",
+          "Something went wrong in saving your image."
+        );
       }
     },
 

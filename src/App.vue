@@ -2,14 +2,16 @@
   <div>
     <Sidebar :active="sidebarActive" @close="hideSidebar()">
       <template v-slot:header>
-        <h1>{{ $store.state.clientName }}</h1>
+        <router-link :to="{ name: 'Home' }">
+          <h1>{{ $store.state.clientName }}</h1>
+        </router-link>
       </template>
       <template v-slot:content>
+        <!-- Sidebar Links -->
         <router-link
           v-if="isAdmin"
           :to="{ name: 'Admin' }"
           class="sidebar-link"
-          @click="hideSidebar()"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -27,12 +29,7 @@
           </svg>
           Admin</router-link
         >
-        <router-link
-          v-else
-          :to="{ name: 'Home' }"
-          class="sidebar-link"
-          @click="hideSidebar()"
-        >
+        <router-link v-else :to="{ name: 'Home' }" class="sidebar-link">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -48,6 +45,24 @@
             />
           </svg>
           Home</router-link
+        >
+
+        <router-link :to="{ name: 'UserProfile' }" class="sidebar-link">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <!-- Icon: user-circle -->
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Profile</router-link
         >
 
         <!-- Login / Logout -->
@@ -68,12 +83,7 @@
           </svg>
           Logout
         </button>
-        <router-link
-          v-else
-          :to="{ name: 'Login' }"
-          class="sidebar-link"
-          @click="hideSidebar()"
-        >
+        <router-link v-else :to="{ name: 'Login' }" class="sidebar-link">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -157,7 +167,7 @@
           <!-- Login / Logout -->
           <button
             v-if="user"
-            class="block button button-primary"
+            class="block button button-danger"
             @click="logout()"
           >
             Logout
@@ -227,17 +237,18 @@ export default {
     });
   },
   methods: {
-    logout() {
+    async logout() {
       this.sidebarActive = false;
 
-      firebase
-        .auth()
-        .signOut()
-        .then(() => {
-          this.$router.push({ name: "Login" });
-        });
+      try {
+        await this.dispatchLogout();
+        this.$router.push({ name: "Login" });
+      } catch (err) {
+        console.error(err);
+      }
     },
     ...mapActions({
+      dispatchLogout: "logout",
       removeAlert: "removeAlert",
       toggleDarkMode: "toggleDarkMode",
     }),

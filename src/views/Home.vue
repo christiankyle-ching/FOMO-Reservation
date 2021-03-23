@@ -1,5 +1,5 @@
 <template>
-  <div class="home container mx-auto p-5 sm:p-10">
+  <div class="home app-container">
     <h1 class="text-center my-5 sm:mb-10">
       {{ $store.state.clientName }}'s Waitlist
     </h1>
@@ -32,15 +32,6 @@
 
       <!-- Default: Show Reservation Module -->
       <Reserve v-else class="mt-10" :key="_userKey" />
-
-      <!-- Phone Number Registration -->
-      <div class="card mt-20">
-        <div class="mb-5">
-          <h3>Your Profile, {{ user.displayName }}</h3>
-          <p>{{ user.email }}</p>
-        </div>
-        <LinkPhoneNumber />
-      </div>
     </div>
   </div>
 </template>
@@ -52,7 +43,6 @@ import Receipt from "@/components/Receipt.vue";
 import Reserve from "@/components/Reserve.vue";
 import Payment from "@/components/Payment.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import LinkPhoneNumber from "@/components/LinkPhoneNumber.vue";
 
 export default {
   name: "Home",
@@ -62,7 +52,6 @@ export default {
     Payment,
     Receipt,
     LoadingSpinner,
-    LinkPhoneNumber,
   },
   computed: {
     ...mapState({

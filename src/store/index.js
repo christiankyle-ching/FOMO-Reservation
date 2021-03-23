@@ -26,8 +26,9 @@ const store = createStore({
     _userKey: 0, // For forcedRerender
     user: null,
     isAdmin: false,
+    isSuperAdmin: false,
 
-    // #region SHARED
+    //#region SHARED
     products: null, // Product()[]
     status: null, // {}
     unsubscribeStatus: null, // method()
@@ -45,9 +46,9 @@ const store = createStore({
       .firestore()
       .collection("PUBLIC_WRITE")
       .doc("counters"),
-    // #endregion
+    //#endregion
 
-    // #region CUSTOMER
+    //#region CUSTOMER
     pendingOrder: null, // Order()
     unsubscribePendingOrder: null, // method()
     // Status Tracking of Customer Order
@@ -58,9 +59,13 @@ const store = createStore({
     // Firebase Refs
     dbReservation: null, // Pending Reservation
     dbPendingOrder: null,
-    // #endregion
+    //#endregion
 
-    // #region ADMIN
+    //#region SUPERADMIN
+    admins: null,
+    //#endregion
+
+    //#region ADMIN
     formProducts: [], // Product()[]
     latestBatch: null,
     previousBatches: null, // Batch()[]
@@ -80,7 +85,7 @@ const store = createStore({
       .collection("batches")
       .orderBy("created_at", "desc")
       .limit(1),
-    // #endregion
+    //#endregion
   },
   mutations: {
     // APP
@@ -89,7 +94,7 @@ const store = createStore({
       state.isOnline = value;
     },
 
-    // SHARED
+    // USER & SHARED
     SET_USER(state, value) {
       console.log("SET_USER");
       state.user = value;
@@ -99,9 +104,19 @@ const store = createStore({
       console.log("SET_IS_ADMIN");
       state.isAdmin = value;
     },
+    SET_IS_SUPER_ADMIN(state, value) {
+      console.log("SET_IS_SUPER_ADMIN");
+      state.isSuperAdmin = value;
+    },
     SET_STATUS(state, value) {
       console.log("SET_STATUS");
       state.status = value;
+    },
+
+    // SUPERADMIN
+    SET_ADMINS(state, value) {
+      console.log("SET_ADMINS");
+      state.admins = value;
     },
 
     // ADMIN
@@ -171,7 +186,7 @@ const store = createStore({
       if (user) {
         console.log("---LOGGED IN---");
 
-        // #region Customer DB References
+        //#region Customer DB References
         commit(
           "DB_SET_RESERVATION",
           _db.collection("PUBLIC_RESERVATIONS").doc(user.uid)
@@ -181,14 +196,16 @@ const store = createStore({
           _db.collection("PUBLIC_ORDERS").doc(user.uid)
         );
 
-        // #endregion
+        //#endregion
 
         const token = await user.getIdTokenResult();
         const isAdmin = !!token.claims.admin;
+        const isSuperAdmin = !!token.claims.superAdmin;
 
-        if (isAdmin) {
-          commit("SET_IS_ADMIN", true);
+        commit("SET_IS_ADMIN", isAdmin);
+        commit("SET_IS_SUPER_ADMIN", isSuperAdmin);
 
+        if (isAdmin || isSuperAdmin) {
           dispatch("fetchAdminSettings");
           dispatch("fetchLatestBatch");
           dispatch("fetchBatches");
@@ -196,6 +213,10 @@ const store = createStore({
 
           // Listener for Reservation Count
           dispatch("listenCounters");
+        }
+
+        if (isSuperAdmin) {
+          dispatch("fetchAdmins");
         }
 
         // Fetch / Listeners
@@ -211,6 +232,7 @@ const store = createStore({
         commit("DB_SET_PENDING_ORDER", null);
         commit("DB_SET_RESERVATION", null);
         commit("SET_IS_ADMIN", false);
+        commit("SET_IS_SUPER_ADMIN", false);
 
         // Detach Listeners
         dispatch("detachOpenBatch");
@@ -229,15 +251,160 @@ const store = createStore({
         : document.querySelector("html").classList.remove("dark");
     },
 
-    // Alerts
+    //#region User
+    async logout({ dispatch }) {
+      try {
+        await firebase.auth().signOut();
+
+        dispatch("alertInfo", "You have been logged out.");
+        return true;
+      } catch (err) {
+        throw err;
+      }
+    },
+
+    async changeDisplayName({ state, dispatch }, _newName) {
+      const user = state.user;
+
+      try {
+        await user.updateProfile({
+          displayName: _newName,
+        });
+
+        dispatch("alertSuccess", "Successfully updated your name.");
+      } catch (err) {
+        console.error(err);
+
+        dispatch("alertError", "Something went wrong in updating your name.");
+      }
+    },
+    async resetPassword({ state, dispatch }) {
+      const emailAddress = state.user.email;
+
+      try {
+        await firebase.auth().sendPasswordResetEmail(emailAddress);
+
+        dispatch("alertSuccess", "Please check your email for the next steps.");
+      } catch (err) {
+        console.error(err);
+
+        dispatch("alertError", "Something went wrong in sending you an email.");
+      }
+    },
+    //#endregion
+
+    //#region Alerts
     alert({ state }, alertObj) {
       state.alerts.unshift(new Alert(alertObj));
     },
+    alertSuccess({ dispatch }, _message, _isPermanent) {
+      dispatch("alert", {
+        message: _message,
+        type: ALERT_TYPE.SUCCESS,
+        isPermanent: _isPermanent,
+      });
+    },
+    alertInfo({ dispatch }, _message, _isPermanent) {
+      dispatch("alert", {
+        message: _message,
+        type: ALERT_TYPE.INFO,
+        isPermanent: _isPermanent,
+      });
+    },
+    alertError({ dispatch }, _message, _isPermanent) {
+      dispatch("alert", {
+        message: _message,
+        type: ALERT_TYPE.DANGER,
+        isPermanent: _isPermanent,
+      });
+    },
+
     removeAlert({ state }, index) {
       state.alerts.splice(index, 1);
     },
+    //#endregion
 
-    // #region ADMIN
+    //#region SUPERADMIN
+    async fetchAdmins({ commit }) {
+      console.log("fetchAdmins");
+
+      const admins = await _db
+        .collection("PRIVATE_SUPER_ADMIN")
+        .doc("admins")
+        .get();
+
+      try {
+        if (!admins.exists) {
+          await admins.ref.set({ adminList: [] });
+
+          commit("SET_ADMINS", { adminList: [] });
+        } else {
+          commit("SET_ADMINS", admins.data());
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    },
+
+    async addAdmin({ dispatch, state }, _email) {
+      const url = `${process.env.VUE_APP_BACKEND_URL}/api/admins`;
+
+      const options = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: await state.user.getIdToken(),
+          userEmail: _email,
+        }),
+      };
+
+      const response = await fetch(url, options);
+      const body = await response.json();
+
+      if (!response.ok) {
+        throw body;
+      }
+
+      // Add to current state
+      state.admins.adminList.push({ uid: body.uid, email: body.email });
+
+      dispatch("alertSuccess", `Added ${body.name} as an admin`);
+
+      return body;
+    },
+
+    async removeAdmin({ dispatch, state }, _uid) {
+      const url = `${process.env.VUE_APP_BACKEND_URL}/api/admins/${_uid}/remove`;
+
+      const options = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: await state.user.getIdToken(),
+        }),
+      };
+
+      const response = await fetch(url, options);
+      const body = await response.json();
+
+      if (!response.ok) {
+        throw body;
+      }
+
+      // Remove from current state
+      const adminToRemoveIndex = state.admins.adminList.findIndex(
+        (a) => a.uid === body.uid && a.email === body.email
+      );
+      if (adminToRemoveIndex >= 0)
+        state.admins.adminList.splice(adminToRemoveIndex, 1);
+
+      dispatch("alertSuccess", `Removed ${body.name} as an admin`);
+
+      return body;
+    },
+    //#endregion
+
+    //#region ADMIN
     // Products
     async fetchProducts({ state, commit }) {
       console.log("fetchProducts");
@@ -269,19 +436,13 @@ const store = createStore({
         products: state.products.map((p) => p.firestoreDoc),
       });
 
-      dispatch("alert", {
-        message: "Successfully updated products.",
-        type: ALERT_TYPE.SUCCESS,
-      });
+      dispatch("alertSuccess", "Successfully updated products.");
     },
 
     replaceProducts({ commit, dispatch }, products) {
       commit("SET_PRODUCTS", products);
 
-      dispatch("alert", {
-        message: "Replaced all products with the template.",
-        type: ALERT_TYPE.INFO,
-      });
+      dispatch("alertInfo", "Replaced all products with the template.");
     },
 
     appendToProducts({ state, commit, dispatch }, products) {
@@ -289,10 +450,7 @@ const store = createStore({
 
       commit("SET_PRODUCTS", mergedProducts);
 
-      dispatch("alert", {
-        message: "Added products in template to existing products.",
-        type: ALERT_TYPE.INFO,
-      });
+      dispatch("alertInfo", "Added products in template to existing products.");
     },
 
     // Listener: Pending Orders
@@ -321,6 +479,7 @@ const store = createStore({
     },
 
     // Order Flow
+    // TODO: Order Flow Loading Animations
     async openNewBatch({ state, dispatch }) {
       const data = state.formNewBatch;
 
@@ -347,10 +506,10 @@ const store = createStore({
         batchWrite.commit();
 
         // Alert
-        dispatch("alert", {
-          message: `Successfully opened batch for "${data.name}". Waiting for reservations...`,
-          type: ALERT_TYPE.SUCCESS,
-        });
+        dispatch(
+          "alertSuccess",
+          `Successfully opened batch for "${data.name}". Waiting for reservations...`
+        );
 
         // Reset Form
         data.name = "";
@@ -359,10 +518,10 @@ const store = createStore({
       } catch (err) {
         console.error(err);
 
-        dispatch("alert", {
-          message: `Something went wrong in opening a batch. Please try again.`,
-          type: ALERT_TYPE.DANGER,
-        });
+        dispatch(
+          "alertError",
+          `Something went wrong in opening a batch. Please try again.`
+        );
       }
     },
 
@@ -422,19 +581,15 @@ const store = createStore({
         batchWrite.commit();
 
         // Alert
-        dispatch("alert", {
-          message: "Stopped accepting reservations.",
-          type: ALERT_TYPE.INFO,
-        });
+        dispatch("alertInfo", "Stopped accepting reservations.");
       } catch (err) {
         console.error("closeCurrentBatch: ", err);
 
         // Alert
-        dispatch("alert", {
-          message:
-            "Something went wrong in closing the batch. Please try again.",
-          type: ALERT_TYPE.DANGER,
-        });
+        dispatch(
+          "alertError",
+          "Something went wrong in closing the batch. Please try again."
+        );
       }
     },
 
@@ -444,6 +599,7 @@ const store = createStore({
       const batchWrite = _db.batch();
 
       try {
+        // Cache Orders to transfer in latestBatch
         const cacheOrders = [];
         (
           await _db
@@ -467,20 +623,18 @@ const store = createStore({
 
         if (closedBatch.exists) {
           // Safety check if orders is already copied, Prevents erasure of orders
-          if (!closedBatch.data().orders) {
-            const newBatch = {
-              ...closedBatch.data(),
-              orders: cacheOrders,
-              locked_at: firebase.firestore.FieldValue.serverTimestamp(),
-            };
+          const newBatch = {
+            ...closedBatch.data(),
+            orders: cacheOrders,
+            locked_at: firebase.firestore.FieldValue.serverTimestamp(),
+          };
 
-            // 1: Create a new batch in batchesCollection with the paidorders and locked_at
-            const newBatchId = _db.collection("batches").doc().id;
-            batchWrite.set(_db.collection("batches").doc(newBatchId), newBatch);
+          // 1: Create a new batch in batchesCollection with the paidorders and locked_at
+          const newBatchId = _db.collection("batches").doc().id;
+          batchWrite.set(_db.collection("batches").doc(newBatchId), newBatch);
 
-            // 2: Remove open_batch
-            batchWrite.delete(closedBatch.ref);
-          }
+          // 2: Remove open_batch
+          batchWrite.delete(closedBatch.ref);
         }
 
         // Batch: Clear Pending Orders
@@ -498,18 +652,14 @@ const store = createStore({
         dispatch("fetchLatestBatch");
 
         // Alert
-        dispatch("alert", {
-          message: "Stopped accepting orders.",
-          type: ALERT_TYPE.INFO,
-        });
+        dispatch("alertInfo", "Stopped accepting orders.");
       } catch (err) {
         console.error("finalizeBatch", err);
 
-        dispatch("alert", {
-          message:
-            "Something went wrong in finalizing the batch. Please try again.",
-          type: ALERT_TYPE.DANGER,
-        });
+        dispatch(
+          "alert",
+          "Something went wrong in finalizing the batch. Please try again."
+        );
       }
     },
 
@@ -523,20 +673,21 @@ const store = createStore({
           latestBatch.docs[0].ref.update({ isDone: true });
 
           // Alert
-          dispatch("alert", {
-            message:
-              "Successfully finished the last batch. Ready to open another one.",
-            type: ALERT_TYPE.SUCCESS,
-          });
+          dispatch(
+            "alertSuccess",
+            "Successfully finished the last batch. Ready to open another one."
+          );
         }
+
+        // Fetch latestBatch again
+        dispatch("fetchLatestBatch");
       } catch (err) {
         console.error(err);
 
-        dispatch("alert", {
-          message:
-            "Something went wrong in marking this batch as done. Please try and set it in Batch History.",
-          type: ALERT_TYPE.DANGER,
-        });
+        dispatch(
+          "alertError",
+          "Something went wrong in marking this batch as done. Please try and set it in Batch History."
+        );
       }
     },
 
@@ -549,7 +700,14 @@ const store = createStore({
         if (!latestBatch.empty) {
           const data = latestBatch.docs[0].data();
           console.log(new Batch({ ...data }));
-          commit("SET_LATEST_BATCH", new Batch({ ...data }));
+
+          if (!data.isDone) {
+            // If latestBatch is not done, fetch
+            commit("SET_LATEST_BATCH", new Batch({ ...data }));
+          } else {
+            // If latestBatch is done, set null instead
+            commit("SET_LATEST_BATCH", null);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -665,24 +823,29 @@ const store = createStore({
       console.log("fetchAdminSettings");
 
       try {
-        // Set default settings, or get from DB if existing
         const settings = await state.dbAdminSettings.get();
-        const newSettings = settings.exists
-          ? new AdminSettings({ ...settings.data() })
-          : new AdminSettings({}).firestoreDoc;
+        const defaultSettings = new AdminSettings({});
 
-        // If does not exists, update DB
+        // If does not exists, update DB with defaults
         if (!settings.exists) {
-          settings.ref.set({ ...newSettings });
+          settings.ref.set({ ...defaultSettings.firestoreDoc });
+
+          commit("SET_ADMIN_SETTINGS", defaultSettings);
         }
 
-        commit("SET_ADMIN_SETTINGS", new AdminSettings({ ...newSettings }));
+        // Else, fetch from DB
+        else {
+          commit(
+            "SET_ADMIN_SETTINGS",
+            new AdminSettings({ ...settings.data() })
+          );
+        }
 
         // Update formNewBatch to reflect settings
         state.formNewBatch = {
           name: "",
-          order_limit: newSettings.order_limit,
-          maxAllowedOrderQty: newSettings.maxAllowedOrderQty,
+          order_limit: state.adminSettings.order_limit,
+          maxAllowedOrderQty: state.adminSettings.maxAllowedOrderQty,
         };
       } catch (err) {
         console.error("fetchAdminSettings", err);
@@ -696,17 +859,11 @@ const store = createStore({
         state.dbAdminSettings.set(_adminSettings.firestoreDoc);
         commit("SET_ADMIN_SETTINGS", _adminSettings);
 
-        dispatch("alert", {
-          message: "Updated settings.",
-          type: ALERT_TYPE.SUCCESS,
-        });
+        dispatch("alertSuccess", "Updated settings.");
       } catch (err) {
         console.error(err);
 
-        dispatch("alert", {
-          message: "Something went wrong in saving settings.",
-          type: ALERT_TYPE.DANGER,
-        });
+        dispatch("alertError", "Something went wrong in saving settings.");
       } finally {
         // Update formNewBatch to reflect settings
         state.formNewBatch = {
@@ -717,9 +874,9 @@ const store = createStore({
       }
     },
 
-    // #endregion
+    //#endregion
 
-    // #region CUSTOMER
+    //#region CUSTOMER
     // Reserve
     async reserve({ state, commit }) {
       console.log("reserve");
@@ -728,7 +885,7 @@ const store = createStore({
         const reservation = await state.dbReservation.get();
 
         if (!reservation.exists) {
-          state.dbReservation.set({
+          const reservation = await state.dbReservation.set({
             datetime: firebase.firestore.FieldValue.serverTimestamp(),
           });
 
@@ -741,10 +898,7 @@ const store = createStore({
           );
 
           // Get reservation submitted
-          const reservation = await state.dbReservation.get();
-          if (reservation.exists) {
-            commit("SET_RESERVATION", reservation.data());
-          }
+          commit("SET_RESERVATION", reservation.data());
         }
       } catch (err) {
         console.error("reserve", err);
@@ -758,10 +912,10 @@ const store = createStore({
       const user = state.user;
 
       if (!user.phoneNumber) {
-        return dispatch("alert", {
-          message: "Please provide your mobile phone number.",
-          type: ALERT_TYPE.DANGER,
-        });
+        return dispatch(
+          "alertError",
+          "Please provide your mobile phone number."
+        );
       }
 
       const orderObj = new Order({
@@ -780,15 +934,12 @@ const store = createStore({
         // Update DB
         state.dbPendingOrder.set(orderObj.firestoreDoc);
 
-        dispatch("alert", {
-          message: "Successfully sent your order. Thank you!",
-          type: ALERT_TYPE.SUCCESS,
-        });
+        dispatch("alertSuccess", "Successfully sent your order. Thank you!");
       } else {
-        dispatch("alert", {
-          message: `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.openBatch.maxAllowedOrderQty} item/s`,
-          type: ALERT_TYPE.DANGER,
-        });
+        dispatch(
+          "alertError",
+          `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.openBatch.maxAllowedOrderQty} item/s`
+        );
       }
     },
 
@@ -828,9 +979,9 @@ const store = createStore({
     detachCustomerPendingOrder({ state }) {
       if (state.unsubscribePendingOrder) state.unsubscribePendingOrder();
     },
-    // #endregion
+    //#endregion
 
-    // #region GLOBAL
+    //#region GLOBAL
     // Status Listener
     listenStatus({ commit, state, dispatch }) {
       console.log("Listen: Status");
@@ -885,7 +1036,7 @@ const store = createStore({
 
       if (state.unsubscribeOpenBatch) state.unsubscribeOpenBatch();
     },
-    // #endregion
+    //#endregion
   },
   modules: {},
 });
@@ -899,7 +1050,8 @@ const getCurrentUser = () => {
       if (user) {
         const token = await user.getIdTokenResult();
         const isAdmin = !!token.claims.admin;
-        resolve({ user, isAdmin });
+        const isSuperAdmin = !!token.claims.superAdmin;
+        resolve({ user, isAdmin, isSuperAdmin });
       } else {
         resolve({ user: null, isAdmin: false });
       }

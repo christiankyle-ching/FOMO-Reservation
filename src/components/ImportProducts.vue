@@ -108,10 +108,7 @@ export default {
         try {
           this.parseCSVToProducts(e.target.result);
         } catch (err) {
-          this.$store.dispatch("alert", {
-            message: "Invalid template file.",
-            type: ALERT_TYPE.DANGER,
-          });
+          this.$store.dispatch("alertError", "Invalid template file.");
 
           event.target.value = null;
         }
