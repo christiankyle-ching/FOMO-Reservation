@@ -40,8 +40,8 @@
     <table class="table-auto w-full mt-3" v-if="batch?.orders?.length">
       <thead>
         <tr>
-          <!-- <th class="hidden lg:table-cell">Order #</th> -->
-          <th>Facebook Name</th>
+          <th class="hidden lg:table-cell">Order #</th>
+          <th>Name</th>
           <th class="hidden md:table-cell">Phone Number</th>
           <th>Amount</th>
           <th>View</th>
@@ -53,10 +53,10 @@
       <tbody>
         <tr v-for="order in filteredOrders" :key="order">
           <!-- OID -->
-          <!-- <td class="hidden lg:table-cell">
+          <td class="hidden lg:table-cell">
             <small>{{ order.oid }}</small>
-          </td> -->
-          <!-- Facebook Name & Link -->
+          </td>
+          <!-- Name -->
           <td class="w-full">
             {{ order.name }}
           </td>

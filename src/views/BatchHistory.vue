@@ -42,7 +42,7 @@
       </div>
 
       <!-- a: Loading -->
-      <LoadingSpinner v-if="previousBatches == null" class="m-auto" />
+      <LoadingSpinner v-if="!previousBatches" class="m-auto" />
 
       <!-- b: Has Previous Batches -->
       <div v-else>
@@ -223,6 +223,17 @@ export default {
   },
   mounted() {
     window.addEventListener("scroll", this.handleScroll);
+
+    try {
+      this.$store.dispatch("fetchBatches");
+    } catch (err) {
+      console.log(err);
+
+      this.$store.dispatch(
+        "alertError",
+        "Something went wrong in getting previous batches."
+      );
+    }
   },
   unmounted() {
     window.removeEventListener("scroll", this.handleScroll);

@@ -12,10 +12,10 @@ import BatchHistory from "@/views/BatchHistory.vue";
 import Products from "@/views/Products.vue";
 import AdminSettings from "@/views/AdminSettings.vue";
 import UserProfile from "@/views/UserProfile.vue";
+import PaidOrders from "@/views/PaidOrders.vue";
 import ManageAdmins from "@/views/ManageAdmins.vue";
 // Default Views
 import PageNotFound from "@/views/default/PageNotFound.vue";
-import { BATCH_STATUS } from "../models/Batch";
 
 const REDIRECT_REASON = Object.freeze({
   loginRequired: "loginRequired",
@@ -73,6 +73,18 @@ const routes = [
   },
   //#endregion
 
+  //#region CUSTOMER
+  {
+    path: "/paid-orders",
+    name: "PaidOrders",
+    component: PaidOrders,
+    meta: {
+      title: "Past Orders",
+      authRequired: true,
+    },
+  },
+  //#endregion
+
   //#region ADMIN VIEWS
 
   // superAdmin only
@@ -114,17 +126,13 @@ const routes = [
       adminRequired: true,
     },
     beforeEnter: (to, from, next) => {
-      console.log(store.state.status?.batch);
-      if (
-        !!store.state.status &&
-        store.state.status?.batch !== BATCH_STATUS.CLOSED
-      ) {
-        next();
-      } else {
+      if (store.getters["admin/allowFinishBatch"]) {
         next({
           name: "Home",
           query: { redirectReason: REDIRECT_REASON.currentlyNotAllowed },
         });
+      } else {
+        next();
       }
     },
   },
@@ -180,12 +188,6 @@ router.afterEach((to, from) => {
 // PERMISSIONS
 router.beforeEach(async (to, from, next) => {
   const { user, isAdmin, isSuperAdmin } = await getCurrentUser();
-
-  console.log(
-    to.matched.some((route) => route.meta.authRequired),
-    to.matched.some((route) => route.meta.adminRequired),
-    to.matched.some((route) => route.meta.superAdminRequired)
-  );
 
   // Auth Required
   if (to.matched.some((route) => route.meta.authRequired)) {

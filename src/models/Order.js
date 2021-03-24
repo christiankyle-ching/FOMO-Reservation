@@ -1,4 +1,5 @@
 import { localeDateTimeOpts, removeUndefined } from "@/utils";
+import { Batch } from "@/models/Batch";
 
 class Order {
   constructor({
@@ -10,6 +11,7 @@ class Order {
     orderList,
     payment,
     isDone,
+    batch,
   }) {
     this.uid = uid ?? null;
 
@@ -22,6 +24,7 @@ class Order {
     this.orderList = orderList ?? null;
     this.payment = payment ?? null;
     this.isDone = isDone ?? false;
+    this.batch = new Batch({ ...batch }) ?? null;
   }
 
   get firestoreDoc() {

@@ -32,10 +32,12 @@
             <span v-else class="text-danger font-medium">Pending</span>
           </span>
 
-          <b class="font-medium" v-if="!!batch">Batch: </b>
-          <span class="mb-1 sm:mb-0" v-if="!!batch"
-            >{{ batch?.closedAtString }} ({{ batch?.name }})</span
-          >
+          <div v-if="!!batch && (batch.name || batch.closedAtString)">
+            <b class="font-medium">Batch: </b>
+            <span class="mb-1 sm:mb-0"
+              >{{ batch?.closedAtString }} ({{ batch?.name }})</span
+            >
+          </div>
 
           <b>Order #: </b>
           <span class="mb-1 sm:mb-0"> {{ order.oid }}</span>
@@ -153,7 +155,6 @@
 
 <script>
 import html2canvas from "html2canvas";
-import { ALERT_TYPE } from "@/models/Alert";
 
 export default {
   name: "Receipt",

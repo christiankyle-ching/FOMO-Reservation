@@ -48,7 +48,7 @@
     <div v-else-if="reservation" class="text-center">
       <h3>
         Reservation request already sent! Please wait for confirmation if you
-        are lucky to get into the limit.
+        are early to get into the limit.
       </h3>
       <p class="mt-5">Reservation Date & Time: {{ reservationDateTime }}</p>
     </div>
@@ -61,8 +61,7 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
-import { BATCH_STATUS } from "@/models/Batch";
+import { mapActions, mapGetters, mapState } from "vuex";
 import { localeDateTimeOpts } from "@/utils";
 
 export default {
@@ -74,29 +73,15 @@ export default {
     }),
   },
   computed: {
-    ...mapState([
-      "user",
-      "status",
-      "openBatch",
-      "orderDone",
-      "orderAllowed",
-      "reservation",
-    ]),
+    ...mapState(["user", "openBatch", "reservation"]),
     ...mapState({
-      allowReservation(state) {
-        return (
-          state.openBatch &&
-          !state.reservation &&
-          !!state.status &&
-          state.status?.batch === BATCH_STATUS.OPEN
-        );
-      },
       reservationDateTime(state) {
         return state.reservation.datetime
           ?.toDate()
           .toLocaleString("en-US", localeDateTimeOpts);
       },
     }),
+    ...mapGetters({ allowReservation: "customer/allowReservation" }),
   },
 };
 </script>

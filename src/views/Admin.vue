@@ -4,10 +4,11 @@
       <h1 class="text-center">Manage {{ $store.state.clientName }}</h1>
     </div>
 
-    <div v-if="!status" class="flex h-32">
+    <!-- OpenBatch or LatestBatch -->
+    <OpenBatch />
+    <!-- <div v-else class="flex h-32">
       <LoadingSpinner class="m-auto" />
-    </div>
-    <OpenBatch v-else />
+    </div> -->
 
     <!-- Admin Actions -->
     <div class="card mt-5">
@@ -101,8 +102,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
-import { BATCH_STATUS } from "@/models/Batch";
+import { mapState, mapGetters } from "vuex";
 
 import OpenBatch from "@/components/OpenBatch";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -112,12 +112,9 @@ export default {
 
   components: { OpenBatch, LoadingSpinner },
   computed: {
-    ...mapState({
-      status: "status",
-      isSuperAdmin: "isSuperAdmin",
-      isTakingOrders(state) {
-        return state.status?.batch == BATCH_STATUS.CLOSED;
-      },
+    ...mapState(["openBatch", "latestBatch", "isSuperAdmin"]),
+    ...mapGetters({
+      isTakingOrders: "admin/allowFinishBatch",
     }),
   },
 };

@@ -28,16 +28,24 @@
         </div>
       </div>
 
-      <!-- TODO: d: Check history of paid orders from paid-orders -->
+      <!-- Default: Show Reservation Module and past Orders -->
+      <div v-else>
+        <Reserve class="mt-10" :key="_userKey" />
 
-      <!-- Default: Show Reservation Module -->
-      <Reserve v-else class="mt-10" :key="_userKey" />
+        <!-- History of paid orders from paid-orders -->
+        <p class="text-center pt-10">
+          If you still have unattended orders, you can view your paid orders
+          <router-link :to="{ name: 'PaidOrders' }" class="link"
+            >here</router-link
+          >.
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapGetters, mapState } from "vuex";
 import Order from "@/components/Order.vue";
 import Receipt from "@/components/Receipt.vue";
 import Reserve from "@/components/Reserve.vue";
@@ -54,14 +62,11 @@ export default {
     LoadingSpinner,
   },
   computed: {
-    ...mapState([
-      "user",
-      "_userKey",
-      "pendingOrder",
-      "orderAllowed",
-      "orderDone",
-      "openBatch",
-    ]),
+    ...mapState(["user", "_userKey", "pendingOrder", "openBatch"]),
+    ...mapGetters({
+      orderAllowed: "customer/orderAllowed",
+      orderDone: "customer/orderDone",
+    }),
   },
 };
 </script>

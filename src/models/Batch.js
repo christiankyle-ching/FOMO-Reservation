@@ -6,12 +6,6 @@ import { removeUndefined } from "@/utils";
 
 const DEFAULT_ADMIN_SETTINGS = new AdminSettings({});
 
-const BATCH_STATUS = Object.freeze({
-  OPEN: "open",
-  CLOSED: "closed",
-  PENDING: "pending",
-});
-
 const fnReducer = (a, c) => a + c;
 
 class Batch {
@@ -41,21 +35,19 @@ class Batch {
   get createdAtString() {
     return (
       this.created_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ??
-      "Not Yet"
+      ""
     );
   }
 
   get closedAtString() {
     return (
-      this.closed_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ??
-      "Not Yet"
+      this.closed_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ?? ""
     );
   }
 
   get lockedAtString() {
     return (
-      this.locked_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ??
-      "Not Yet"
+      this.locked_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ?? ""
     );
   }
 
@@ -100,4 +92,4 @@ class Batch {
   }
 }
 
-export { Batch, BATCH_STATUS };
+export { Batch };

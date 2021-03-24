@@ -7,9 +7,9 @@
         </router-link>
       </template>
       <template v-slot:content>
-        <!-- Sidebar Links -->
+        <!-- SIDEBAR LINKS -->
 
-        <!-- Home / Admin -->
+        <!-- Home / Admin Dashboard -->
         <router-link
           v-if="isAdmin || isSuperAdmin"
           :to="{ name: 'Admin' }"
@@ -66,6 +66,29 @@
             />
           </svg>
           Profile</router-link
+        >
+
+        <!-- CUSTOMER ONLY -->
+        <router-link
+          v-if="!isAdmin && !isSuperAdmin"
+          :to="{ name: 'PaidOrders' }"
+          class="sidebar-link"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <!-- Icon: clipboard-check -->
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+            />
+          </svg>
+          Past Orders</router-link
         >
 
         <!-- #region ADMINS ONLY -->
@@ -285,11 +308,10 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
 import Sidebar from "@/components/Sidebar";
 import Alert from "@/components/Alert";
 import { Alert as AlertObj } from "@/models/Alert";
-import { BATCH_STATUS } from "@/models/Batch.js";
 
 export default {
   components: { Alert, Sidebar },
@@ -313,10 +335,8 @@ export default {
       "isOnline",
       "darkModeEnabled",
     ]),
-    ...mapState({
-      isTakingOrders(state) {
-        return state.status?.batch == BATCH_STATUS.CLOSED;
-      },
+    ...mapGetters({
+      isTakingOrders: "admin/allowFinishBatch",
     }),
   },
   created() {
@@ -345,10 +365,10 @@ export default {
       toggleDarkMode: "toggleDarkMode",
     }),
 
+    // Sidebar
     showSidebar() {
       this.sidebarActive = true;
     },
-
     hideSidebar() {
       this.sidebarActive = false;
     },

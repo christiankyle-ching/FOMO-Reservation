@@ -273,7 +273,7 @@
   }
 
   .grid-separated > * {
-    @apply border-b-2 border-dark1;
+    @apply border-b-2 border-lightSecondary dark:border-dark1;
   }
 
   input,
@@ -349,16 +349,12 @@
   }
 
   /* Sidebar */
-  .sidebar.active {
-    @apply pointer-events-auto;
-  }
-
   .sidebar:not(.active) {
     @apply pointer-events-none;
   }
 
   .sidebar__content {
-    @apply w-2/3 max-w-xs bg-white h-full z-10 overflow-scroll;
+    @apply w-2/3 max-w-xs bg-white h-full z-10 overflow-x-scroll;
   }
 
   .sidebar-link {

@@ -2,11 +2,11 @@
   <div class="open-batch card">
     <div class="text-center mb-3">
       <h2>Current Batch</h2>
-      <p v-if="status" class="capitalize italic">
+      <p class="capitalize italic">
         {{ statusMessage }}
       </p>
     </div>
-    
+
     <!-- 1: Open New Batch -->
     <form
       @submit.prevent="openNewBatch"
@@ -219,19 +219,21 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
 import BatchOrders from "@/components/BatchOrders";
 import { Batch } from "@/models/Batch";
-import { BATCH_STATUS } from "@/models/Batch";
 
 export default {
   name: "OpenBatch",
   components: { BatchOrders },
   computed: {
     ...mapState({
+      // Opening New Batch
       adminSettings: "adminSettings",
       formNewBatch: "formNewBatch",
 
+      // Waiting for reservations, or orders & payment
+      counters: "counters",
       openBatch: "openBatch",
       openBatchWithOrders(state) {
         return new Batch({
@@ -239,62 +241,27 @@ export default {
           orders: state.pendingOrders,
         });
       },
-      latestBatch: "latestBatch",
-
       paidOrders(state) {
         return state.pendingOrders.filter((o) => !!o.payment);
       },
 
-      status: "status",
-      counters: "counters",
+      // Waiting to set batch isDone
+      latestBatch: "latestBatch",
 
       // Status Styling
       statusMessage() {
-        switch (this.status.batch) {
-          case BATCH_STATUS.OPEN:
-            return "Waiting for reservations...";
-          case BATCH_STATUS.CLOSED:
-            return "Waiting for orders...";
-          case BATCH_STATUS.PENDING:
-            return "Ready for another batch...";
-        }
+        if (this.allowOpenNewBatch) return "Ready for another batch...";
+        else if (this.allowCloseBatch) return "Waiting for reservations...";
+        else if (this.allowFinishBatch) return "Waiting for orders...";
+        else if (this.allowDoneBatch) return "Waiting to process all orders...";
+        else return "";
       },
-
-      // Allow Actions based on Status of Current Batch
-      allowOpenNewBatch(state) {
-        return (
-          !state.openBatch &&
-          state.status?.batch == BATCH_STATUS.PENDING &&
-          !state.latestBatch
-        );
-      },
-      allowCloseBatch(state) {
-        return (
-          !!state.openBatch &&
-          !!state.openBatch.created_at &&
-          !state.openBatch.closed_at &&
-          !state.openBatch.locked_at &&
-          !state.openBatch.isDone &&
-          state.status?.batch == BATCH_STATUS.OPEN
-        );
-      },
-      allowFinishBatch(state) {
-        return (
-          !!state.openBatch &&
-          !!state.openBatch.created_at &&
-          !!state.openBatch.closed_at &&
-          !state.openBatch.locked_at &&
-          !state.openBatch.isDone &&
-          state.status?.batch == BATCH_STATUS.CLOSED
-        );
-      },
-      allowDoneBatch(state) {
-        return (
-          !!state.latestBatch &&
-          !state.latestBatch.isDone &&
-          state.status?.batch == BATCH_STATUS.PENDING
-        );
-      },
+    }),
+    ...mapGetters({
+      allowOpenNewBatch: "admin/allowOpenNewBatch",
+      allowCloseBatch: "admin/allowCloseBatch",
+      allowFinishBatch: "admin/allowFinishBatch",
+      allowDoneBatch: "admin/allowDoneBatch",
     }),
   },
   methods: {
