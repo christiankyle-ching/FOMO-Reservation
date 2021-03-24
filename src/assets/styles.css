@@ -59,6 +59,10 @@
     @apply container mx-auto p-5 sm:p-10;
   }
 
+  .app-container__header {
+    @apply mb-5 sm:mb-10;
+  }
+
   *:disabled {
     @apply opacity-50 pointer-events-none;
   }
@@ -68,7 +72,7 @@
   }
 
   a.link {
-    @apply font-medium text-darkInfo underline;
+    @apply font-medium text-primary underline;
   }
 
   a.card {
@@ -310,6 +314,10 @@
     display: none;
   }
 
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
   .input__number {
     @apply mt-1 rounded-lg border-2 border-primary inline-flex items-center;
   }
@@ -319,7 +327,7 @@
   }
 
   .input__number input[type="number"] {
-    @apply inline-block w-9 text-center shadow-none border-none mt-0 bg-transparent;
+    @apply inline-block w-12 text-center shadow-none border-none mt-0 bg-transparent;
   }
 
   .input__search {
@@ -350,7 +358,7 @@
   }
 
   .sidebar__content {
-    @apply w-2/3 max-w-xs bg-white h-full z-10;
+    @apply w-2/3 max-w-xs bg-white h-full z-10 overflow-scroll;
   }
 
   .sidebar-link {

@@ -1,10 +1,7 @@
 <template>
   <div class="batch-history">
     <!-- Search: Jump to Date -->
-    <form
-      @submit.prevent="jumpToDate()"
-      class="toolbar"
-    >
+    <form @submit.prevent="jumpToDate()" class="toolbar">
       <div class="container p-5 mx-auto">
         <label class="p-0">Jump to Date (Closed Reservation Date):</label>
         <input
@@ -35,12 +32,14 @@
     </form>
 
     <div class="app-container">
-      <h1 class="text-center mb-5 sm:mb-10">
-        Batch History
-        <span v-if="lastSearchedDateString"
-          >({{ lastSearchedDateString }})</span
-        >
-      </h1>
+      <div class="app-container__header">
+        <h1 class="text-center">
+          Batch History
+          <span v-if="lastSearchedDateString"
+            >({{ lastSearchedDateString }})</span
+          >
+        </h1>
+      </div>
 
       <!-- a: Loading -->
       <LoadingSpinner v-if="previousBatches == null" class="m-auto" />
@@ -79,6 +78,7 @@
             <BatchOrderListItem :batch="batch" />
           </router-link>
 
+          <!-- Loading More Batches -->
           <LoadingSpinner v-if="isLoadingMore" class="m-auto" />
 
           <button
@@ -101,6 +101,10 @@
             </svg>
             Load More...
           </button>
+
+          <p v-else-if="!dbBatchesCursor && !isLoadingMore" class="text-center">
+            No more batches to show.
+          </p>
         </div>
 
         <!-- c: No Previous Batches -->
@@ -155,10 +159,7 @@ export default {
     };
   },
   computed: {
-    ...mapState({
-      previousBatches: "previousBatches",
-      dbBatchesCursor: "dbBatchesCursor",
-    }),
+    ...mapState(["previousBatches", "dbBatchesCursor"]),
     lastSearchedDateString() {
       return this.lastSearchedDate
         ? new Date(this.lastSearchedDate).toLocaleString("en-US", {

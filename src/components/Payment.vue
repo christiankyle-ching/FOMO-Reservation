@@ -78,9 +78,7 @@ export default {
     redirectUrl() {
       return `${location.origin}${this.$router.resolve({ name: "Home" }).path}`;
     },
-    ...mapState({
-      pendingOrder: "pendingOrder",
-    }),
+    ...mapState(["pendingOrder"]),
   },
   methods: {
     async payWithEwallet(sourceType) {

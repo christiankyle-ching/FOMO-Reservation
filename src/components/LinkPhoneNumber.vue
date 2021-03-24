@@ -8,7 +8,7 @@
       >
         <!-- Phone Number -->
         <div class="col-span-1">
-          <label class="p-0">Phone Number:</label>
+          <b>Link Your Phone Number</b>
           <div class="flex items-center mt-2">
             <span class="mr-3">+63</span>
             <input
@@ -108,7 +108,7 @@ export default {
   },
 
   computed: {
-    ...mapState({ user: "user", _userKey: "_userKey" }),
+    ...mapState(["user", "_userKey"]),
   },
 
   methods: {

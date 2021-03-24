@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <div class="mt-5 mb-10">
+    <div class="app-container__header">
       <h1>Your Profile, {{ user.displayName }}</h1>
       <i>{{ user.email }}</i>
     </div>
@@ -23,6 +23,7 @@
         <button
           type="submit"
           class="button button-primary justify-self-end sm:col-span-2"
+          :disabled="!newName"
         >
           Change
         </button>
@@ -53,7 +54,7 @@ export default {
     return { newName: "" };
   },
   computed: {
-    ...mapState({ user: "user" }),
+    ...mapState(["user"]),
   },
   methods: {
     ...mapActions({

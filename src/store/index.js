@@ -79,7 +79,6 @@ const store = createStore({
     dbPendingOrders: _db.collection("PUBLIC_ORDERS"),
     dbBatches: _db.collection("batches"),
     dbBatchesCursor: null, // For Pagination
-    dbReservations: _db.collection("PUBLIC_RESERVATIONS"),
     dbAdminSettings: _db.collection("PRIVATE").doc("settings"),
     dbLatestBatch: _db
       .collection("batches")
@@ -432,11 +431,18 @@ const store = createStore({
     async updateProducts({ state, dispatch }) {
       console.log("updateProducts");
 
-      await state.dbProducts.set({
-        products: state.products.map((p) => p.firestoreDoc),
-      });
+      try {
+        await state.dbProducts.set({
+          products: state.products.map((p) => p.firestoreDoc),
+        });
 
-      dispatch("alertSuccess", "Successfully updated products.");
+        dispatch("alertSuccess", "Successfully updated products.");
+      } catch (err) {
+        dispatch(
+          "alertError",
+          "Something went wrong in updating your products. Please check if you are currently accpeting orders."
+        );
+      }
     },
 
     replaceProducts({ commit, dispatch }, products) {
@@ -878,14 +884,14 @@ const store = createStore({
 
     //#region CUSTOMER
     // Reserve
-    async reserve({ state, commit }) {
+    async reserve({ state, commit, dispatch }) {
       console.log("reserve");
 
       try {
-        const reservation = await state.dbReservation.get();
+        const reservationDoc = await state.dbReservation.get();
 
-        if (!reservation.exists) {
-          const reservation = await state.dbReservation.set({
+        if (!reservationDoc.exists) {
+          await state.dbReservation.set({
             datetime: firebase.firestore.FieldValue.serverTimestamp(),
           });
 
@@ -898,10 +904,15 @@ const store = createStore({
           );
 
           // Get reservation submitted
-          commit("SET_RESERVATION", reservation.data());
+          commit("SET_RESERVATION", (await state.dbReservation.get()).data());
         }
       } catch (err) {
         console.error("reserve", err);
+
+        dispatch(
+          "alertError",
+          "Something went wrong in reserving your slot. Please reload and try again."
+        );
       }
     },
 

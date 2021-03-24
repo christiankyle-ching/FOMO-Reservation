@@ -3,7 +3,7 @@
     <LoadingSpinner v-if="batch == null" class="m-auto mt-10" />
 
     <div v-else>
-      <div class="my-5 mb-10">
+      <div class="app-container__header">
         <h1>Batch Name: {{ batch.name }}</h1>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 mt-3">

@@ -1,8 +1,8 @@
 <template>
   <div class="home app-container">
-    <h1 class="text-center my-5 sm:mb-10">
-      {{ $store.state.clientName }}'s Waitlist
-    </h1>
+    <div class="app-container__header">
+      <h1 class="text-center">{{ $store.state.clientName }}'s Waitlist</h1>
+    </div>
     <div v-if="!!user">
       <!-- a: Order Allowed -->
       <Order v-if="orderAllowed" />
@@ -54,14 +54,14 @@ export default {
     LoadingSpinner,
   },
   computed: {
-    ...mapState({
-      user: "user",
-      _userKey: "_userKey",
-      pendingOrder: "pendingOrder",
-      orderAllowed: "orderAllowed",
-      orderDone: "orderDone",
-      openBatch: "openBatch",
-    }),
+    ...mapState([
+      "user",
+      "_userKey",
+      "pendingOrder",
+      "orderAllowed",
+      "orderDone",
+      "openBatch",
+    ]),
   },
 };
 </script>

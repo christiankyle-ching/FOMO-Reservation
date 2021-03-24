@@ -1,8 +1,8 @@
 <template>
   <div class="admin app-container">
-    <h1 class="text-center my-5 sm:my-10">
-      Manage {{ $store.state.clientName }}
-    </h1>
+    <div class="app-container__header">
+      <h1 class="text-center">Manage {{ $store.state.clientName }}</h1>
+    </div>
 
     <div v-if="!status" class="flex h-32">
       <LoadingSpinner class="m-auto" />

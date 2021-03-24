@@ -15,11 +15,13 @@ import UserProfile from "@/views/UserProfile.vue";
 import ManageAdmins from "@/views/ManageAdmins.vue";
 // Default Views
 import PageNotFound from "@/views/default/PageNotFound.vue";
+import { BATCH_STATUS } from "../models/Batch";
 
 const REDIRECT_REASON = Object.freeze({
   loginRequired: "loginRequired",
   notEnoughPermissions: "notEnoughPermissions",
   loggedInAlready: "loggedInAlready",
+  currentlyNotAllowed: "currentlyNotAllowed",
 });
 
 const routes = [
@@ -30,18 +32,21 @@ const routes = [
     meta: {
       title: "Login",
     },
-    beforeEnter: (to, from) => {
-      if (!!store.state.user)
-        // Conditional Redirect based on access
+    beforeEnter: (to, from, next) => {
+      // Conditional Redirect based on access
+      if (!!store.state.user) {
         router.replace({
           name:
             store.state.isAdmin || store.state.isSuperAdmin ? "Admin" : "Home",
           query: { redirectReason: REDIRECT_REASON.loggedInAlready },
         });
+      } else {
+        next();
+      }
     },
   },
 
-  //#region CUSTOMER REGION
+  //#region SHARED REGION
   {
     path: "/",
     name: "Home",
@@ -51,8 +56,10 @@ const routes = [
       authRequired: true,
     },
     beforeEnter: (to, from) => {
-      if (store.state.isAdmin || store.state.isSuperAdmin)
-        router.replace({ name: "Admin" });
+      if (store.state.isAdmin || store.state.isSuperAdmin) {
+        // Redirect and append queries
+        router.replace({ name: "Admin", query: to.query });
+      }
     },
   },
   {
@@ -67,6 +74,7 @@ const routes = [
   //#endregion
 
   //#region ADMIN VIEWS
+
   // superAdmin only
   {
     path: "/admins/manage",
@@ -77,6 +85,8 @@ const routes = [
       superAdminRequired: true,
     },
   },
+
+  // All Admins
   {
     path: "/admin",
     name: "Admin",
@@ -102,6 +112,20 @@ const routes = [
     meta: {
       title: "Manage Menu",
       adminRequired: true,
+    },
+    beforeEnter: (to, from, next) => {
+      console.log(store.state.status?.batch);
+      if (
+        !!store.state.status &&
+        store.state.status?.batch !== BATCH_STATUS.CLOSED
+      ) {
+        next();
+      } else {
+        next({
+          name: "Home",
+          query: { redirectReason: REDIRECT_REASON.currentlyNotAllowed },
+        });
+      }
     },
   },
   {
@@ -157,6 +181,12 @@ router.afterEach((to, from) => {
 router.beforeEach(async (to, from, next) => {
   const { user, isAdmin, isSuperAdmin } = await getCurrentUser();
 
+  console.log(
+    to.matched.some((route) => route.meta.authRequired),
+    to.matched.some((route) => route.meta.adminRequired),
+    to.matched.some((route) => route.meta.superAdminRequired)
+  );
+
   // Auth Required
   if (to.matched.some((route) => route.meta.authRequired)) {
     if (!user)
@@ -172,7 +202,7 @@ router.beforeEach(async (to, from, next) => {
     if (!((isAdmin || isSuperAdmin) && !!user)) {
       next({
         name: "Home",
-        query: { redirectReason: REDIRECT_REASON.loginRequired },
+        query: { redirectReason: REDIRECT_REASON.notEnoughPermissions },
       });
     } else {
       next();
@@ -212,6 +242,9 @@ router.beforeResolve((to, from, next) => {
       break;
     case REDIRECT_REASON.loggedInAlready:
       store.dispatch("alertInfo", "You are already logged in.");
+      break;
+    case REDIRECT_REASON.currentlyNotAllowed:
+      store.dispatch("alertInfo", "You can't access that right now.");
       break;
   }
 

@@ -4,7 +4,9 @@
   </transition>
 
   <div class="app-container">
-    <h1 class="my-5 sm:mb-10">Manage Admins</h1>
+    <div class="app-container__header">
+      <h1>Manage Admins</h1>
+    </div>
 
     <div v-if="!!admins">
       <!-- Add Admin Form -->
@@ -82,9 +84,7 @@ export default {
     return { newAdminEmail: "", isLoading: false };
   },
   computed: {
-    ...mapState({
-      admins: "admins",
-    }),
+    ...mapState(["admins"]),
   },
   methods: {
     async addAdmin() {

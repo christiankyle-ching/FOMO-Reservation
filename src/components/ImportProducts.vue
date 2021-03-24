@@ -89,9 +89,7 @@ export default {
     };
   },
   computed: {
-    ...mapState({
-      products: "products",
-    }),
+    ...mapState(["products"]),
   },
   methods: {
     async onFileChange(event) {

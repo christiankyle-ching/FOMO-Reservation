@@ -1,6 +1,8 @@
 <template>
   <div class="app-container">
-    <h1 class="mb-10">Settings</h1>
+    <div class="app-container__head">
+      <h1>Settings</h1>
+    </div>
 
     <div v-if="!!formAdminSettings">
       <!-- Batch Defaults -->
@@ -126,9 +128,7 @@ export default {
     };
   },
   computed: {
-    ...mapState({
-      adminSettings: "adminSettings",
-    }),
+    ...mapState(["adminSettings"]),
   },
   methods: {
     // Admin Settings

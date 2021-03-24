@@ -101,7 +101,9 @@
           <tr>
             <th class="text-left">TOTAL</th>
             <th class="text-right">{{ order.totalQty }} item/s</th>
-            <th class="text-right">{{ order.totalPrice }} PHP</th>
+            <th class="text-right">
+              {{ order.totalPrice.toLocaleString() }} PHP
+            </th>
             <th v-if="!inProcess"></th>
           </tr>
         </tfoot>

@@ -1,7 +1,7 @@
 <template>
   <div class="reserve px-5">
     <!-- a: Reservation Open -->
-    <div v-if="openBatch && !reservation">
+    <div v-if="allowReservation">
       <div class="my-20">
         <div class="text-center">
           <h2>{{ openBatch.name }}</h2>
@@ -33,7 +33,13 @@
 
         <!-- Else: Number is required -->
         <div v-else class="my-5">
-          <h5 class="text-center text-danger">Please complete your profile.</h5>
+          <h5 class="text-center">
+            Please complete your
+            <router-link :to="{ name: 'UserProfile' }" class="link"
+              >profile</router-link
+            >
+            first.
+          </h5>
         </div>
       </div>
     </div>
@@ -48,7 +54,7 @@
     </div>
 
     <!-- No Open Batches, Wait for future batches -->
-    <div v-else-if="!openBatch && !orderDone && !orderAllowed">
+    <div v-else>
       <h2 class="text-center">Stay tuned for the next batch!</h2>
     </div>
   </div>
@@ -56,7 +62,8 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import { localeDateTimeOpts } from "../utils";
+import { BATCH_STATUS } from "@/models/Batch";
+import { localeDateTimeOpts } from "@/utils";
 
 export default {
   name: "Reserve",
@@ -67,12 +74,23 @@ export default {
     }),
   },
   computed: {
+    ...mapState([
+      "user",
+      "status",
+      "openBatch",
+      "orderDone",
+      "orderAllowed",
+      "reservation",
+    ]),
     ...mapState({
-      user: "user",
-      openBatch: "openBatch",
-      orderDone: "orderDone",
-      orderAllowed: "orderAllowed",
-      reservation: "reservation",
+      allowReservation(state) {
+        return (
+          state.openBatch &&
+          !state.reservation &&
+          !!state.status &&
+          state.status?.batch === BATCH_STATUS.OPEN
+        );
+      },
       reservationDateTime(state) {
         return state.reservation.datetime
           ?.toDate()
