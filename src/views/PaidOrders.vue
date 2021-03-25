@@ -41,7 +41,7 @@
           class="flex justify-between items-center cursor-pointer"
         >
           <div>
-            <h5>Order #{{ order.oid }}</h5>
+            <h5>Order #{{ order.oid }} ({{ order.totalPriceString }})</h5>
             <small>Paid At: {{ order.paidAtDateTime }}</small>
           </div>
 
@@ -78,7 +78,7 @@
 
         <transition name="fade">
           <div v-show="order._collapsed" class="mt-3">
-            <Receipt :order="order" :batch="order.batch" inProcess />
+            <Receipt :order="order" />
           </div>
         </transition>
       </div>

@@ -7,13 +7,18 @@
       </p>
     </div>
 
-    <!-- 1: Open New Batch -->
+    <!-- A: Open a New Batch -->
     <form
       @submit.prevent="openNewBatch"
       v-if="allowOpenNewBatch && !!formNewBatch"
     >
-      <label>Name</label>
-      <input type="text" v-model.trim="formNewBatch.name" required />
+      <label>Batch Name: </label>
+      <input
+        type="text"
+        v-model.trim="formNewBatch.name"
+        required
+        placeholder="Enter a name for this batch..."
+      />
 
       <label># of Reservations to Accept (Limit):</label>
       <div class="input__number">
@@ -110,89 +115,92 @@
       </button>
     </form>
 
+    <!-- B: Current Ongoing Batch -->
     <div v-else-if="!!openBatch || !!latestBatch">
-      <!-- 2: Current Open Batch - Can Close - Stop Reservation -->
-      <div v-if="allowCloseBatch">
-        <h3 class="text-center mt-3">Open Batch</h3>
-
-        <div class="my-3">
-          <h4>{{ openBatch.name }}</h4>
-          <p class="italic text-sm">{{ openBatch.createdAtString }}</p>
-          <p v-if="counters">Reservations: {{ counters.reservations }}</p>
-        </div>
-
-        <button
-          @click="closeCurrentBatch()"
-          class="button button-danger button-block"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <!-- Icon: lock-sm -->
-            <path
-              fill-rule="evenodd"
-              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Close Batch
-        </button>
+      <!-- HEADER: OpenBatch -->
+      <div class="text-center my-3">
+        <h3>
+          {{ openBatch?.name ?? latestBatch?.name }}
+        </h3>
+        <small class="italic">{{
+          openBatch?.createdAtString ?? latestBatch?.createdAtString
+        }}</small>
       </div>
 
-      <!-- 3: Finish Batch - Can Lock / Finalize - Stop Orders and Payments -->
-      <div v-else-if="allowFinishBatch">
-        <h3>Finalize Batch "{{ openBatch.name }}"</h3>
-        <p>
-          If the customers' orders are submitted and paid already, you can
-          finalize this batch now to start preparing your orders.
-          <span class="text-red-700 font-medium"
-            >This would stop accepting orders from unattended or unpaid
-            reservations.</span
-          >
-        </p>
+      <div v-if="!!openBatch">
+        <!-- 2: Current Open Batch - Can Close - Stop Reservation -->
+        <div v-if="allowCloseBatch">
+          <div v-if="!!counters" class="my-3">
+            <h5>Reservations</h5>
 
-        <div class="mt-3">
-          <h5>
-            Paid Orders: {{ paidOrders?.length }} of
-            {{ openBatchWithOrders?.orders?.length }}
-          </h5>
-
-          <!-- Pending Orders -->
-          <div class="my-5">
-            <BatchOrders :batch="openBatchWithOrders" />
+            <span
+              class="text-2xl"
+              :class="{
+                'text-success': counters.reservations == openBatch.order_limit,
+                'text-danger': counters.reservations > openBatch.order_limit,
+              }"
+              >{{ counters.reservations }}</span
+            >
+            <span>/{{ openBatch.order_limit }}</span>
           </div>
 
-          <!-- Finalize Orders -->
           <button
-            @click="finalizeBatch()"
-            class="button button-primary button-block mt-3"
+            @click="closeCurrentBatch()"
+            class="button button-danger button-block"
           >
-            Stop Accepting Orders (Finalize)
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <!-- Icon: lock-sm -->
+              <path
+                fill-rule="evenodd"
+                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Close Batch
           </button>
         </div>
+
+        <!-- 3: Finish Batch - Can Lock / Finalize - Stop Orders and Payments -->
+        <div v-else-if="allowFinishBatch">
+          <p>
+            If the customers' orders are submitted and paid already, you can
+            finalize this batch now to start preparing your orders.
+            <span class="text-red-700 font-medium"
+              >This would stop accepting orders from unattended or unpaid
+              reservations.</span
+            >
+          </p>
+
+          <div class="mt-5">
+            <h5>
+              Paid Orders: {{ paidOrders?.length }} of
+              {{ openBatchWithOrders?.orders?.length }}
+            </h5>
+
+            <!-- Pending Orders -->
+            <div class="my-3">
+              <BatchOrders :batch="openBatchWithOrders" />
+            </div>
+
+            <!-- Finalize Orders -->
+            <button
+              @click="finalizeBatch()"
+              class="button button-primary button-block mt-3"
+            >
+              Stop Accepting Orders
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- 4: TODO: Orders to Process - To Open New Batch -->
-      <div v-else-if="allowDoneBatch">
-        <div class="latest-batch">
-          <h2 class="text-center">Orders to Process</h2>
-
-          <!-- Header -->
-          <div class="my-5">
-            <h5>Batch: {{ latestBatch.name }}</h5>
-
-            <small>
-              Created at:
-              <span class="italic">{{ latestBatch.createdAtString }}</span>
-              <br />
-              Closed at:
-              <span class="italic">{{ latestBatch.closedAtString }}</span>
-            </small>
-          </div>
-
-          <BatchOrders :batch="latestBatch" isFinalized />
+      <div v-else-if="!!latestBatch">
+        <!-- 4: Orders to Process - To Open New Batch -->
+        <div v-if="allowDoneBatch">
+          <BatchOrders :batch="latestBatch" />
 
           <button
             @click="markLatestBatchAsDone()"
@@ -266,10 +274,54 @@ export default {
   },
   methods: {
     ...mapActions({
-      openNewBatch: "openNewBatch",
-      closeCurrentBatch: "closeCurrentBatch",
-      finalizeBatch: "finalizeBatch",
-      markLatestBatchAsDone: "markLatestBatchAsDone",
+      openNewBatch(dispatch) {
+        dispatch("confirm", {
+          title: `Opening Batch: ${this.formNewBatch?.name}`,
+          message: `Are you sure you want to open a new batch? You will start receiving reservations, but no orders will be taken yet.
+            
+            Maximum Reservations:
+            ${this.formNewBatch?.order_limit} person/s
+            
+            Maximum Food Items Per Person:
+            ${this.formNewBatch?.maxAllowedOrderQty} per person
+            `,
+          buttonMessage: "Yes",
+          callback: () => dispatch("openNewBatch"),
+        });
+      },
+
+      closeCurrentBatch(dispatch) {
+        dispatch("confirm", {
+          title: "Close Reservations?",
+          message: `Are you sure you want to stop accepting reservations? Only the first ${this.openBatch.order_limit} person/s will be accepted.
+          
+          Current Reservation Count: ${this.counters?.reservations}/${this.openBatch?.order_limit}`,
+          buttonMessage: "Yes",
+          callback: () => dispatch("closeCurrentBatch"),
+        });
+      },
+
+      finalizeBatch(dispatch) {
+        dispatch("confirmDanger", {
+          title: "Stop Accepting Orders?",
+          message: `Are you sure you want to stop accepting orders? 
+          
+          All unpaid orders will be discarded/deleted.`,
+          buttonMessage: "Yes",
+          callback: () => dispatch("finalizeBatch"),
+        });
+      },
+
+      markLatestBatchAsDone(dispatch) {
+        dispatch("confirm", {
+          title: `Finish Batch ${this.latestBatch?.name}`,
+          message: `Are you sure you want to finish this batch? 
+          Mark this batch as done when all orders are delivered, 
+          or to be able to open another batch.`,
+          buttonMessage: "Yes",
+          callback: () => dispatch("markLatestBatchAsDone"),
+        });
+      },
     }),
 
     // Input: For order_limit

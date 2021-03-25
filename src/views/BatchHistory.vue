@@ -31,7 +31,7 @@
       </div>
     </form>
 
-    <div class="app-container">
+    <div class="app-container pt-0">
       <div class="app-container__header">
         <h1 class="text-center">
           Batch History

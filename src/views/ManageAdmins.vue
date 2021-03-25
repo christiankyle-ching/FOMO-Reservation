@@ -19,7 +19,11 @@
         />
 
         <div class="text-right mt-3">
-          <button type="submit" class="button button-primary">
+          <button
+            type="submit"
+            class="button button-primary"
+            :disabled="!newAdminEmail"
+          >
             Add as Admin
           </button>
         </div>
@@ -42,7 +46,7 @@
                 <button
                   type="button"
                   class="button-icon button-icon-sm button-danger"
-                  @click="removeAdmin(admin.uid)"
+                  @click="removeAdmin(admin)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -88,39 +92,60 @@ export default {
   },
   methods: {
     async addAdmin() {
-      try {
-        this.isLoading = true;
-        await this.$store.dispatch("addAdmin", this.newAdminEmail);
-      } catch (err) {
-        console.error(err);
-        this.onError(await err);
-      } finally {
-        this.newAdminEmail = "";
-        this.isLoading = false;
-      }
+      this.$store.dispatch("confirmDanger", {
+        title: "Adding an Admin",
+        message: `ARE YOU SURE you want to add "${this.newAdminEmail}" as an ADMIN? This will GIVE ACCESS to that account to managing your batches and product menu!`,
+        buttonMessage: "Add",
+        callback: async () => {
+          try {
+            this.isLoading = true;
+            await this.$store.dispatch("addAdmin", this.newAdminEmail);
+          } catch (err) {
+            console.error(err);
+            this.onError(await err);
+          } finally {
+            this.newAdminEmail = "";
+            this.isLoading = false;
+          }
+        },
+      });
     },
-    async removeAdmin(_uid) {
-      try {
-        this.isLoading = true;
-        await this.$store.dispatch("removeAdmin", _uid);
-      } catch (err) {
-        console.error(err);
-        this.onError(await err);
-      } finally {
-        this.isLoading = false;
-      }
+    async removeAdmin(admin) {
+      this.$store.dispatch("confirmDanger", {
+        title: "Removing an Admin",
+        message: `Are you sure you want to remove "${admin.email}" as an admin? This will REMOVE ACCESS to that account to managing your batches and product menu!`,
+        buttonMessage: "Remove",
+        callback: async () => {
+          try {
+            this.isLoading = true;
+            await this.$store.dispatch("removeAdmin", admin.uid);
+          } catch (err) {
+            console.error(err);
+            this.onError(await err);
+          } finally {
+            this.isLoading = false;
+          }
+        },
+      });
     },
 
     // Error Handler
     onError(err) {
-      if (err.errors.includes("user_not_found")) {
+      if (!!err.errors) {
+        if (err.errors.includes("user_not_found")) {
+          this.$store.dispatch(
+            "alertError",
+            "Cannot find a user with that email."
+          );
+        }
+        if (err.errors.includes("incomplete_fields")) {
+          this.$store.dispatch("alertError", "Please check the email again.");
+        }
+      } else {
         this.$store.dispatch(
           "alertError",
-          "Cannot find a user with that email."
+          "Something went wrong. Please try again later."
         );
-      }
-      if (err.errors.includes("incomplete_fields")) {
-        this.$store.dispatch("alertError", "Please check the email again.");
       }
     },
   },

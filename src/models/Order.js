@@ -11,7 +11,7 @@ class Order {
     orderList,
     payment,
     isDone,
-    batch,
+    batchDetails,
   }) {
     this.uid = uid ?? null;
 
@@ -24,13 +24,13 @@ class Order {
     this.orderList = orderList ?? null;
     this.payment = payment ?? null;
     this.isDone = isDone ?? false;
-    this.batch = new Batch({ ...batch }) ?? null;
+    this.batchDetails = batchDetails ?? null;
   }
 
   get firestoreDoc() {
-    const firestoreObj = {};
+    const firestoreDoc = removeUndefined(this);
 
-    return removeUndefined(this);
+    return firestoreDoc;
   }
 
   get totalPrice() {
@@ -39,6 +39,10 @@ class Order {
     return (
       this.orderList?.map((o) => o.total_price).reduce((a, c) => a + c) ?? 0
     );
+  }
+
+  get totalPriceString() {
+    return this.totalPrice.toLocaleString() + " PHP";
   }
 
   get totalQty() {

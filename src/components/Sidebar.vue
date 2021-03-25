@@ -25,6 +25,13 @@
 export default {
   props: { active: Boolean },
   emits: ["close"],
+  watch: {
+    active: (value) => {
+      value
+        ? document.body.classList.add("prevent-scroll")
+        : document.body.classList.remove("prevent-scroll");
+    },
+  },
 };
 </script>
 

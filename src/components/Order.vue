@@ -7,7 +7,7 @@
       <!-- Order Quantities -->
       <form v-if="order" @submit.prevent="saveOrder">
         <div class="mt-5 mb-3">
-          <Receipt :order="order" :batch="batch" />
+          <Receipt :order="order" :batch="batch" isOrdering />
         </div>
 
         <button

@@ -21,6 +21,7 @@ const store = createStore({
     clientName: process.env.VUE_APP_CLIENT,
     clientUrl: process.env.VUE_APP_CLIENT_LINK,
     darkModeEnabled: null,
+    confirmModal: null, // {}
 
     // USER
     _userKey: 0, // For forcedRerender
@@ -222,7 +223,6 @@ const store = createStore({
           dispatch("listenPendingOrders");
           dispatch("listenCounters");
           dispatch("fetchAdminSettings");
-          // dispatch("fetchBatches"); TODO: fetch only on route to history
         }
 
         if (isSuperAdmin) {
@@ -236,16 +236,19 @@ const store = createStore({
       } else {
         console.log("---LOGGED OUT---");
 
+        // Detach Listeners
+        dispatch("detachOpenBatch");
+        dispatch("detachLatestBatch");
+        dispatch("detachCounters");
+        dispatch("detachPendingOrders");
+        dispatch("detachCustomerPendingOrder");
+
         // TODO: Do I need to reset all values (i.e. products)
         // Reset values set above when logged in
         commit("DB_SET_PENDING_ORDER", null);
         commit("DB_SET_RESERVATION", null);
         commit("SET_IS_ADMIN", false);
         commit("SET_IS_SUPER_ADMIN", false);
-
-        // Detach Listeners
-        dispatch("detachOpenBatch");
-        dispatch("detachCounters");
       }
     },
     toggleDarkMode({ state }, value) {
@@ -258,6 +261,62 @@ const store = createStore({
         ? document.querySelector("html").classList.add("dark")
         : document.querySelector("html").classList.remove("dark");
     },
+
+    //#region Alerts
+    alert({ state }, alertObj) {
+      state.alerts.unshift(new Alert(alertObj));
+    },
+    alertSuccess({ dispatch }, _message, _isPermanent) {
+      dispatch("alert", {
+        message: _message,
+        type: ALERT_TYPE.SUCCESS,
+        isPermanent: _isPermanent,
+      });
+    },
+    alertInfo({ dispatch }, _message, _isPermanent) {
+      dispatch("alert", {
+        message: _message,
+        type: ALERT_TYPE.INFO,
+        isPermanent: _isPermanent,
+      });
+    },
+    alertError({ dispatch }, _message, _isPermanent) {
+      dispatch("alert", {
+        message: _message,
+        type: ALERT_TYPE.DANGER,
+        isPermanent: _isPermanent,
+      });
+    },
+
+    removeAlert({ state }, index) {
+      state.alerts.splice(index, 1);
+    },
+    //#endregion
+
+    //#region ConfirmModal
+    confirm({ state }, { title, message, buttonMessage, callback }) {
+      state.confirmModal = {
+        title: title ?? "",
+        message: message ?? "",
+        buttonMessage: buttonMessage ?? "",
+        callback: callback ?? null,
+        type: "",
+      };
+    },
+    confirmDanger({ state }, { title, message, buttonMessage, callback }) {
+      state.confirmModal = {
+        title: title ?? "",
+        message: message ?? "",
+        buttonMessage: buttonMessage ?? "",
+        callback: callback ?? null,
+        type: "danger",
+      };
+    },
+    closeConfirmModal({ state }) {
+      state.confirmModal = null;
+    },
+
+    //#endregion
 
     //#region User
     async logout({ dispatch }) {
@@ -298,37 +357,6 @@ const store = createStore({
 
         dispatch("alertError", "Something went wrong in sending you an email.");
       }
-    },
-    //#endregion
-
-    //#region Alerts
-    alert({ state }, alertObj) {
-      state.alerts.unshift(new Alert(alertObj));
-    },
-    alertSuccess({ dispatch }, _message, _isPermanent) {
-      dispatch("alert", {
-        message: _message,
-        type: ALERT_TYPE.SUCCESS,
-        isPermanent: _isPermanent,
-      });
-    },
-    alertInfo({ dispatch }, _message, _isPermanent) {
-      dispatch("alert", {
-        message: _message,
-        type: ALERT_TYPE.INFO,
-        isPermanent: _isPermanent,
-      });
-    },
-    alertError({ dispatch }, _message, _isPermanent) {
-      dispatch("alert", {
-        message: _message,
-        type: ALERT_TYPE.DANGER,
-        isPermanent: _isPermanent,
-      });
-    },
-
-    removeAlert({ state }, index) {
-      state.alerts.splice(index, 1);
     },
     //#endregion
 
@@ -631,11 +659,11 @@ const store = createStore({
           ).forEach((order) => {
             cacheOrders.push({ ...order.data() });
 
-            // Copy paid orders from customers for reference
+            // Copy All paid orders from customers for reference - Order()
             const newOrderId = _db.collection("paid-orders").doc().id;
             batchWrite.set(_db.collection("paid-orders").doc(newOrderId), {
               ...order.data(),
-              batch: {
+              batchDetails: {
                 name: closedBatch.data().name,
                 closed_at: closedBatch.data().closed_at,
               },
@@ -707,7 +735,7 @@ const store = createStore({
       // latestBatch: The last batch in batches that is not done yet (!isDone)
       console.log("Listen: LatestBatch");
 
-      state.unsubscribeCounters = state.dbLatestBatch.onSnapshot(
+      state.unsubscribeLatestBatch = state.dbLatestBatch.onSnapshot(
         (latestBatch) => {
           if (!latestBatch.empty) {
             const data = latestBatch.docs[0].data();
@@ -814,6 +842,20 @@ const store = createStore({
       }
     },
 
+    async updateBatch({ state, dispatch }, batch) {
+      console.log("updateBatch");
+
+      try {
+        await state.dbBatches
+          .doc(batch.id)
+          .set(batch.firestoreDoc, { merge: true });
+      } catch (err) {
+        console.error(err);
+
+        dispatch("alertError", "Something went wrong in updating this batch.");
+      }
+    },
+
     // Counters for Reservation, etc
     async listenCounters({ state, commit }) {
       console.log("Listen: Counters");
@@ -872,7 +914,7 @@ const store = createStore({
       console.log("saveAdminSettings");
 
       try {
-        state.dbAdminSettings.set(_adminSettings.firestoreDoc);
+        await state.dbAdminSettings.set(_adminSettings.firestoreDoc);
         commit("SET_ADMIN_SETTINGS", _adminSettings);
 
         dispatch("alertSuccess", "Updated settings.");
@@ -881,7 +923,7 @@ const store = createStore({
 
         dispatch("alertError", "Something went wrong in saving settings.");
       } finally {
-        // Update formNewBatch to reflect settings
+        // Update formNewBatch to reflect settings fetched
         state.formNewBatch = {
           name: "",
           order_limit: state.adminSettings.order_limit,

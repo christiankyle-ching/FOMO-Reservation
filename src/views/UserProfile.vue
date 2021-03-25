@@ -6,7 +6,7 @@
     </div>
 
     <div class="grid grid-separated grid-padded">
-      <LinkPhoneNumber />
+      <LinkPhoneNumber class="px-0" />
 
       <!-- Change Display Name -->
       <form
@@ -30,13 +30,13 @@
       </form>
 
       <!-- Reset Password -->
-      <div class="grid grid-cols-2 items-center">
+      <div class="flex justify-between items-center">
         <b>Reset Your Password</b>
         <button
-          class="button button-primary justify-self-end"
+          class="button button-danger justify-self-end"
           @click="resetPassword()"
         >
-          Send Email
+          Reset
         </button>
       </div>
     </div>
@@ -58,11 +58,28 @@ export default {
   },
   methods: {
     ...mapActions({
-      changeDisplayName: "changeDisplayName",
-      resetPassword: "resetPassword",
+      changeDisplayName(dispatch) {
+        dispatch("confirm", {
+          title: "Change Name?",
+          message:
+            "Are you sure you want to change your name? Please make sure that this name reflects your Facebook Account to serve us an alternative contact to you.",
+          buttonMessage: "Yes",
+          callback: () => dispatch("changeDisplayName"),
+        });
+      },
+      resetPassword(dispatch) {
+        dispatch("confirmDanger", {
+          title: "Reset Password?",
+          message:
+            "Are you sure you want to reset your password? You will be sent an email for further instructions.",
+          buttonMessage: "Yes",
+          callback: () => dispatch("resetPassword"),
+        });
+      },
     }),
   },
   mounted() {
+    // Autofill current user.displayName in input
     this.newName = this.$store.state.user.displayName;
   },
 };

@@ -29,7 +29,7 @@
             clip-rule="evenodd"
           />
         </svg>
-        Replace All in Menu
+        Replace All
       </button>
       <button
         @click="appendToProducts(tempProducts)"
@@ -46,7 +46,7 @@
             d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"
           />
         </svg>
-        Add to Existing Menu
+        Add to Existing
       </button>
     </div>
 
@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import { ALERT_TYPE } from "@/models/Alert";
 import { Product } from "@/models/Product";
 import ProductStats from "@/components/ProductStats";
@@ -186,19 +186,41 @@ export default {
     },
 
     // Actions
-    replaceProducts() {
-      this.$store.dispatch("replaceProducts", this.tempProducts);
-      this.$refs.inputTemplate.value = null;
-      this.tempProducts = [];
-      this.$emit("close");
-    },
+    ...mapActions({
+      replaceProducts(dispatch) {
+        dispatch("confirmDanger", {
+          title: "Replace All in Menu?",
+          message:
+            "Are you sure you want to replace all items in the menu with this template?",
+          buttonMessage: "Yes",
+          callback: () => {
+            dispatch("replaceProducts", this.tempProducts);
 
-    appendToProducts() {
-      this.$store.dispatch("appendToProducts", this.tempProducts);
-      this.$refs.inputTemplate.value = null;
-      this.tempProducts = [];
-      this.$emit("close");
-    },
+            // Reset Inputs
+            this.$refs.inputTemplate.value = null;
+            this.tempProducts = [];
+            this.$emit("close");
+          },
+        });
+      },
+
+      appendToProducts(dispatch) {
+        dispatch("confirmDanger", {
+          title: "Add to Existing in Menu?",
+          message:
+            "Are you sure you want to add all items in this template to existing products in the menu?",
+          buttonMessage: "Yes",
+          callback: () => {
+            dispatch("appendToProducts", this.tempProducts);
+
+            // Reset Inputs
+            this.$refs.inputTemplate.value = null;
+            this.tempProducts = [];
+            this.$emit("close");
+          },
+        });
+      },
+    }),
   },
 };
 </script>

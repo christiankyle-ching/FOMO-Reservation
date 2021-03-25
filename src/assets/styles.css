@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  body.prevent-scroll {
+    @apply overflow-hidden;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar {
     @apply w-2;
@@ -14,6 +18,10 @@
 
   ::-webkit-scrollbar-thumb {
     @apply bg-lightSecondary rounded-full;
+  }
+
+  ::-webkit-scrollbar-corner {
+    @apply bg-opacity-0;
   }
 
   /* Selection */
@@ -60,7 +68,7 @@
   }
 
   .app-container__header {
-    @apply mb-5 sm:mb-10;
+    @apply my-5;
   }
 
   *:disabled {
@@ -141,6 +149,10 @@
 
   .button-danger {
     @apply text-white bg-danger hover:bg-darkDanger;
+  }
+
+  .button-success {
+    @apply text-white bg-success hover:bg-darkSuccess;
   }
 
   .button-icon {
@@ -231,7 +243,7 @@
   .backdrop,
   .modal__backdrop,
   .sidebar__backdrop {
-    @apply bg-black w-full h-full opacity-60 absolute cursor-pointer;
+    @apply bg-black w-full h-full opacity-60 absolute;
   }
 
   .modal__backdrop,
@@ -252,7 +264,7 @@
   }
 
   .modal__buttons {
-    @apply text-right;
+    @apply text-right mt-3;
   }
 
   .modal__buttons > :not(:first-child) {
@@ -354,7 +366,7 @@
   }
 
   .sidebar__content {
-    @apply w-2/3 max-w-xs bg-white h-full z-10 overflow-x-scroll;
+    @apply w-3/4 max-w-xs bg-white h-full z-10 overflow-x-scroll;
   }
 
   .sidebar-link {

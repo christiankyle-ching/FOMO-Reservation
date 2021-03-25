@@ -16,7 +16,7 @@
 
     <span class="font-medium">Total Orders Amount:</span>
     <span class="mb-2 sm:mb-0 sm:text-right"
-      >{{ batch.totalPrice.toLocaleString() }} PHP</span
+      >{{ batch.totalPriceString}}</span
     >
   </div>
 </template>

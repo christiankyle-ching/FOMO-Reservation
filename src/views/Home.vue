@@ -10,7 +10,7 @@
       <!-- b: Order Done, Wait for Payment -->
       <div v-else-if="orderDone">
         <Payment class="mb-10" />
-        <Receipt :order="pendingOrder" :batch="openBatch" inProcess />
+        <Receipt :order="pendingOrder" :batch="openBatch" />
       </div>
 
       <!-- c: Payment Done - Details -->
@@ -24,7 +24,7 @@
         </h4>
         <div class="pt-10">
           <h3 class="text-center pb-5">Payment Details</h3>
-          <Receipt :order="pendingOrder" :batch="openBatch" inProcess />
+          <Receipt :order="pendingOrder" :batch="openBatch" />
         </div>
       </div>
 
@@ -34,7 +34,7 @@
 
         <!-- History of paid orders from paid-orders -->
         <p class="text-center pt-10">
-          If you still have unattended orders, you can view your paid orders
+          If you still have undelivered orders, you can view your past orders
           <router-link :to="{ name: 'PaidOrders' }" class="link"
             >here</router-link
           >.

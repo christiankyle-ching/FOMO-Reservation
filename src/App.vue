@@ -1,14 +1,18 @@
 <template>
   <div>
+    <transition name="fade">
+      <ConfirmModal v-if="!!confirmModal" />
+    </transition>
+
     <Sidebar :active="sidebarActive" @close="hideSidebar()">
       <template v-slot:header>
         <router-link :to="{ name: 'Home' }">
           <h1>{{ $store.state.clientName }}</h1>
         </router-link>
       </template>
-      <template v-slot:content>
-        <!-- SIDEBAR LINKS -->
 
+      <!-- SIDEBAR LINKS -->
+      <template v-slot:content>
         <!-- Home / Admin Dashboard -->
         <router-link
           v-if="isAdmin || isSuperAdmin"
@@ -311,13 +315,15 @@
 import { mapActions, mapGetters, mapState } from "vuex";
 import Sidebar from "@/components/Sidebar";
 import Alert from "@/components/Alert";
+import ConfirmModal from "@/components/ConfirmModal";
 import { Alert as AlertObj } from "@/models/Alert";
 
 export default {
-  components: { Alert, Sidebar },
+  components: { Alert, Sidebar, ConfirmModal },
   data() {
     return {
       sidebarActive: false,
+      isCModalShown: false,
 
       noInternetAlert: new AlertObj({
         message: "Please check your internet connection.",
@@ -334,6 +340,8 @@ export default {
       "alerts",
       "isOnline",
       "darkModeEnabled",
+
+      "confirmModal",
     ]),
     ...mapGetters({
       isTakingOrders: "admin/allowFinishBatch",
@@ -352,12 +360,19 @@ export default {
     async logout() {
       this.sidebarActive = false;
 
-      try {
-        await this.dispatchLogout();
-        this.$router.push({ name: "Login" });
-      } catch (err) {
-        console.error(err);
-      }
+      this.$store.dispatch("confirmDanger", {
+        title: "Logout",
+        message: "Are you sure you want to log out?",
+        buttonMessage: "Yes",
+        callback: async () => {
+          try {
+            await this.dispatchLogout();
+            this.$router.push({ name: "Login" });
+          } catch (err) {
+            console.error(err);
+          }
+        },
+      });
     },
     ...mapActions({
       dispatchLogout: "logout",

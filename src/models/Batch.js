@@ -55,6 +55,7 @@ class Batch {
     const firestoreDoc = removeUndefined(this);
 
     delete firestoreDoc.id; // exclude for firestore create/updates
+    firestoreDoc.orders = this.orders.map((o) => o.firestoreDoc); // Object to JSON
 
     return firestoreDoc;
   }
@@ -85,6 +86,10 @@ class Batch {
       .map((order) => order.map((p) => p.total_price))
       .map((prices) => prices.reduce(fnReducer))
       .reduce(fnReducer);
+  }
+
+  get totalPriceString() {
+    this.totalPrice.toLocaleString() + " PHP";
   }
 
   clone() {

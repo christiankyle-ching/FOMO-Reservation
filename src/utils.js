@@ -15,6 +15,7 @@ const removeUndefined = (obj) => {
   Object.entries(obj).forEach((e) => {
     if (e[1] === undefined || e[1] === null) return;
 
+    // Dynamic key [ e[0] ], Value: e[1]
     Object.assign(filtered, { [e[0]]: e[1] });
   });
 

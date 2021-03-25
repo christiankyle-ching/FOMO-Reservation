@@ -37,11 +37,11 @@
         <!-- Buttons -->
         <div
           v-if="isSMSSent"
-          class="self-end sm:col-span-2 grid grid-cols-2 gap-5"
+          class="self-end sm:col-span-2 grid grid-cols-2 gap-5 justify-items-center"
         >
           <button
             type="button"
-            class="button button-secondary"
+            class="button button-secondary button-block"
             @click="resetForm()"
           >
             Cancel
@@ -49,7 +49,7 @@
 
           <button
             type="button"
-            class="button button-primary"
+            class="button button-primary button-block"
             @click="verifyCode()"
           >
             Verify
@@ -178,27 +178,35 @@ export default {
 
     // Unlink Phone
     unlinkPhoneNumber() {
-      firebase
-        .auth()
-        .currentUser.unlink(firebase.auth.PhoneAuthProvider.PROVIDER_ID)
-        .then((user) => {
-          this.$store.commit("SET_USER", user);
+      this.$store.dispatch("confirmDanger", {
+        title: "Unlink Phone Number?",
+        message:
+          "Are you sure you want to unlink this phone number? You won't be able to send orders in the future without a phone number.",
+        buttonMessage: "Unlink",
+        callback: () => {
+          firebase
+            .auth()
+            .currentUser.unlink(firebase.auth.PhoneAuthProvider.PROVIDER_ID)
+            .then((user) => {
+              this.$store.commit("SET_USER", user);
 
-          this.$store.dispatch(
-            "alertError",
-            "Successfully unlinked your phone number. Please provide one to be able to order."
-          );
+              this.$store.dispatch(
+                "alertError",
+                "Successfully unlinked your phone number. Please provide one to be able to order."
+              );
 
-          this.resetForm();
-        })
-        .catch((err) => {
-          console.error(err);
+              this.resetForm();
+            })
+            .catch((err) => {
+              console.error(err);
 
-          this.$store.dispatch(
-            "alertError",
-            "Something went wrong. Please try again later."
-          );
-        });
+              this.$store.dispatch(
+                "alertError",
+                "Something went wrong. Please try again later."
+              );
+            });
+        },
+      });
     },
 
     // Form
@@ -221,6 +229,7 @@ export default {
       recaptchaOptions
     );
 
+    // Render Captcha immediately
     this.appVerifier = window.recaptchaVerifier;
     this.appVerifier.render();
   },

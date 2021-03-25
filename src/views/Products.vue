@@ -77,7 +77,7 @@
 
       <transition name="fade">
         <div class="grid grid-cols-2 gap-5 pt-5" v-if="toolbarExpanded">
-          <ProductStats :products="products" />
+          <ProductStats v-if="!!products" :products="products" />
           <!-- Actions -->
           <div>
             <h6 class="pb-3">Actions:</h6>
@@ -237,8 +237,8 @@ export default {
       filteredProducts(state) {
         return state.products?.filter(
           (o) =>
-            o.name.toLowerCase().includes(this.searchKey) ||
-            o.category.toLowerCase().includes(this.searchKey)
+            o?.name.toLowerCase().includes(this.searchKey) ||
+            o?.category.toLowerCase().includes(this.searchKey)
         );
       },
     }),
@@ -246,14 +246,29 @@ export default {
   watch: {
     products() {
       if (!this.loadedCategories) {
-        this.categories = new Set(this.products?.map((p) => p.category));
+        this.categories = new Set(this.products?.map((p) => p?.category));
+        this.loadedCategories = true;
       }
     },
   },
   methods: {
     ...mapActions({
-      updateProducts: "updateProducts",
-      clearProducts: "clearProducts",
+      updateProducts(dispatch) {
+        dispatch("confirm", {
+          title: "Save Menu?",
+          message: "Are you sure you want to save these products?",
+          buttonMessage: "Yes",
+          callback: () => dispatch("updateProducts"),
+        });
+      },
+      clearProducts(dispatch) {
+        dispatch("confirmDanger", {
+          title: "Clear Menu?",
+          message: "Are you sure you want to clear all products?",
+          buttonMessage: "Yes",
+          callback: () => dispatch("clearProducts"),
+        });
+      },
     }),
 
     // Product

@@ -133,7 +133,14 @@ export default {
   methods: {
     // Admin Settings
     saveAdminSettings() {
-      this.$store.dispatch("saveAdminSettings", this.formAdminSettings);
+      this.$store.dispatch("confirm", {
+        title: "Save Settings?",
+        message: "Are you sure you want to save these settings?",
+        buttonMessage: "Save",
+        callback: () => {
+          this.$store.dispatch("saveAdminSettings", this.formAdminSettings);
+        },
+      });
     },
   },
   async mounted() {

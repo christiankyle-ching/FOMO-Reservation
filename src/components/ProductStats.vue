@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!!products" >
+  <div v-if="!!products">
     <div v-for="message in statsMessages" :key="message">
       <p class="flex justify-between">
         <span class="font-medium">{{ message.category }}: </span>
@@ -19,11 +19,11 @@ export default {
     statsMessages() {
       const statsMessages = [];
 
-      const categories = new Set(this.products.map((p) => p.category));
+      const categories = new Set(this.products.map((p) => p?.category));
       categories.forEach((c) => {
         statsMessages.push({
           category: c,
-          count: this.products.filter((_c) => _c.category == c).length,
+          count: this.products.filter((_c) => _c?.category == c).length,
         });
       });
 

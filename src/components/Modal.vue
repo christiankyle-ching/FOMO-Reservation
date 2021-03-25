@@ -43,6 +43,12 @@
 <script>
 export default {
   emits: ["close"],
+  mounted() {
+    document.body.classList.add("prevent-scroll");
+  },
+  unmounted() {
+    document.body.classList.remove("prevent-scroll");
+  },
 };
 </script>
 

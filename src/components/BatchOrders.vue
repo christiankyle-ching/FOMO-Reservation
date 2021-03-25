@@ -11,7 +11,7 @@
         </div>
       </template>
       <template v-slot:content>
-        <Receipt :order="orderShown" :batch="batch" inProcess />
+        <Receipt :order="orderShown" :batch="batch" />
       </template>
     </Modal>
   </transition>
@@ -23,7 +23,7 @@
 
       <span>Total Amount Received:</span>
       <strong class="sm:text-right"
-        >{{ batch?.totalPrice.toLocaleString() }} PHP</strong
+        >{{ batch?.totalPriceString}}</strong
       >
     </div>
 
@@ -113,9 +113,7 @@
                 type="checkbox"
                 :id="order.uid + '-done'"
                 v-model="order.isDone"
-                @change="
-                  isFinalized ? updateLatestBatch() : updatePendingOrder(order)
-                "
+                @change="onStatusChange(order)"
               />
             </label>
           </td>
@@ -130,12 +128,11 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Receipt from "@/components/Receipt";
 import Modal from "@/components/Modal";
 
 export default {
-  props: { batch: Object, isFinalized: Boolean },
+  props: { batch: Object },
   components: { Receipt, Modal },
   data() {
     return {
@@ -148,14 +145,17 @@ export default {
 
   computed: {
     filteredOrders() {
-      return this.batch.orders
+      return this.batch?.orders
         .filter((o) => o.orderList)
         .filter(
           (o) =>
             o.name.toLowerCase().includes(this.searchKey) ||
-            o.oid.toLowerCase().includes(this.searchKey) ||
+            o.oid.toString().includes(this.searchKey) ||
             o.payment.id.toLowerCase().includes(this.searchKey)
         );
+    },
+    areOrdersInBatch() {
+      return !!this.batch?.closed_at && !!this.batch?.id;
     },
   },
   methods: {
@@ -166,10 +166,11 @@ export default {
     closeOrderModal() {
       this.showModal = false;
     },
-    ...mapActions({
-      updateLatestBatch: "updateLatestBatch",
-      updatePendingOrder: "updatePendingOrder",
-    }),
+    onStatusChange(order) {
+      this.areOrdersInBatch
+        ? this.$store.dispatch("updateBatch", this.batch)
+        : this.$store.dispatch("updatePendingOrder", order);
+    },
   },
 };
 </script>

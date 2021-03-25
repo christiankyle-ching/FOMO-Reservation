@@ -6,10 +6,7 @@
         <div class="print-only">
           <h1 class="text-center pb-5">Gringo's</h1>
 
-          <div
-            v-if="order.oid && inProcess"
-            class="grid grid-cols-1 sm:grid-cols-2"
-          >
+          <div v-if="order.oid" class="grid grid-cols-1 sm:grid-cols-2">
             <b>Customer: </b>
             <span class="mb-1 sm:mb-0">
               {{ order?.name }}
@@ -20,10 +17,8 @@
           </div>
         </div>
 
-        <div
-          v-if="order.oid && inProcess"
-          class="grid grid-cols-1 sm:grid-cols-2"
-        >
+        <div v-if="order.oid" class="grid grid-cols-1 sm:grid-cols-2">
+          <!-- Payment Status -->
           <b>Status: </b>
           <span class="mb-1 sm:mb-0">
             <span v-if="order.payment" class="text-success font-medium"
@@ -32,17 +27,23 @@
             <span v-else class="text-danger font-medium">Pending</span>
           </span>
 
-          <div v-if="!!batch && (batch.name || batch.closedAtString)">
-            <b class="font-medium">Batch: </b>
-            <span class="mb-1 sm:mb-0"
-              >{{ batch?.closedAtString }} ({{ batch?.name }})</span
-            >
-          </div>
+          <!-- Batch Details -->
+          <b v-if="!!batch || !!order.latestBatch">Batch: </b>
+          <span class="mb-1 sm:mb-0" v-if="!!batch"
+            >{{ batch?.closedAtString }} ({{ batch?.name }})</span
+          >
+          <span class="mb-1 sm:mb-0" v-else-if="!!order.batchDetails"
+            >{{ order.batchDetails.closed_at }} ({{
+              order.batchDetails.name
+            }})</span
+          >
 
+          <!-- Order # -->
           <b>Order #: </b>
           <span class="mb-1 sm:mb-0"> {{ order.oid }}</span>
         </div>
 
+        <!-- Payment Details -->
         <div v-if="order.payment" class="grid grid-cols-1 sm:grid-cols-2">
           <b>Paid At: </b>
           <span class="mb-1 sm:mb-0"> {{ order.paidAtDateTime }}</span>
@@ -63,7 +64,7 @@
             <th>Item</th>
             <th>Qty</th>
             <th>Price</th>
-            <th v-if="!inProcess"></th>
+            <th v-if="isOrdering"></th>
           </tr>
         </thead>
 
@@ -76,7 +77,7 @@
             <td class="text-right">
               {{ product.total_price.toLocaleString() }} PHP
             </td>
-            <td v-if="!inProcess">
+            <td v-if="isOrdering">
               <button
                 type="button"
                 @click="removeOrder(index)"
@@ -104,9 +105,9 @@
             <th class="text-left">TOTAL</th>
             <th class="text-right">{{ order.totalQty }} item/s</th>
             <th class="text-right">
-              {{ order.totalPrice.toLocaleString() }} PHP
+              {{ order.totalPriceString}}
             </th>
-            <th v-if="!inProcess"></th>
+            <th v-if="isOrdering"></th>
           </tr>
         </tfoot>
       </table>
@@ -158,7 +159,7 @@ import html2canvas from "html2canvas";
 
 export default {
   name: "Receipt",
-  props: { order: Object, batch: Object, inProcess: Boolean },
+  props: { order: Object, batch: Object, isOrdering: Boolean },
   inheritAttrs: false,
 
   methods: {

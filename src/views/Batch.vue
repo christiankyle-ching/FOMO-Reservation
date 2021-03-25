@@ -21,7 +21,7 @@
         </div>
       </div>
 
-      <BatchOrders :batch="batch" :isFinalized="!!batch.locked_at" />
+      <BatchOrders :batch="batch" />
     </div>
   </div>
 </template>
