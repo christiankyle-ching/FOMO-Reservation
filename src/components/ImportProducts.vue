@@ -75,7 +75,6 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import { ALERT_TYPE } from "@/models/Alert";
 import { Product } from "@/models/Product";
 import ProductStats from "@/components/ProductStats";
 
@@ -106,8 +105,11 @@ export default {
         try {
           this.parseCSVToProducts(e.target.result);
         } catch (err) {
+          console.error(err);
+
           this.$store.dispatch("alertError", "Invalid template file.");
 
+          // Reset selected template input
           event.target.value = null;
         }
       };
@@ -117,15 +119,22 @@ export default {
     parseCSVToProducts(rawData) {
       const fnTrim = (c) => c.trim(); // Trimmer to remove extra spaces
       const fnFilterEmpty = (c) => c !== ""; // To remove extra cells caused by multiple semicolons ;
+      const reMatchNotNumbers = /[^0-9]/g;
 
-      // Load per line, then remove headers (3 rows)
-      const lines = rawData.split("\n");
+      // Load per line, then remove headers (3 rows). Also remove blank lines (one at the end)
+      const lines = rawData.split("\n").filter((line) => line !== "");
       lines.splice(0, 3);
 
       // Load Each Row as Product Data
       const cacheProducts = [];
+
       lines.forEach((line) => {
-        const cells = line.split(",").map(fnTrim);
+        const cells = line.split(",");
+
+        // Validate: Has 7 Columns
+        if (cells.length !== 7) {
+          throw "invalid_template";
+        }
 
         // Discard empty rows
         if (cells.every((c) => c === "")) return;
@@ -145,6 +154,11 @@ export default {
           .map(fnTrim)
           .filter(fnFilterEmpty);
 
+        // Validate: Are prices numbers?
+        if (variantPrices.some((price) => reMatchNotNumbers.test(price))) {
+          throw "invalid_template";
+        }
+
         // Split AddOns and Prices
         const addonsLabels = cells[5]
           .split(";")
@@ -154,6 +168,11 @@ export default {
           .split(";")
           .map(fnTrim)
           .filter(fnFilterEmpty);
+
+        // Validate: Are prices numbers?
+        if (addonsPrices.some((price) => reMatchNotNumbers.test(price))) {
+          throw "invalid_template";
+        }
 
         // Assign Price: Fixed or Variants?
         if (cells[2].length) {

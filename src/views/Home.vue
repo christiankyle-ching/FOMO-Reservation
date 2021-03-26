@@ -33,7 +33,7 @@
         <Reserve class="mt-10" :key="_userKey" />
 
         <!-- History of paid orders from paid-orders -->
-        <p class="text-center pt-10">
+        <p class="text-center mt-10">
           If you still have undelivered orders, you can view your past orders
           <router-link :to="{ name: 'PaidOrders' }" class="link"
             >here</router-link

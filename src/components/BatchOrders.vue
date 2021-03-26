@@ -7,6 +7,15 @@
           <div>
             <h3 class="font-medium">{{ orderShown.name }}</h3>
             <p>Phone: {{ orderShown.phoneNumber }}</p>
+
+            <label class="checkbox inline-block m-auto">
+              <span>Already Done / Delivered</span>
+              <input
+                type="checkbox"
+                v-model="orderShown.isDone"
+                @change="onStatusChange(orderShown)"
+              />
+            </label>
           </div>
         </div>
       </template>
@@ -22,9 +31,7 @@
       <strong class="sm:text-right">{{ batch?.totalQty }} item/s</strong>
 
       <span>Total Amount Received:</span>
-      <strong class="sm:text-right"
-        >{{ batch?.totalPriceString}}</strong
-      >
+      <strong class="sm:text-right">{{ batch?.totalPriceString }}</strong>
     </div>
 
     <!-- Search -->
@@ -46,7 +53,7 @@
           <th>Amount</th>
           <th>View</th>
           <th>Paid</th>
-          <th>Done</th>
+          <th class="hidden md:table-cell">Done</th>
         </tr>
       </thead>
 
@@ -90,13 +97,9 @@
           </td>
           <!-- Paid Status -->
           <td class="text-center">
-            <label
-              class="checkbox inline-block m-auto"
-              :for="order.uid + '-paid'"
-            >
+            <label class="checkbox inline-block m-auto">
               <input
                 type="checkbox"
-                :id="order.uid + '-paid'"
                 :checked="!!order.payment"
                 @click.prevent
                 style="cursor: default !important"
@@ -104,14 +107,10 @@
             </label>
           </td>
           <!-- Done Status -->
-          <td class="text-center">
-            <label
-              class="checkbox inline-block m-auto"
-              :for="order.uid + '-done'"
-            >
+          <td class="text-center hidden md:table-cell">
+            <label class="checkbox inline-block m-auto">
               <input
                 type="checkbox"
-                :id="order.uid + '-done'"
                 v-model="order.isDone"
                 @change="onStatusChange(order)"
               />
@@ -149,9 +148,9 @@ export default {
         .filter((o) => o.orderList)
         .filter(
           (o) =>
-            o.name.toLowerCase().includes(this.searchKey) ||
-            o.oid.toString().includes(this.searchKey) ||
-            o.payment.id.toLowerCase().includes(this.searchKey)
+            o.name?.toLowerCase().includes(this.searchKey) ||
+            o.oid?.toString().includes(this.searchKey) ||
+            o.payment?.id.toLowerCase().includes(this.searchKey)
         );
     },
     areOrdersInBatch() {

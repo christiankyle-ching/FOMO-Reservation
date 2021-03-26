@@ -211,14 +211,15 @@ const store = createStore({
 
         //#endregion
 
+        // FIXME: See getCurrentUser's note on the problem
         const token = await user.getIdTokenResult();
-        const isAdmin = !!token.claims.admin;
+        const isAdmin = !!token.claims.admin || !!token.claims.superAdmin;
         const isSuperAdmin = !!token.claims.superAdmin;
 
         commit("SET_IS_ADMIN", isAdmin);
         commit("SET_IS_SUPER_ADMIN", isSuperAdmin);
 
-        if (isAdmin || isSuperAdmin) {
+        if (isAdmin) {
           dispatch("listenLatestBatch");
           dispatch("listenPendingOrders");
           dispatch("listenCounters");
@@ -458,7 +459,7 @@ const store = createStore({
 
           commit("SET_PRODUCTS", cacheProducts);
         } else {
-          if (state.isAdmin || state.isSuperAdmin) {
+          if (state.isAdmin) {
             productsDoc.ref.set({ products: [] });
           }
 
@@ -862,7 +863,14 @@ const store = createStore({
 
       state.unsubscribeCounters = state.dbCounters.onSnapshot(
         (counter) => {
-          commit("SET_COUNTERS", counter.data());
+          // If Counter does not exists yet, and logged in user is admin
+          if (!counter.exists && state.isAdmin) {
+            const defaultCounter = { reservations: 0 };
+            counter.ref.set(defaultCounter);
+            commit("SET_COUNTERS", defaultCounter);
+          } else {
+            commit("SET_COUNTERS", counter.data());
+          }
         },
         (error) => {
           console.error("PUBLIC_WRITE: ", error);
@@ -1129,6 +1137,11 @@ const store = createStore({
     //#endregion
   },
   getters: {
+    // SHARED
+    productsLength: (state) => {
+      return state.products?.length ?? 0;
+    },
+
     //#region CUSTOMER
     // Status Tracking of Customer Order
     "customer/allowReservation": (state) => {
@@ -1204,12 +1217,23 @@ const getCurrentUser = () => {
       unsubscribe();
 
       if (user) {
+        /**
+         * FIXME: Causes lockup if isAdmin and isSuperAdmin values is not equal with
+         * the Vuex Store's value.
+         *
+         * Might be a redirect loop caused by beforeEnter in Login and Home
+         *
+         * Current Solution: MAKE SURE both values are the SAME
+         *
+         * Improvments: Look for better way of syncing these values
+         */
         const token = await user.getIdTokenResult();
-        const isAdmin = !!token.claims.admin;
+        const isAdmin = !!token.claims.admin || !!token.claims.superAdmin;
         const isSuperAdmin = !!token.claims.superAdmin;
+
         resolve({ user, isAdmin, isSuperAdmin });
       } else {
-        resolve({ user: null, isAdmin: false });
+        resolve({ user: null, isAdmin: false, isSuperAdmin: false });
       }
     });
   });

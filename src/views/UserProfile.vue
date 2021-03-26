@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="app-container__header">
-      <h1>Your Profile, {{ user.displayName }}</h1>
+      <h1>Your Profile, {{ user?.displayName }}</h1>
       <i>{{ user.email }}</i>
     </div>
 

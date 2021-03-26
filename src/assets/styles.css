@@ -213,13 +213,12 @@
 
   /* Checkbox */
   label.checkbox {
-    @apply inline-flex items-center;
+    @apply inline-flex items-center cursor-pointer;
   }
 
   label.checkbox input[type="checkbox"] {
     @apply appearance-none border-2 border-lightSecondary checked:bg-primary;
-    @apply checked:border-primary transition-colors h-6 w-6  bg-contain m-0
-      cursor-pointer;
+    @apply checked:border-primary transition-colors h-6 w-6  bg-contain m-0;
     min-width: 1.5rem;
   }
 
@@ -474,7 +473,7 @@
     }
 
     label.checkbox input[type="checkbox"] {
-      @apply border-darkSecondary checked:border-darkPrimary checked:bg-darkPrimary;
+      @apply border-darkSecondary checked:border-darkPrimary checked:bg-darkPrimary cursor-pointer;
     }
 
     .modal__dialog {

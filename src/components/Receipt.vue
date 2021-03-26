@@ -105,7 +105,7 @@
             <th class="text-left">TOTAL</th>
             <th class="text-right">{{ order.totalQty }} item/s</th>
             <th class="text-right">
-              {{ order.totalPriceString}}
+              {{ order.totalPriceString }}
             </th>
             <th v-if="isOrdering"></th>
           </tr>
@@ -159,7 +159,20 @@ import html2canvas from "html2canvas";
 
 export default {
   name: "Receipt",
-  props: { order: Object, batch: Object, isOrdering: Boolean },
+  props: {
+    order: {
+      type: Object,
+      default: null,
+    },
+    batch: {
+      type: Object,
+      default: null,
+    },
+    isOrdering: {
+      type: Boolean,
+      default: false,
+    },
+  },
   inheritAttrs: false,
 
   methods: {

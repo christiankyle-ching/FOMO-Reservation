@@ -155,10 +155,15 @@ export default {
         })
         .catch((err) => {
           console.error(err);
-          this.$store.dispatch(
-            "alertError",
-            "Unable to verify code. Please try again."
-          );
+
+          if (err.code === "auth/credential-already-in-use") {
+            this.$store.dispatch("alertError", "That phone number is taken.");
+          } else {
+            this.$store.dispatch(
+              "alertError",
+              "Unable to verify code. Please try again."
+            );
+          }
 
           this.resetForm();
         });
@@ -215,6 +220,7 @@ export default {
       this.verificationCode = "";
       this.isSMSSent = false;
       this.recaptchaSolved = false;
+      this.appVerifier.render();
     },
   },
 

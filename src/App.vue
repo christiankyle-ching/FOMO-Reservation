@@ -15,7 +15,7 @@
       <template v-slot:content>
         <!-- Home / Admin Dashboard -->
         <router-link
-          v-if="isAdmin || isSuperAdmin"
+          v-if="isAdmin"
           :to="{ name: 'Admin' }"
           class="sidebar-link"
         >
@@ -74,7 +74,7 @@
 
         <!-- CUSTOMER ONLY -->
         <router-link
-          v-if="!isAdmin && !isSuperAdmin"
+          v-if="!isAdmin"
           :to="{ name: 'PaidOrders' }"
           class="sidebar-link"
         >
@@ -96,7 +96,7 @@
         >
 
         <!-- #region ADMINS ONLY -->
-        <div v-if="isAdmin || isSuperAdmin">
+        <div v-if="isAdmin">
           <!-- Food Menu -->
           <span
             :title="

@@ -33,11 +33,9 @@ const routes = [
       title: "Login",
     },
     beforeEnter: (to, from, next) => {
-      // Conditional Redirect based on access
       if (!!store.state.user) {
         router.replace({
-          name:
-            store.state.isAdmin || store.state.isSuperAdmin ? "Admin" : "Home",
+          name: "Home",
           query: { redirectReason: REDIRECT_REASON.loggedInAlready },
         });
       } else {
@@ -56,8 +54,8 @@ const routes = [
       authRequired: true,
     },
     beforeEnter: (to, from) => {
-      if (store.state.isAdmin || store.state.isSuperAdmin) {
-        // Redirect and append queries
+      if (store.state.isAdmin) {
+        // Redirect and append queries if isAdmin since you need 1 more redirect to Admin View
         router.replace({ name: "Admin", query: to.query });
       }
     },
@@ -201,7 +199,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Admin Required
   else if (to.matched.some((route) => route.meta.adminRequired)) {
-    if (!((isAdmin || isSuperAdmin) && !!user)) {
+    if (!(isAdmin && !!user)) {
       next({
         name: "Home",
         query: { redirectReason: REDIRECT_REASON.notEnoughPermissions },

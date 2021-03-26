@@ -52,16 +52,17 @@ class Batch {
   }
 
   get firestoreDoc() {
-    const firestoreDoc = removeUndefined(this);
+    const cloneObj = this.clone();
+    cloneObj.orders?.map((o) => o.firestoreDoc);
 
+    const firestoreDoc = removeUndefined(cloneObj);
     delete firestoreDoc.id; // exclude for firestore create/updates
-    firestoreDoc.orders = this.orders.map((o) => o.firestoreDoc); // Object to JSON
 
     return firestoreDoc;
   }
 
   get totalQty() {
-    if (this.orders == null) return 0;
+    if (!this.orders) return 0;
 
     const paidOrders = this.orders.filter((o) => o.payment);
 
@@ -75,7 +76,7 @@ class Batch {
   }
 
   get totalPrice() {
-    if (this.orders == null) return 0;
+    if (!this.orders) return 0;
 
     const paidOrders = this.orders.filter((o) => o.payment);
 
@@ -89,7 +90,7 @@ class Batch {
   }
 
   get totalPriceString() {
-    this.totalPrice.toLocaleString() + " PHP";
+    return this.totalPrice.toLocaleString() + " PHP";
   }
 
   clone() {

@@ -287,9 +287,18 @@ export default {
       this.formNewProduct = new Product({});
     },
     removeProduct(product) {
-      const index = this.products.indexOf(product);
+      this.$store.dispatch("confirmDanger", {
+        title: `Remove this item?`,
+        message: `Are you sure you want to remove ${product.name} ${
+          !!product.category ? `(${product.category})` : ""
+        }? This change will not yet update the products until you save changes.`,
+        buttonMessage: "Remove",
+        callback: () => {
+          const index = this.products.indexOf(product);
 
-      if (index > -1) this.products.splice(index, 1);
+          if (index > -1) this.products.splice(index, 1);
+        },
+      });
     },
 
     // Template

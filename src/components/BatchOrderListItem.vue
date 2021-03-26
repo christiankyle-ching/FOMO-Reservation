@@ -15,9 +15,7 @@
     >
 
     <span class="font-medium">Total Orders Amount:</span>
-    <span class="mb-2 sm:mb-0 sm:text-right"
-      >{{ batch.totalPriceString}}</span
-    >
+    <span class="mb-2 sm:mb-0 sm:text-right">{{ batch.totalPriceString }}</span>
   </div>
 </template>
 

@@ -5,9 +5,9 @@
       <h3 class="text-center">You have been chosen! Please send your order.</h3>
 
       <!-- Order Quantities -->
-      <form v-if="order" @submit.prevent="saveOrder">
+      <form v-if="order" @submit.prevent="saveOrder()">
         <div class="mt-5 mb-3">
-          <Receipt :order="order" :batch="batch" isOrdering />
+          <Receipt :order="order" :batch="openBatch" isOrdering />
         </div>
 
         <button
@@ -236,9 +236,18 @@ export default {
     },
 
     saveOrder() {
-      this.$store.dispatch("saveOrder", this.order.orderList);
+      this.$store.dispatch("confirm", {
+        title: "Send Order",
+        message:
+          "Are you sure you want to send this order? Please review your order before submitting. You CANNOT edit this after submitting it.",
+        buttonMessage: "Send",
+        callback: () => {
+          this.$store.dispatch("saveOrder", this.order.orderList);
 
-      this.$router.replace(this.$route.path); // Remove query params from payment
+          // Remove query params for payment
+          this.$router.replace(this.$route.path);
+        },
+      });
     },
 
     // Input Functions

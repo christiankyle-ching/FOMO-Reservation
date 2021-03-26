@@ -99,7 +99,12 @@
             <div class="col-span-1 flex">
               <div class="flex-grow">
                 <label>Price:</label>
-                <input type="text" v-model.number="variant.price" min="0" required />
+                <input
+                  type="text"
+                  v-model.number="variant.price"
+                  min="0"
+                  required
+                />
               </div>
               <button
                 type="button"
@@ -162,7 +167,12 @@
               <div class="col-span-1 flex">
                 <div class="flex-grow">
                   <label>Price:</label>
-                  <input type="text" v-model.number="addon.price" min="0" required />
+                  <input
+                    type="text"
+                    v-model.number="addon.price"
+                    min="0"
+                    required
+                  />
                 </div>
                 <button
                   type="button"
@@ -197,14 +207,12 @@
 
         <!-- Toggle: Variants -->
         <div class="col-span-1">
-          <label class="checkbox m-0" :for="product.name + '-enableVariant'">
+          <label class="checkbox m-0">
             <span
               >Use Variants? (for example: Serving sizes, 16oz, 22oz...)</span
             >
-
             <input
               type="checkbox"
-              :id="product.name + '-enableVariant'"
               @change="toggleVariant()"
               :checked="!!product.variants"
             />

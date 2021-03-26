@@ -98,21 +98,31 @@
         </button>
       </div>
 
-      <button type="submit" class="button button-block button-primary mt-3">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
+      <span
+        :title="
+          !productsLength ? 'Please add at least one item in the menu.' : ''
+        "
+      >
+        <button
+          type="submit"
+          class="button button-block button-primary mt-3"
+          :disabled="!productsLength"
         >
-          <!-- Icon: clock-sm -->
-          <path
-            fill-rule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        Open a New Batch
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <!-- Icon: clock-sm -->
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Open a New Batch
+        </button>
+      </span>
     </form>
 
     <!-- B: Current Ongoing Batch -->
@@ -130,7 +140,7 @@
       <div v-if="!!openBatch">
         <!-- 2: Current Open Batch - Can Close - Stop Reservation -->
         <div v-if="allowCloseBatch">
-          <div v-if="!!counters" class="my-3">
+          <div v-if="!!counters" class="my-3 text-center">
             <h5>Reservations</h5>
 
             <span
@@ -270,6 +280,7 @@ export default {
       allowCloseBatch: "admin/allowCloseBatch",
       allowFinishBatch: "admin/allowFinishBatch",
       allowDoneBatch: "admin/allowDoneBatch",
+      productsLength: "productsLength",
     }),
   },
   methods: {
