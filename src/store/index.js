@@ -8,7 +8,7 @@ import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { Batch } from "@/models/Batch";
 import { Alert, ALERT_TYPE } from "@/models/Alert";
-import { AdminSettings } from "../models/AdminSettings";
+import { AdminSettings } from "@/models/AdminSettings";
 
 const _db = firebase.firestore();
 firebase.auth().languageCode = "ph";

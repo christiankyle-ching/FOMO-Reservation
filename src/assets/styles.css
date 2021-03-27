@@ -29,12 +29,14 @@
     @apply bg-primary;
   }
 
+  /* FirebaseUI Styles - Prevent override */
   /* purgecss start ignore */
-  input.firebaseui-input {
-    background: unset !important;
+  [class*="firebaseui-input"] {
+    background-color: unset !important;
+    border-color: unset !important;
   }
 
-  label.firebaseui-label {
+  [class*="firebaseui-label"] {
     padding: 0 !important;
   }
   /* purgecss end ignore */

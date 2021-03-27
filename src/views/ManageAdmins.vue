@@ -77,8 +77,8 @@
 
 <script>
 import { mapState } from "vuex";
-import FullScreenLoading from "../components/FullScreenLoading.vue";
-import LoadingSpinner from "../components/LoadingSpinner.vue";
+import FullScreenLoading from "@/components/FullScreenLoading.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "ManageAdmins",

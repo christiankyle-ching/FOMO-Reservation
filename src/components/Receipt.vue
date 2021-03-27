@@ -220,6 +220,11 @@ export default {
         }, 250);
       } catch (err) {
         console.error(err);
+
+        this.$store.dispatch(
+          "alertError",
+          "Something went wrong in printing your receipt. Please allow pop-ups for this site in your browser to print."
+        );
       }
     },
 

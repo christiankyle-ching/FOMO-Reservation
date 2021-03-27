@@ -117,7 +117,7 @@
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { mapState } from "vuex";
-import { AdminSettings } from "../models/AdminSettings";
+import { AdminSettings } from "@/models/AdminSettings";
 
 export default {
   name: "AdminSettings",
