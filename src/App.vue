@@ -4,6 +4,10 @@
       <ConfirmModal v-if="!!confirmModal" />
     </transition>
 
+    <transition name="fade">
+      <FullScreenLoading v-if="isAppLoading" />
+    </transition>
+
     <Sidebar :active="sidebarActive" @close="hideSidebar()">
       <template v-slot:header>
         <router-link :to="{ name: 'Home' }">
@@ -316,10 +320,11 @@ import { mapActions, mapGetters, mapState } from "vuex";
 import Sidebar from "@/components/Sidebar";
 import Alert from "@/components/Alert";
 import ConfirmModal from "@/components/ConfirmModal";
+import FullScreenLoading from "@/components/FullScreenLoading";
 import { Alert as AlertObj } from "@/models/Alert";
 
 export default {
-  components: { Alert, Sidebar, ConfirmModal },
+  components: { Alert, Sidebar, ConfirmModal, FullScreenLoading },
   data() {
     return {
       sidebarActive: false,
@@ -334,6 +339,8 @@ export default {
   },
   computed: {
     ...mapState([
+      "isAppLoading",
+
       "user",
       "isAdmin",
       "isSuperAdmin",

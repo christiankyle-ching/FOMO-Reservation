@@ -6,7 +6,7 @@
     </div>
 
     <div class="grid grid-separated grid-padded">
-      <LinkPhoneNumber class="px-0" />
+      <LinkPhoneNumber class="" />
 
       <!-- Change Display Name -->
       <form
@@ -64,7 +64,9 @@ export default {
           message:
             "Are you sure you want to change your name? Please make sure that this name reflects your Facebook Account to serve us an alternative contact to you.",
           buttonMessage: "Yes",
-          callback: () => dispatch("changeDisplayName"),
+          callback: () => {
+            dispatch("changeDisplayName", this.newName);
+          },
         });
       },
       resetPassword(dispatch) {
@@ -73,7 +75,9 @@ export default {
           message:
             "Are you sure you want to reset your password? You will be sent an email for further instructions.",
           buttonMessage: "Yes",
-          callback: () => dispatch("resetPassword"),
+          callback: () => {
+            dispatch("resetPassword");
+          },
         });
       },
     }),

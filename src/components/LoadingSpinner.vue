@@ -57,6 +57,10 @@ html.dark .spinner > div {
   background-color: #ddd;
 }
 
+.fullscreen-overlay .spinner > div {
+  background-color: #ddd;
+}
+
 .spinner .rect2 {
   -webkit-animation-delay: -1.1s;
   animation-delay: -1.1s;

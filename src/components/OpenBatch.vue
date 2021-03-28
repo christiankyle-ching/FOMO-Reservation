@@ -315,9 +315,16 @@ export default {
       finalizeBatch(dispatch) {
         dispatch("confirmDanger", {
           title: "Stop Accepting Orders?",
-          message: `Are you sure you want to stop accepting orders? 
+          message: `Are you sure you want to STOP accepting orders? 
           
-          All unpaid orders will be discarded/deleted.`,
+          ALL ${
+            this.openBatchWithOrders.orders.length - this.paidOrders.length
+          } UNPAID ORDER/S WILL BE DELETED!
+          
+          PAID Orders: ${this.paidOrders.length}
+          Total Orders: ${this.openBatchWithOrders.orders.length}
+          
+          If all orders are not yet paid, you can wait for them to pay first.`,
           buttonMessage: "Yes",
           callback: () => dispatch("finalizeBatch"),
         });
@@ -326,9 +333,7 @@ export default {
       markLatestBatchAsDone(dispatch) {
         dispatch("confirm", {
           title: `Finish Batch ${this.latestBatch?.name}`,
-          message: `Are you sure you want to finish this batch? 
-          Mark this batch as done when all orders are delivered, 
-          or to be able to open another batch.`,
+          message: `Are you sure you want to finish this batch? Mark this batch as done when all orders are delivered, or to be able to open another batch.`,
           buttonMessage: "Yes",
           callback: () => dispatch("markLatestBatchAsDone"),
         });

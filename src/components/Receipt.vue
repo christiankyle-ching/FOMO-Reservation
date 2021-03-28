@@ -28,12 +28,12 @@
           </span>
 
           <!-- Batch Details -->
-          <b v-if="!!batch || !!order.latestBatch">Batch: </b>
+          <b v-if="!!batch || !!order.batchDetails">Batch: </b>
           <span class="mb-1 sm:mb-0" v-if="!!batch"
             >{{ batch?.closedAtString }} ({{ batch?.name }})</span
           >
           <span class="mb-1 sm:mb-0" v-else-if="!!order.batchDetails"
-            >{{ order.batchDetails.closed_at }} ({{
+            >{{ firebaseDateToString(order.batchDetails.closed_at) }} ({{
               order.batchDetails.name
             }})</span
           >
@@ -156,6 +156,7 @@
 
 <script>
 import html2canvas from "html2canvas";
+import { firebaseDateToString } from "@/utils";
 
 export default {
   name: "Receipt",
@@ -176,9 +177,16 @@ export default {
   inheritAttrs: false,
 
   methods: {
+    /**
+     * For Receipt while isOrdering
+     */
     removeOrder(index) {
       this.order.orderList.splice(index, 1);
     },
+
+    /**
+     * Save as methods
+     */
     async saveAsImage() {
       try {
         const imageData = await this.generateImageOfReceipt();
@@ -228,6 +236,9 @@ export default {
       }
     },
 
+    /**
+     * Generate image using html2canvas
+     */
     async generateImageOfReceipt() {
       // Generate Light Mode for Receipt First
       const _originalDarkMode = !!this.$store.state.darkModeEnabled;
@@ -265,6 +276,10 @@ export default {
       }
 
       return imageData;
+    },
+
+    firebaseDateToString(_date) {
+      return firebaseDateToString(_date);
     },
   },
 };

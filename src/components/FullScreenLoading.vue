@@ -13,6 +13,12 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 export default {
   components: { LoadingSpinner },
   inheritAttrs: false,
+  mounted() {
+    document.body.classList.add("prevent-scroll");
+  },
+  unmounted() {
+    document.body.classList.remove("prevent-scroll");
+  },
 };
 </script>
 

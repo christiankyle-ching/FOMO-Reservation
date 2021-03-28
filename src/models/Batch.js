@@ -1,8 +1,7 @@
-// import "firebase/firestore";
-import { localeDateTimeOpts } from "@/utils";
 import { Order } from "@/models/Order";
 import { AdminSettings } from "@/models/AdminSettings.js";
 import { removeUndefined } from "@/utils";
+import { firebaseDateToString } from "../utils";
 
 const DEFAULT_ADMIN_SETTINGS = new AdminSettings({});
 
@@ -33,22 +32,15 @@ class Batch {
   }
 
   get createdAtString() {
-    return (
-      this.created_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ??
-      ""
-    );
+    return firebaseDateToString(this.created_at);
   }
 
   get closedAtString() {
-    return (
-      this.closed_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ?? ""
-    );
+    return firebaseDateToString(this.closed_at);
   }
 
   get lockedAtString() {
-    return (
-      this.locked_at?.toDate().toLocaleString("en-US", localeDateTimeOpts) ?? ""
-    );
+    return firebaseDateToString(this.locked_at);
   }
 
   get firestoreDoc() {

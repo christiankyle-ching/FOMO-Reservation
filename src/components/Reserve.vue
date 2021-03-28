@@ -62,7 +62,7 @@
 
 <script>
 import { mapActions, mapGetters, mapState } from "vuex";
-import { localeDateTimeOpts } from "@/utils";
+import { firebaseDateToString, dateToString } from "../utils";
 
 export default {
   name: "Reserve",
@@ -76,9 +76,7 @@ export default {
     ...mapState(["user", "openBatch", "reservation"]),
     ...mapState({
       reservationDateTime(state) {
-        return state.reservation.datetime
-          ?.toDate()
-          .toLocaleString("en-US", localeDateTimeOpts);
+        return firebaseDateToString(state.reservation.datetime);
       },
     }),
     ...mapGetters({ allowReservation: "customer/allowReservation" }),

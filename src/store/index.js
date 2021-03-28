@@ -2,8 +2,6 @@ import { createStore } from "vuex";
 
 // Firebase
 import "@/firebase";
-// import "firebase/auth";
-// import "firebase/firestore";
 import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { Batch } from "@/models/Batch";
@@ -17,6 +15,7 @@ const store = createStore({
   state: {
     // APP
     isOnline: navigator.onLine,
+    isAppLoading: false,
     appTitle: process.env.VUE_APP_TITLE,
     clientName: process.env.VUE_APP_CLIENT,
     clientUrl: process.env.VUE_APP_CLIENT_LINK,
@@ -89,6 +88,10 @@ const store = createStore({
     SET_ONLINE(state, value) {
       console.log("SET_ONLINE");
       state.isOnline = value;
+    },
+    SET_APP_LOADING(state, value) {
+      console.log("SET_APP_LOADING");
+      state.isAppLoading = value;
     },
 
     // USER & SHARED
@@ -186,70 +189,78 @@ const store = createStore({
     async initApp({ dispatch, commit }, user) {
       console.log("initApp");
 
-      // App
-      if (localStorage.darkMode == "true") dispatch("toggleDarkMode", true);
+      commit("SET_APP_LOADING", true);
 
-      // Set User whether logged in or not
-      commit("SET_USER", user);
+      try {
+        // App
+        if (localStorage.darkMode == "true") dispatch("toggleDarkMode", true);
 
-      if (user) {
-        console.log("---LOGGED IN---");
+        // Set User whether logged in or not
+        commit("SET_USER", user);
 
-        //#region Customer DB References
-        commit(
-          "DB_SET_RESERVATION",
-          _db.collection("PUBLIC_RESERVATIONS").doc(user.uid)
-        );
-        commit(
-          "DB_SET_PENDING_ORDER",
-          _db.collection("PUBLIC_ORDERS").doc(user.uid)
-        );
-        commit(
-          "DB_SET_PREVIOUS_PAID_ORDERS",
-          _db.collection("paid-orders").where("uid", "==", user.uid)
-        );
+        if (user) {
+          console.log("---LOGGED IN---");
 
-        //#endregion
+          //#region Customer DB References
+          commit(
+            "DB_SET_RESERVATION",
+            _db.collection("PUBLIC_RESERVATIONS").doc(user.uid)
+          );
+          commit(
+            "DB_SET_PENDING_ORDER",
+            _db.collection("PUBLIC_ORDERS").doc(user.uid)
+          );
+          commit(
+            "DB_SET_PREVIOUS_PAID_ORDERS",
+            _db.collection("paid-orders").where("uid", "==", user.uid)
+          );
 
-        // FIXME: See getCurrentUser's note on the problem
-        const token = await user.getIdTokenResult();
-        const isAdmin = !!token.claims.admin || !!token.claims.superAdmin;
-        const isSuperAdmin = !!token.claims.superAdmin;
+          //#endregion
 
-        commit("SET_IS_ADMIN", isAdmin);
-        commit("SET_IS_SUPER_ADMIN", isSuperAdmin);
+          // FIXME: See getCurrentUser's note on the problem
+          const token = await user.getIdTokenResult();
+          const isAdmin = !!token.claims.admin || !!token.claims.superAdmin;
+          const isSuperAdmin = !!token.claims.superAdmin;
 
-        if (isAdmin) {
-          dispatch("listenLatestBatch");
-          dispatch("listenPendingOrders");
-          dispatch("listenCounters");
-          dispatch("fetchAdminSettings");
+          commit("SET_IS_ADMIN", isAdmin);
+          commit("SET_IS_SUPER_ADMIN", isSuperAdmin);
+
+          if (isAdmin) {
+            dispatch("listenLatestBatch");
+            dispatch("listenPendingOrders");
+            dispatch("listenCounters");
+            dispatch("fetchAdminSettings");
+          }
+
+          if (isSuperAdmin) {
+            dispatch("fetchAdmins");
+          }
+
+          // Fetch / Listeners
+          dispatch("fetchProducts");
+          dispatch("listenOpenBatch");
+          dispatch("listenCustomerPendingOrder");
+        } else {
+          console.log("---LOGGED OUT---");
+
+          // Detach Listeners
+          dispatch("detachOpenBatch");
+          dispatch("detachLatestBatch");
+          dispatch("detachCounters");
+          dispatch("detachPendingOrders");
+          dispatch("detachCustomerPendingOrder");
+
+          // TODO: Do I need to reset all values (i.e. products)
+          // Reset values set above when logged in
+          commit("DB_SET_PENDING_ORDER", null);
+          commit("DB_SET_RESERVATION", null);
+          commit("SET_IS_ADMIN", false);
+          commit("SET_IS_SUPER_ADMIN", false);
         }
-
-        if (isSuperAdmin) {
-          dispatch("fetchAdmins");
-        }
-
-        // Fetch / Listeners
-        dispatch("fetchProducts");
-        dispatch("listenOpenBatch");
-        dispatch("listenCustomerPendingOrder");
-      } else {
-        console.log("---LOGGED OUT---");
-
-        // Detach Listeners
-        dispatch("detachOpenBatch");
-        dispatch("detachLatestBatch");
-        dispatch("detachCounters");
-        dispatch("detachPendingOrders");
-        dispatch("detachCustomerPendingOrder");
-
-        // TODO: Do I need to reset all values (i.e. products)
-        // Reset values set above when logged in
-        commit("DB_SET_PENDING_ORDER", null);
-        commit("DB_SET_RESERVATION", null);
-        commit("SET_IS_ADMIN", false);
-        commit("SET_IS_SUPER_ADMIN", false);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
     toggleDarkMode({ state }, value) {
@@ -331,19 +342,25 @@ const store = createStore({
       }
     },
 
-    async changeDisplayName({ state, dispatch }, _newName) {
+    async changeDisplayName({ state, dispatch, commit }, _newName) {
       const user = state.user;
 
       try {
+        commit("SET_APP_LOADING", true);
+
         await user.updateProfile({
           displayName: _newName,
         });
 
         dispatch("alertSuccess", "Successfully updated your name.");
+
+        return state._userKey++; // Force rerender UI
       } catch (err) {
         console.error(err);
 
         dispatch("alertError", "Something went wrong in updating your name.");
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
     async resetPassword({ state, dispatch }) {
@@ -475,8 +492,10 @@ const store = createStore({
     },
 
     // Product Form
-    async updateProducts({ state, dispatch }) {
+    async updateProducts({ state, dispatch, commit }) {
       console.log("updateProducts");
+
+      commit("SET_APP_LOADING", true);
 
       try {
         await state.dbProducts.set({
@@ -489,6 +508,8 @@ const store = createStore({
           "alertError",
           "Something went wrong in updating your products. Please check if you are currently accpeting orders."
         );
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
 
@@ -532,8 +553,9 @@ const store = createStore({
     },
 
     // Order Flow
-    // TODO: Order Flow Loading Animations
-    async openNewBatch({ state, dispatch }) {
+    async openNewBatch({ state, dispatch, commit }) {
+      commit("SET_APP_LOADING", true);
+
       const data = state.formNewBatch;
 
       const batchWrite = _db.batch();
@@ -571,10 +593,14 @@ const store = createStore({
           "alertError",
           `Something went wrong in opening a batch. Please try again.`
         );
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
 
-    async closeCurrentBatch({ state, dispatch }) {
+    async closeCurrentBatch({ state, dispatch, commit }) {
+      commit("SET_APP_LOADING", true);
+
       console.log("closeCurrentBatch");
 
       const batchWrite = _db.batch();
@@ -635,10 +661,14 @@ const store = createStore({
           "alertError",
           "Something went wrong in closing the batch. Please try again."
         );
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
 
-    async finalizeBatch({ state, dispatch }) {
+    async finalizeBatch({ dispatch, commit }) {
+      commit("SET_APP_LOADING", true);
+
       console.log("finalizeBatch");
 
       const batchWrite = _db.batch();
@@ -704,11 +734,15 @@ const store = createStore({
           "alert",
           "Something went wrong in finalizing the batch. Please try again."
         );
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
 
-    async markLatestBatchAsDone({ state, dispatch }) {
+    async markLatestBatchAsDone({ state, dispatch, commit }) {
       console.log("markLatestBatchAsDone");
+
+      commit("SET_APP_LOADING", true);
 
       try {
         // Update dbLatestBatch isDone
@@ -729,6 +763,8 @@ const store = createStore({
           "alertError",
           "Something went wrong in marking this batch as done. Please try and set it in Batch History."
         );
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
 
@@ -947,6 +983,8 @@ const store = createStore({
     async reserve({ state, commit, dispatch }) {
       console.log("reserve");
 
+      commit("SET_APP_LOADING", true);
+
       try {
         const reservationDoc = await state.dbReservation.get();
 
@@ -973,44 +1011,54 @@ const store = createStore({
           "alertError",
           "Something went wrong in reserving your slot. Please reload and try again."
         );
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
 
     // Order
-    async saveOrder({ state, dispatch }, orderList) {
+    async saveOrder({ state, dispatch, commit }, orderList) {
       console.log("saveOrder");
 
-      const user = state.user;
+      commit("SET_APP_LOADING", true);
 
-      if (!user.phoneNumber) {
-        return dispatch(
-          "alertError",
-          "Please provide your mobile phone number."
-        );
-      }
+      try {
+        const user = state.user;
 
-      const orderObj = new Order({
-        uid: user.uid,
-        phoneNumber: user.phoneNumber,
-        name: user.displayName,
-        email: user.email,
-        orderList: orderList,
-      });
+        if (!user.phoneNumber) {
+          return dispatch(
+            "alertError",
+            "Please provide your mobile phone number."
+          );
+        }
 
-      // Only Allow Orders of > 100 PHP
-      if (
-        orderObj.totalPrice > 100 &&
-        orderObj.totalQty <= state.openBatch.maxAllowedOrderQty
-      ) {
-        // Update DB
-        state.dbPendingOrder.update(orderObj.firestoreDoc);
+        const orderObj = new Order({
+          uid: user.uid,
+          phoneNumber: user.phoneNumber,
+          name: user.displayName,
+          email: user.email,
+          orderList: orderList,
+        });
 
-        dispatch("alertSuccess", "Successfully sent your order. Thank you!");
-      } else {
-        dispatch(
-          "alertError",
-          `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.openBatch.maxAllowedOrderQty} item/s`
-        );
+        // Only Allow Orders of > 100 PHP
+        if (
+          orderObj.totalPrice > 100 &&
+          orderObj.totalQty <= state.openBatch.maxAllowedOrderQty
+        ) {
+          // Update DB
+          state.dbPendingOrder.update(orderObj.firestoreDoc);
+
+          dispatch("alertSuccess", "Successfully sent your order. Thank you!");
+        } else {
+          dispatch(
+            "alertError",
+            `Minimum amount of order is 100 PHP. Order also cannot exceed ${state.openBatch.maxAllowedOrderQty} item/s`
+          );
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        commit("SET_APP_LOADING", false);
       }
     },
 

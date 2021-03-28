@@ -1,4 +1,5 @@
-const localeDateTimeOpts = {
+const LOCALE = "en-US";
+const LOCALE_DATETIME_OPTS = {
   weekday: "long",
   year: "numeric",
   month: "long",
@@ -22,4 +23,27 @@ const removeUndefined = (obj) => {
   return filtered;
 };
 
-export { localeDateTimeOpts, removeUndefined };
+const firebaseDateToString = (_firebaseTimestamp) => {
+  try {
+    return _firebaseTimestamp
+      .toDate()
+      .toLocaleString(LOCALE, LOCALE_DATETIME_OPTS);
+  } catch (err) {
+    return "";
+  }
+};
+
+const dateToString = (_date) => {
+  try {
+    return _date.toLocaleString(LOCALE, LOCALE_DATETIME_OPTS);
+  } catch (err) {
+    return "";
+  }
+};
+
+export {
+  LOCALE_DATETIME_OPTS,
+  removeUndefined,
+  firebaseDateToString,
+  dateToString,
+};

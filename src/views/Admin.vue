@@ -4,11 +4,8 @@
       <h1 class="text-center">Manage {{ $store.state.clientName }}</h1>
     </div>
 
-    <!-- OpenBatch or LatestBatch -->
+    <!-- Manage Batch -->
     <OpenBatch />
-    <!-- <div v-else class="flex h-32">
-      <LoadingSpinner class="m-auto" />
-    </div> -->
 
     <!-- Admin Actions -->
     <div class="card mt-5">

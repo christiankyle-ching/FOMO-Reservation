@@ -1,5 +1,4 @@
-import { localeDateTimeOpts, removeUndefined } from "@/utils";
-import { Batch } from "@/models/Batch";
+import { dateToString, removeUndefined } from "@/utils";
 
 class Order {
   constructor({
@@ -56,10 +55,7 @@ class Order {
   }
 
   get paidAtDateTime() {
-    return new Date(this.payment.paid_at * 1000).toLocaleString(
-      "en-US",
-      localeDateTimeOpts
-    );
+    return dateToString(new Date(this.payment.paid_at * 1000));
   }
 
   clone() {

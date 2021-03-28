@@ -88,8 +88,10 @@
 
 <script>
 import { mapState } from "vuex";
+import FullScreenLoading from "@/components/FullScreenLoading";
 
 export default {
+  components: { FullScreenLoading },
   data() {
     return {
       _key: 0,
@@ -112,6 +114,8 @@ export default {
   methods: {
     // Link Phone
     requestCode() {
+      this.$store.commit("SET_APP_LOADING", true);
+
       firebase
         .auth()
         .signInWithPhoneNumber(`+63${this.phoneNumber}`, this.appVerifier)
@@ -129,11 +133,14 @@ export default {
 
           this.isSMSSent = false;
           this.recaptchaSolved = false;
-        });
+        })
+        .finally(() => this.$store.commit("SET_APP_LOADING", false));
     },
 
     verifyCode() {
       console.log("verifyCode");
+
+      this.$store.commit("SET_APP_LOADING", true);
 
       const credential = firebase.auth.PhoneAuthProvider.credential(
         this.verificationId,
@@ -164,19 +171,8 @@ export default {
           }
 
           this.resetForm();
-        });
-    },
-
-    onRecaptchaSolve(response) {
-      console.log("onRecaptchaSolve");
-
-      this.recaptchaSolved = true;
-    },
-
-    onRecaptchaExpire() {
-      console.log("onRecaptchaExpire");
-
-      this.recaptchaSolved = false;
+        })
+        .finally(() => this.$store.commit("SET_APP_LOADING", false));
     },
 
     // Unlink Phone
@@ -187,6 +183,8 @@ export default {
           "Are you sure you want to unlink this phone number? You won't be able to send orders in the future without a phone number.",
         buttonMessage: "Unlink",
         callback: () => {
+          this.$store.commit("SET_APP_LOADING", true);
+
           firebase
             .auth()
             .currentUser.unlink(firebase.auth.PhoneAuthProvider.PROVIDER_ID)
@@ -207,9 +205,27 @@ export default {
                 "alertError",
                 "Something went wrong. Please try again later."
               );
+            })
+            .finally(() => {
+              this.$store.commit("SET_APP_LOADING", false);
+
+              // FIXME: Temporary fix to recaptcha not rendering again when phone number unlinked
+              this.$router.go();
             });
         },
       });
+    },
+
+    onRecaptchaSolve(response) {
+      console.log("onRecaptchaSolve");
+
+      this.recaptchaSolved = true;
+    },
+
+    onRecaptchaExpire() {
+      console.log("onRecaptchaExpire");
+
+      this.recaptchaSolved = false;
     },
 
     // Form

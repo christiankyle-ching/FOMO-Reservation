@@ -35,7 +35,7 @@
 
     <div v-if="!!pastPaidOrders">
       <!-- ForEach: Past Paid Order -->
-      <div class="card" v-for="order in searchedOrders" :key="order">
+      <div class="card my-2" v-for="order in searchedOrders" :key="order">
         <div
           @click="order._collapsed = !order._collapsed"
           class="flex justify-between items-center cursor-pointer"
