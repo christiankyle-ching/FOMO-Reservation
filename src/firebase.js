@@ -14,7 +14,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Other services
-// firebase.analytics();
+firebase.analytics();
 
 console.log("Firebase Init");
 
