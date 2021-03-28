@@ -1,4 +1,4 @@
-import "firebase/firestore";
+// import "firebase/firestore";
 import { localeDateTimeOpts } from "@/utils";
 import { Order } from "@/models/Order";
 import { AdminSettings } from "@/models/AdminSettings.js";

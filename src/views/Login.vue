@@ -5,9 +5,8 @@
 </template>
 
 <script>
-import firebase from "firebase/app";
-
 import "firebaseui";
+
 const ui = new firebaseui.auth.AuthUI(firebase.auth());
 
 export default {

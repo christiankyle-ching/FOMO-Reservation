@@ -1,9 +1,9 @@
 import { createStore } from "vuex";
 
 // Firebase
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import "@/firebase";
+// import "firebase/auth";
+// import "firebase/firestore";
 import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { Batch } from "@/models/Batch";
