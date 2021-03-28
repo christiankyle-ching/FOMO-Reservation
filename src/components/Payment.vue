@@ -82,7 +82,7 @@ export default {
   },
   methods: {
     async payWithEwallet(sourceType) {
-      const url = `${process.env.VUE_APP_BACKEND_URL}/api/payment`;
+      const url = `${process.env.VUE_APP_BACKEND_URL}/payment`;
       const redirectBaseUrl =
         window.location.origin + this.$router.resolve({ name: "Home" }).path;
 

@@ -384,7 +384,7 @@ const store = createStore({
     },
 
     async addAdmin({ dispatch, state }, _email) {
-      const url = `${process.env.VUE_APP_BACKEND_URL}/api/admins`;
+      const url = `${process.env.VUE_APP_BACKEND_URL}/admins`;
 
       const options = {
         method: "POST",
@@ -411,7 +411,7 @@ const store = createStore({
     },
 
     async removeAdmin({ dispatch, state }, _uid) {
-      const url = `${process.env.VUE_APP_BACKEND_URL}/api/admins/${_uid}/remove`;
+      const url = `${process.env.VUE_APP_BACKEND_URL}/admins/${_uid}/remove`;
 
       const options = {
         method: "POST",
