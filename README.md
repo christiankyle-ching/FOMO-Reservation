@@ -2,6 +2,6 @@
 
 ## Deployment Notes
 
-1. Deploy backend to Vercel.
+1. Deploy backend to Netlify Functions.
 2. Get Firebase Config File.
 3. Set `.env` variables

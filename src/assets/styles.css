@@ -209,7 +209,7 @@
     @apply shadow-md;
   }
 
-  .fab-container > :not(button:first-child) {
+  .fab-container > :not(:first-child) {
     @apply mt-5;
   }
 
