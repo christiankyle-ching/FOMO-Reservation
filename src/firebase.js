@@ -15,7 +15,7 @@ firebase.initializeApp(firebaseConfig);
 console.log("Init: Firebase");
 
 // Other services
-if (process.env.NODE_ENV !== "development") {
+if (process.env.VUE_APP_ENV !== "development") {
   console.log("Init: Analytics");
   firebase.analytics();
 }
