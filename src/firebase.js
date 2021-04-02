@@ -12,10 +12,12 @@ const firebaseConfig = {
 
 // Init Firebase
 firebase.initializeApp(firebaseConfig);
+console.log("Init: Firebase");
 
 // Other services
-firebase.analytics();
-
-console.log("Firebase Init");
+if (process.env.NODE_ENV !== "development") {
+  console.log("Init: Analytics");
+  firebase.analytics();
+}
 
 export default firebase;
