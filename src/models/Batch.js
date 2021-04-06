@@ -44,11 +44,13 @@ class Batch {
   }
 
   get firestoreDoc() {
-    const cloneObj = this.clone();
-    cloneObj.orders?.map((o) => o.firestoreDoc);
+    // Get a clone to copy Orders as firestoreDocs
+    const tmpObj = this.clone();
+    const tmpOrders = tmpObj.orders?.map((o) => o.firestoreDoc);
 
-    const firestoreDoc = removeUndefined(cloneObj);
+    const firestoreDoc = removeUndefined(tmpObj);
     delete firestoreDoc.id; // exclude for firestore create/updates
+    firestoreDoc.orders = tmpOrders; // add orders as firestoreDocs
 
     return firestoreDoc;
   }

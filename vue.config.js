@@ -2,6 +2,7 @@ module.exports = {
   configureWebpack: {
     devtool: "source-map",
   },
+  productionSourceMap: process.env.NODE_ENV !== "production",
   chainWebpack: (config) => {
     config.externals({
       "firebase/app": "firebase",

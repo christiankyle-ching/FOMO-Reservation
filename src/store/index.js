@@ -882,6 +882,8 @@ const store = createStore({
     async updateBatch({ state, dispatch }, batch) {
       console.log("updateBatch");
 
+      console.log(batch);
+
       try {
         await state.dbBatches
           .doc(batch.id)
