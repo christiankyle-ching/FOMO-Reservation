@@ -50,7 +50,7 @@ class Batch {
 
     const firestoreDoc = removeUndefined(tmpObj);
     delete firestoreDoc.id; // exclude for firestore create/updates
-    firestoreDoc.orders = tmpOrders; // add orders as firestoreDocs
+    if (!!tmpOrders) firestoreDoc.orders = tmpOrders; // add orders as firestoreDocs
 
     return firestoreDoc;
   }

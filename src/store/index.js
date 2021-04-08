@@ -558,6 +558,16 @@ const store = createStore({
 
       const data = state.formNewBatch;
 
+      console.log(data);
+      console.log(
+        new Batch({
+          name: data.name,
+          order_limit: data.order_limit,
+          maxAllowedOrderQty: data.maxAllowedOrderQty,
+          created_at: firebase.firestore.FieldValue.serverTimestamp(),
+        }).firestoreDoc
+      );
+
       const batchWrite = _db.batch();
 
       try {
