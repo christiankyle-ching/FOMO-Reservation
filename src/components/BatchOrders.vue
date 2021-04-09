@@ -166,6 +166,9 @@ export default {
       this.showModal = false;
     },
     onStatusChange(order) {
+      console.log(this.batch);
+      console.log(this.areOrdersInBatch);
+
       this.areOrdersInBatch
         ? this.$store.dispatch("updateBatch", this.batch)
         : this.$store.dispatch("updatePendingOrder", order);

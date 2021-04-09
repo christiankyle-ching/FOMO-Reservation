@@ -558,16 +558,6 @@ const store = createStore({
 
       const data = state.formNewBatch;
 
-      console.log(data);
-      console.log(
-        new Batch({
-          name: data.name,
-          order_limit: data.order_limit,
-          maxAllowedOrderQty: data.maxAllowedOrderQty,
-          created_at: firebase.firestore.FieldValue.serverTimestamp(),
-        }).firestoreDoc
-      );
-
       const batchWrite = _db.batch();
 
       try {
@@ -783,13 +773,17 @@ const store = createStore({
       console.log("Listen: LatestBatch");
 
       state.unsubscribeLatestBatch = state.dbLatestBatch.onSnapshot(
-        (latestBatch) => {
-          if (!latestBatch.empty) {
-            const data = latestBatch.docs[0].data();
+        (result) => {
+          if (!result.empty) {
+            const latestBatch = result.docs[0];
+            const data = latestBatch.data();
 
-            // If latestBatch is not done, fetch
+            // If latestBatch is not done, fetch it as the latest open batch
             if (!data.isDone) {
-              commit("SET_LATEST_BATCH", new Batch({ ...data }));
+              commit(
+                "SET_LATEST_BATCH",
+                new Batch({ id: latestBatch.id, ...data })
+              );
             }
             // If latestBatch is done, set null instead
             else {
@@ -1270,7 +1264,7 @@ const store = createStore({
   modules: {},
 });
 
-// User Getter
+// User Getter for Route Guards
 const getCurrentUser = () => {
   return new Promise((resolve, reject) => {
     const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
