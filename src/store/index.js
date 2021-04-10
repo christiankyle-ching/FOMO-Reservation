@@ -189,6 +189,7 @@ const store = createStore({
     async initApp({ dispatch, commit }, user) {
       console.log("initApp");
 
+      // FIXME: Does not work
       commit("SET_APP_LOADING", true);
 
       try {
@@ -230,10 +231,6 @@ const store = createStore({
             dispatch("listenPendingOrders");
             dispatch("listenCounters");
             dispatch("fetchAdminSettings");
-          }
-
-          if (isSuperAdmin) {
-            dispatch("fetchAdmins");
           }
 
           // Fetch / Listeners
@@ -937,7 +934,6 @@ const store = createStore({
         // If does not exists, update DB with defaults
         if (!settings.exists) {
           settings.ref.set({ ...defaultSettings.firestoreDoc });
-
           commit("SET_ADMIN_SETTINGS", defaultSettings);
         }
 
@@ -955,6 +951,8 @@ const store = createStore({
           order_limit: state.adminSettings.order_limit,
           maxAllowedOrderQty: state.adminSettings.maxAllowedOrderQty,
         };
+
+        return;
       } catch (err) {
         console.error("fetchAdminSettings", err);
       }

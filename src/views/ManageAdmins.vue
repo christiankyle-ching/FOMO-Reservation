@@ -149,6 +149,14 @@ export default {
       }
     },
   },
+
+  mounted() {
+    try {
+      this.$store.dispatch("fetchAdmins");
+    } catch (err) {
+      console.error("ManageAdmins mounted: ", err);
+    }
+  },
 };
 </script>
 

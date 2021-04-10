@@ -341,6 +341,9 @@ export default {
       deep: true,
     },
   },
+  mounted() {
+    this.$store.dispatch("fetchProducts");
+  },
 };
 </script>
 

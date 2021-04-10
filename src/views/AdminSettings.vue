@@ -4,7 +4,7 @@
       <h1>Settings</h1>
     </div>
 
-    <div v-if="!!formAdminSettings">
+    <div v-if="!!adminSettings">
       <!-- Batch Defaults -->
       <form @submit.prevent="saveAdminSettings()" class="card my-5">
         <h3>New Batches</h3>
@@ -13,10 +13,7 @@
         <div class="flex items-center mt-2">
           <label class="flex-grow">Default Reservation Limit Per Batch:</label>
           <div class="input__number">
-            <button
-              @click="formAdminSettings.decrementOrderLimit()"
-              type="button"
-            >
+            <button @click="adminSettings.decrementOrderLimit()" type="button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
@@ -33,12 +30,9 @@
             <input
               type="number"
               min="1"
-              v-model.number="formAdminSettings.order_limit"
+              v-model.number="adminSettings.order_limit"
             />
-            <button
-              @click="formAdminSettings.incrementOrderLimit()"
-              type="button"
-            >
+            <button @click="adminSettings.incrementOrderLimit()" type="button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
@@ -61,10 +55,7 @@
             >Default Max Allowed Items Per Person / Order:</label
           >
           <div class="input__number">
-            <button
-              @click="formAdminSettings.decrementMaxAllowed()"
-              type="button"
-            >
+            <button @click="adminSettings.decrementMaxAllowed()" type="button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
@@ -81,12 +72,9 @@
             <input
               type="number"
               min="1"
-              v-model.number="formAdminSettings.maxAllowedOrderQty"
+              v-model.number="adminSettings.maxAllowedOrderQty"
             />
-            <button
-              @click="formAdminSettings.incrementMaxAllowed()"
-              type="button"
-            >
+            <button @click="adminSettings.incrementMaxAllowed()" type="button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
@@ -117,16 +105,10 @@
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { mapState } from "vuex";
-import { AdminSettings } from "@/models/AdminSettings";
 
 export default {
   name: "AdminSettings",
   components: { LoadingSpinner },
-  data() {
-    return {
-      formAdminSettings: null,
-    };
-  },
   computed: {
     ...mapState(["adminSettings"]),
   },
@@ -138,18 +120,13 @@ export default {
         message: "Are you sure you want to save these settings?",
         buttonMessage: "Save",
         callback: () => {
-          this.$store.dispatch("saveAdminSettings", this.formAdminSettings);
+          this.$store.dispatch("saveAdminSettings", this.adminSettings);
         },
       });
     },
   },
-  async mounted() {
-    try {
-      const adminSettings = await this.$store.state.dbAdminSettings.get();
-      this.formAdminSettings = new AdminSettings({ ...adminSettings.data() });
-    } catch (err) {
-      console.error("AdminSettings mounted: ", err);
-    }
+  mounted() {
+    this.$store.dispatch("fetchAdminSettings");
   },
 };
 </script>
