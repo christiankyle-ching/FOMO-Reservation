@@ -192,7 +192,7 @@ export default {
               this.$store.commit("SET_USER", user);
 
               this.$store.dispatch(
-                "alertError",
+                "alert",
                 "Successfully unlinked your phone number. Please provide one to be able to order."
               );
 

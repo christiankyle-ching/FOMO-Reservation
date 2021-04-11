@@ -141,6 +141,9 @@ export default {
         if (err.errors.includes("incomplete_fields")) {
           this.$store.dispatch("alertError", "Please check the email again.");
         }
+        if (err.errors.includes("user_already_admin")) {
+          this.$store.dispatch("alertError", "That user is already an admin.");
+        }
       } else {
         this.$store.dispatch(
           "alertError",

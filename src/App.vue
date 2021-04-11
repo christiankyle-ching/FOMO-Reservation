@@ -331,7 +331,7 @@ export default {
       isCModalShown: false,
 
       noInternetAlert: new AlertObj({
-        message: "Please check your internet connection.",
+        message: "Please check your internet connection and reload the page.",
         type: "danger",
         isPermanent: true,
       }),

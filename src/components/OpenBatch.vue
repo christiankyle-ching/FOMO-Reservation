@@ -172,6 +172,13 @@
             </svg>
             Close Batch
           </button>
+
+          <button
+            @click="cancelCurrentBatch()"
+            class="button button-secondary button-block mt-3"
+          >
+            Cancel Current Batch
+          </button>
         </div>
 
         <!-- 3: Finish Batch - Can Lock / Finalize - Stop Orders and Payments -->
@@ -309,6 +316,15 @@ export default {
           Current Reservation Count: ${this.counters?.reservations}/${this.openBatch?.order_limit}`,
           buttonMessage: "Yes",
           callback: () => dispatch("closeCurrentBatch"),
+        });
+      },
+
+      cancelCurrentBatch(dispatch) {
+        dispatch("confirmDanger", {
+          title: "Cancel this batch?",
+          message: `Are you sure you want to cancel this batch? This will DISREGARD ALL sent reservations by your customers for this batch.`,
+          buttonMessage: "Yes",
+          callback: () => dispatch("cancelCurrentBatch"),
         });
       },
 

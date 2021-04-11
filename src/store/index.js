@@ -1,15 +1,15 @@
 import { createStore } from "vuex";
 
 // Firebase
-import "@/firebase";
+import fb from "firebase/app";
 import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
 import { Batch } from "@/models/Batch";
 import { Alert, ALERT_TYPE } from "@/models/Alert";
 import { AdminSettings } from "@/models/AdminSettings";
 
-const _db = firebase.firestore();
-firebase.auth().languageCode = "ph";
+const _db = fb.firestore();
+fb.auth().languageCode = "ph";
 
 const store = createStore({
   state: {
@@ -330,7 +330,7 @@ const store = createStore({
     //#region User
     async logout({ dispatch }) {
       try {
-        await firebase.auth().signOut();
+        await fb.auth().signOut();
 
         dispatch("alertInfo", "You have been logged out.");
         return true;
@@ -364,7 +364,7 @@ const store = createStore({
       const emailAddress = state.user.email;
 
       try {
-        await firebase.auth().sendPasswordResetEmail(emailAddress);
+        await fb.auth().sendPasswordResetEmail(emailAddress);
 
         dispatch("alertSuccess", "Please check your email for the next steps.");
       } catch (err) {
@@ -398,6 +398,10 @@ const store = createStore({
     },
 
     async addAdmin({ dispatch, state }, _email) {
+      if (!!state.admins.adminList.find((admin) => admin.email === _email)) {
+        return dispatch("alertSuccess", `That user is already an admin`);
+      }
+
       const url = `${process.env.VUE_APP_BACKEND_URL}/admins`;
 
       const options = {
@@ -566,9 +570,24 @@ const store = createStore({
             name: data.name,
             order_limit: data.order_limit,
             maxAllowedOrderQty: data.maxAllowedOrderQty,
-            created_at: firebase.firestore.FieldValue.serverTimestamp(),
+            created_at: fb.firestore.FieldValue.serverTimestamp(),
           }).firestoreDoc
         );
+
+        // Safety: Clear Reservations
+        (await _db.collection("PUBLIC_RESERVATIONS").get()).forEach((r) => {
+          batchWrite.delete(r.ref);
+        });
+
+        // Safety: Clear Pending Orders
+        (await _db.collection("PUBLIC_ORDERS").get()).forEach((o) =>
+          batchWrite.delete(_db.collection("PUBLIC_ORDERS").doc(o.id))
+        );
+
+        // Safety: Clear Reservation Count
+        batchWrite.set(_db.collection("PUBLIC_WRITE").doc("counters"), {
+          reservations: 0,
+        });
 
         // Commit in DB
         batchWrite.commit();
@@ -622,7 +641,7 @@ const store = createStore({
           id: null,
           name: currentOpenBatch.name,
           created_at: currentOpenBatch.created_at,
-          closed_at: firebase.firestore.FieldValue.serverTimestamp(),
+          closed_at: fb.firestore.FieldValue.serverTimestamp(),
           locked_at: null,
           order_limit: currentOpenBatch.order_limit,
           maxAllowedOrderQty: currentOpenBatch.maxAllowedOrderQty,
@@ -638,7 +657,6 @@ const store = createStore({
         // Clear Unaccepted Reservations
         (await _db.collection("PUBLIC_RESERVATIONS").get()).forEach((r) => {
           batchWrite.delete(r.ref);
-          ``;
         });
 
         // Clear Reservation Count
@@ -657,6 +675,45 @@ const store = createStore({
         dispatch(
           "alertError",
           "Something went wrong in closing the batch. Please try again."
+        );
+      } finally {
+        commit("SET_APP_LOADING", false);
+      }
+    },
+
+    async cancelCurrentBatch({ state, dispatch, commit }) {
+      commit("SET_APP_LOADING", true);
+
+      console.log("cancelCurrentBatch");
+
+      const batchWrite = _db.batch();
+      const currentOpenBatch = state.openBatch;
+
+      try {
+        batchWrite.delete(_db.collection("PUBLIC_READ").doc("open_batch"));
+
+        // Clear Reservations
+        (await _db.collection("PUBLIC_RESERVATIONS").get()).forEach((r) => {
+          batchWrite.delete(r.ref);
+        });
+
+        // Clear Reservation Count
+        batchWrite.set(_db.collection("PUBLIC_WRITE").doc("counters"), {
+          reservations: 0,
+        });
+
+        batchWrite.commit();
+
+        return dispatch(
+          "alertSuccess",
+          `Successfully cancelled batch ${currentOpenBatch.name}.`
+        );
+      } catch (err) {
+        console.error(err);
+
+        dispatch(
+          "alertError",
+          "Something went wrong in cancelling current batch."
         );
       } finally {
         commit("SET_APP_LOADING", false);
@@ -701,7 +758,7 @@ const store = createStore({
           const newBatch = {
             ...closedBatch.data(),
             orders: cacheOrders,
-            locked_at: firebase.firestore.FieldValue.serverTimestamp(),
+            locked_at: fb.firestore.FieldValue.serverTimestamp(),
           };
 
           // 1: Create a new batch in batchesCollection with the paidorders and locked_at
@@ -994,13 +1051,13 @@ const store = createStore({
 
         if (!reservationDoc.exists) {
           await state.dbReservation.set({
-            datetime: firebase.firestore.FieldValue.serverTimestamp(),
+            datetime: fb.firestore.FieldValue.serverTimestamp(),
           });
 
           // Increment Reservation Count
           state.dbCounters.set(
             {
-              reservations: firebase.firestore.FieldValue.increment(1),
+              reservations: fb.firestore.FieldValue.increment(1),
             },
             { merge: true }
           );
@@ -1265,7 +1322,7 @@ const store = createStore({
 // User Getter for Route Guards
 const getCurrentUser = () => {
   return new Promise((resolve, reject) => {
-    const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+    const unsubscribe = fb.auth().onAuthStateChanged(async (user) => {
       unsubscribe();
 
       if (user) {
@@ -1292,7 +1349,7 @@ const getCurrentUser = () => {
 };
 
 // User Observer for initApp Only
-firebase.auth().onAuthStateChanged((user) => {
+fb.auth().onAuthStateChanged((user) => {
   console.log("Test: AuthChanged");
 
   // Setup App with User only on real Auth Change
