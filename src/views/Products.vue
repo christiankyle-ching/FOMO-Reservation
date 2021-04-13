@@ -77,7 +77,7 @@
 
       <transition name="fade">
         <div class="grid grid-cols-2 gap-5 pt-5" v-if="toolbarExpanded">
-          <ProductStats v-if="!!products" :products="products" />
+          <ProductStats v-if="!!products" :products="products.productsList" />
           <!-- Actions -->
           <div>
             <h6 class="pb-3">Actions:</h6>
@@ -95,8 +95,12 @@
   </div>
 
   <div class="products app-container pb-32">
-    <div class="app-container__header">
-      <h2 class="text-center">{{ $store.state.clientName }}'s Menu</h2>
+    <div class="app-container__header text-center">
+      <h2>{{ $store.state.clientName }}'s Menu</h2>
+      <small v-if="!!products && !!products.last_updated">
+        Last Updated:
+        {{ products?.last_updated?.toDate().toLocaleString() }}</small
+      >
     </div>
 
     <!-- Search: Products -->
@@ -113,7 +117,7 @@
       <div v-if="products == null" class="flex m-auto h-32">
         <LoadingSpinner class="m-auto" />
       </div>
-      <div v-else-if="!products.length">
+      <div v-else-if="!products.productsList?.length">
         <p class="font-medium text-center px-10 pt-5">
           No Products Yet. Add one using the button below, or import a template.
         </p>
@@ -235,7 +239,7 @@ export default {
     ...mapState({
       products: "products",
       filteredProducts(state) {
-        return state.products?.filter(
+        return state.products?.productsList?.filter(
           (o) =>
             o?.name.toLowerCase().includes(this.searchKey) ||
             o?.category.toLowerCase().includes(this.searchKey)
@@ -246,7 +250,9 @@ export default {
   watch: {
     products() {
       if (!this.loadedCategories) {
-        this.categories = new Set(this.products?.map((p) => p?.category));
+        this.categories = new Set(
+          this.products?.productsList?.map((p) => p?.category)
+        );
         this.loadedCategories = true;
       }
     },
@@ -281,7 +287,7 @@ export default {
       this.formNewProduct = new Product({});
     },
     addProduct() {
-      this.products.push(this.formNewProduct);
+      this.products.productsList.push(this.formNewProduct);
 
       this.isAdding = false;
       this.formNewProduct = new Product({});
@@ -294,9 +300,9 @@ export default {
         }? This change will not yet update the products until you save changes.`,
         buttonMessage: "Remove",
         callback: () => {
-          const index = this.products.indexOf(product);
+          const index = this.products.productsList.indexOf(product);
 
-          if (index > -1) this.products.splice(index, 1);
+          if (index > -1) this.products.productsList.splice(index, 1);
         },
       });
     },

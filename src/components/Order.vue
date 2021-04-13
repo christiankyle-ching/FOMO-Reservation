@@ -185,14 +185,26 @@ export default {
   },
   computed: {
     ...mapState({
-      products: "products",
+      products(state) {
+        return state.products?.productsList ?? [];
+      },
       openBatch: "openBatch",
-      categories: (state) => [
-        ...new Set(
-          state.products.map((p) => (p.category ? p.category : "Uncategorized"))
-        ),
-      ],
+      // categories: (state) => [
+      //   ...new Set(
+      //     state.products?.map((p) =>
+      //       p.category ? p.category : "Uncategorized"
+      //     )
+      //   ),
+      // ],
     }),
+
+    categories() {
+      return [
+        ...new Set(
+          this.products?.map((p) => (p.category ? p.category : "Uncategorized"))
+        ),
+      ];
+    },
 
     selectedAddOns() {
       return this.formProduct.addons
@@ -316,7 +328,7 @@ export default {
       this.resetNewOrder("category");
 
       // Filter Products
-      this.filteredProducts = this.$store.state.products.filter(
+      this.filteredProducts = this.products?.filter(
         (p) => p.category === this.formCategory
       );
     },

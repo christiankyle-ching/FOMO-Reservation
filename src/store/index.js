@@ -35,11 +35,11 @@ const store = createStore({
     alerts: [],
     // Firebase Refs
     dbProducts: _db.collection("PUBLIC_READ").doc("products"),
-    dbOpenBatch: firebase
+    dbOpenBatch: fb
       .firestore()
       .collection("PUBLIC_READ")
       .doc("open_batch"),
-    dbCounters: firebase
+    dbCounters: fb
       .firestore()
       .collection("PUBLIC_WRITE")
       .doc("counters"),
@@ -227,6 +227,7 @@ const store = createStore({
           commit("SET_IS_SUPER_ADMIN", isSuperAdmin);
 
           if (isAdmin) {
+            dispatch("fetchProducts");
             dispatch("listenLatestBatch");
             dispatch("listenPendingOrders");
             dispatch("listenCounters");
@@ -234,7 +235,7 @@ const store = createStore({
           }
 
           // Fetch / Listeners
-          dispatch("fetchProducts");
+          // dispatch("fetchProducts");
           dispatch("listenOpenBatch");
           dispatch("listenCustomerPendingOrder");
         } else {
@@ -423,7 +424,7 @@ const store = createStore({
       // Add to current state
       state.admins.adminList.push({ uid: body.uid, email: body.email });
 
-      dispatch("alertSuccess", `Added ${body.name} as an admin`);
+      dispatch("alertSuccess", `Added "${body.name}" as an admin`);
 
       return body;
     },
@@ -453,7 +454,7 @@ const store = createStore({
       if (adminToRemoveIndex >= 0)
         state.admins.adminList.splice(adminToRemoveIndex, 1);
 
-      dispatch("alertSuccess", `Removed ${body.name} as an admin`);
+      dispatch("alertSuccess", `Removed "${body.name}" as an admin`);
 
       return body;
     },
@@ -470,18 +471,28 @@ const store = createStore({
         if (productsDoc.exists) {
           const data = productsDoc.data();
 
-          const cacheProducts = [];
-          data.products.forEach((p) => {
-            cacheProducts.push(new Product({ ...p }));
-          });
-
-          commit("SET_PRODUCTS", cacheProducts);
-        } else {
-          if (state.isAdmin) {
-            productsDoc.ref.set({ products: [] });
+          // const cacheProducts = [];
+          // if (!!data.productsList) {
+          //   data.productsList.forEach((p) => {
+          //     cacheProducts.push(new Product({ ...p }));
+          //   });
+          // }
+          if (!!data.productsList) {
+            data.productsList = data.productsList.map(
+              (p) => new Product({ ...p })
+            );
           }
 
-          commit("SET_PRODUCTS", []);
+          commit("SET_PRODUCTS", data);
+        } else {
+          if (state.isAdmin) {
+            productsDoc.ref.set({ productsList: [] });
+          }
+
+          commit("SET_PRODUCTS", {
+            productsList: [],
+            last_updated: null,
+          });
         }
       } catch (err) {
         console.error("fetchProducts: ", err);
@@ -489,7 +500,10 @@ const store = createStore({
     },
 
     clearProducts({ commit }) {
-      commit("SET_PRODUCTS", []);
+      commit("SET_PRODUCTS", {
+        productsList: [],
+        last_updated: null,
+      });
     },
 
     // Product Form
@@ -500,8 +514,11 @@ const store = createStore({
 
       try {
         await state.dbProducts.set({
-          products: state.products.map((p) => p.firestoreDoc),
+          productsList: state.products.productsList.map((p) => p.firestoreDoc),
+          last_updated: fb.firestore.FieldValue.serverTimestamp(),
         });
+
+        dispatch("fetchProducts");
 
         dispatch("alertSuccess", "Successfully updated products.");
       } catch (err) {
@@ -514,16 +531,22 @@ const store = createStore({
       }
     },
 
-    replaceProducts({ commit, dispatch }, products) {
-      commit("SET_PRODUCTS", products);
+    replaceProducts({ commit, dispatch, state }, products) {
+      commit("SET_PRODUCTS", {
+        productsList: products,
+        last_updated: state.last_updated,
+      });
 
       dispatch("alertInfo", "Replaced all products with the template.");
     },
 
     appendToProducts({ state, commit, dispatch }, products) {
-      const mergedProducts = state.products.concat(products);
+      const mergedProducts = state.products.productsList.concat(products);
 
-      commit("SET_PRODUCTS", mergedProducts);
+      commit("SET_PRODUCTS", {
+        productsList: mergedProducts,
+        last_updated: state.last_updated,
+      });
 
       dispatch("alertInfo", "Added products in template to existing products.");
     },
@@ -1248,7 +1271,7 @@ const store = createStore({
   getters: {
     // SHARED
     productsLength: (state) => {
-      return state.products?.length ?? 0;
+      return state.products?.productsList?.length ?? 0;
     },
 
     //#region CUSTOMER
