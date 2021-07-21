@@ -189,13 +189,6 @@ export default {
         return state.products?.productsList ?? [];
       },
       openBatch: "openBatch",
-      // categories: (state) => [
-      //   ...new Set(
-      //     state.products?.map((p) =>
-      //       p.category ? p.category : "Uncategorized"
-      //     )
-      //   ),
-      // ],
     }),
 
     categories() {
