@@ -4,7 +4,7 @@
       <!-- Payment and Order Details -->
       <div class="text-sm sm:text-base mb-3">
         <div class="print-only">
-          <h1 class="text-center pb-5">Gringo's</h1>
+          <h1 class="text-center pb-5">FOMO</h1>
 
           <div v-if="order.oid" class="grid grid-cols-1 sm:grid-cols-2">
             <b>Customer: </b>

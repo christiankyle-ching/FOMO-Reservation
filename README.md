@@ -1,4 +1,5 @@
-# Prototype - Gringo
+# FOMO Reservation Web App
+A Vue.JS 3 web application with Firebase as backend for real-time reservation, ordering, and payment.
 
 ## Deployment Notes
 
