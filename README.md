@@ -5,7 +5,7 @@ A Vue.JS 3 web application with Firebase as backend for real-time reservation, o
 https://docs.google.com/document/d/1eSZ2GrIvIkwLBvSkPuOp87g1EHIlQ1M_Zo3GwCv4GOw/
 
 ## Features
-_[Screenshots available here](https://christiankyleching.vercel.app/works.html?scrollTo=fomo_reservation)_
+_[Screenshots available here](https://ckcdev.vercel.app/project/fomo_reservation)_
 - Real-time application updates (no web page reloads)
 - Reservation can be limited to a number of persons (First Come, First Serve)
 - Orders can also be capped to a number of items
